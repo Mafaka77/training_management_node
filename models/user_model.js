@@ -12,7 +12,7 @@ const userSchema= new mongoose.Schema({
     },
     password: {
         type: String,
-        required: true,
+        required: false,
     },
     mobile: {
         type: String,
@@ -26,9 +26,14 @@ const userSchema= new mongoose.Schema({
         type:String,
         required: false,
     },
+   gender:{
+        type:String,
+        enums:["Male","Female"],
+        required: false,
+   },
     designation:{
         type:String,
-        required: true
+        required: false
     },
     roles: [{
         type: mongoose.Schema.Types.ObjectId,

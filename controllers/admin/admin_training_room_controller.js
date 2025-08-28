@@ -41,3 +41,31 @@ exports.getTrainingRoom= async (req, res) => {
         return res.status(STATUS.OK).json({ error: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }
 };
+exports.deleteTrainingRoom = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const room = await TrainingRoom.findByIdAndDelete(id);
+
+        if (!room) {
+            return res.status(STATUS.OK).json({
+                message: "Training Room not found",
+                status: STATUS.NOT_FOUND
+            });
+        }
+
+        return res.status(STATUS.OK).json({
+            message: "Training Room deleted successfully",
+            status: STATUS.OK
+        });
+
+    } catch (error) {
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            error: error.message,
+            status: STATUS.INTERNAL_SERVER_ERROR
+        });
+    }
+};
+
+
+

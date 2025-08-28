@@ -14,9 +14,13 @@ const materialsSchema = new mongoose.Schema({
         ref: 'TrainingCourse',
         required: true
     },
+    mime_type: {
+        type: String,
+        required: false
+    },
     createdAt: {
         type: Date,
         default: Date.now
     }
 });
-const Materials = mongoose.model('Materials', materialsSchema);
+module.exports= mongoose.model('Materials', materialsSchema);
