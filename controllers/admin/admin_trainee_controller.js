@@ -12,7 +12,8 @@ exports.getAllTrainee = async (req, res) => {
         limit = parseInt(limit);
 
         // Build filter (with optional search by name/email/mobile)
-        const filter = { role: 'Trainee' };
+        const filter =await Role.findOne({ name: "Trainee" });
+        console.log(filter);
 
         if (search) {
             filter.$or = [
@@ -26,11 +27,11 @@ exports.getAllTrainee = async (req, res) => {
         const total = await User.countDocuments(filter);
 
         // Fetch paginated data
-        const trainees = await User.find(filter)
+        const trainees = await User.find({ roles: filter._id, })
             .select("-password -__v") // exclude sensitive fields
             .skip((page - 1) * limit)
             .limit(limit);
-
+        console.log(trainees)
         return res.status(STATUS.OK).json({
             trainees,
             pagination: {

@@ -14,3 +14,5 @@ const connectDB=async()=>{
     }
 }
 module.exports = connectDB;
+// mongodb://msegs:MSeGS%402024@115.124.123.114:27017/ruangphur?authSource=ruangphur&replicaSet=rs0
+//     mongosh "mongodb://user:115.124.123.114:27017/dbname?authSource=admin"
