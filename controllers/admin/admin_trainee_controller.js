@@ -44,7 +44,7 @@ exports.getAllTrainee = async (req, res) => {
         });
     } catch (e) {
         return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
-            error: e.message,
+            message: e.message,
             status: STATUS.INTERNAL_SERVER_ERROR,
         });
     }
@@ -57,7 +57,7 @@ exports.createTrainee = async (req, res) => {
         // Basic validation
         if (!full_name || !email || !mobile || !password) {
             return res.status(STATUS.OK).json({
-                error: "All fields are required",
+                message: "All fields are required",
                 status: STATUS.BAD_REQUEST,
             });
         }
@@ -66,7 +66,7 @@ exports.createTrainee = async (req, res) => {
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(STATUS.OK).json({
-                error: "User with this email already exists",
+                message: "User with this email already exists",
                 status: STATUS.CONFLICT,
             });
         }
@@ -93,7 +93,7 @@ exports.createTrainee = async (req, res) => {
         });
     } catch (e) {
         return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
-            error: e.message,
+            message: e.message,
             status: STATUS.INTERNAL_SERVER_ERROR,
         });
     }

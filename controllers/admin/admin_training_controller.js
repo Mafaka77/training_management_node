@@ -40,7 +40,7 @@ exports.getTraining = async (req, res) => {
     } catch (e) {
         return res
             .status(STATUS.INTERNAL_SERVER_ERROR)
-            .json({ error: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+            .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }
 };
 
@@ -49,13 +49,13 @@ exports.submitTrainingProgram= async (req, res) => {
 
     try {
         if (!t_name ||!t_start_date||!t_end_date||!t_category||!t_room) {
-            return res.status(STATUS.OK).json({ error: "Please fill all required fields" ,status:STATUS.BAD_REQUEST});
+            return res.status(STATUS.OK).json({ message: "Please fill all required fields" ,status:STATUS.BAD_REQUEST});
         }
 
         const existingTraining = await TrainingProgram.findOne({ t_name });
 
         if (existingTraining) {
-            return res.status(STATUS.OK).json({ error: "Training with same name already exists" ,status:STATUS.CONFLICT});
+            return res.status(STATUS.OK).json({ message: "Training with same name already exists" ,status:STATUS.CONFLICT});
         }
 
         const program = new TrainingProgram({
@@ -75,7 +75,7 @@ exports.submitTrainingProgram= async (req, res) => {
         return res.status(STATUS.OK).json({ message: "Training created successfully" ,status:STATUS.CREATED});
 
     } catch (e) {
-        return res.status(STATUS.OK).json({ error: e.message ,status:STATUS.INTERNAL_SERVER_ERROR});
+        return res.status(STATUS.OK).json({ message: e.message ,status:STATUS.INTERNAL_SERVER_ERROR});
     }
 }
 

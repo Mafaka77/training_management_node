@@ -51,54 +51,54 @@ exports.getTraining = async (req, res) => {
     } catch (e) {
         return res
             .status(STATUS.INTERNAL_SERVER_ERROR)
-            .json({ error: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+            .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }
 
 };
 exports.getTrainingById=async (req,res)=>{
     const {trainingId}=req.params;
     if(!mongoose.Types.ObjectId.isValid(trainingId)){
-        return res.status(STATUS.OK).json({error:"Invalid training ID",status:STATUS.BAD_REQUEST});
+        return res.status(STATUS.OK).json({message:"Invalid training ID",status:STATUS.BAD_REQUEST});
     }
     try{
         const training=await TrainingProgram.findById(trainingId)
             .populate('trainingCourse',['tc_topic','tc_description','-t_program']);
 
         if(!training){
-            return res.status(STATUS.OK).json({error:"Training not found",status:STATUS.NOT_FOUND});
+            return res.status(STATUS.OK).json({message:"Training not found",status:STATUS.NOT_FOUND});
         }
         return res.status(STATUS.OK).json({training,status:STATUS.OK});
     }catch(e){
         return res
             .status(STATUS.INTERNAL_SERVER_ERROR)
-            .json({ error: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+            .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }
 }
 exports.enrollInTraining=async (req,res)=>{
     const {trainingId}=req.params;
     if(!mongoose.Types.ObjectId.isValid(trainingId)){
-        return res.status(STATUS.OK).json({error:"Invalid training ID",status:STATUS.BAD_REQUEST});
+        return res.status(STATUS.OK).json({message:"Invalid training ID",status:STATUS.BAD_REQUEST});
     }
     try{
         // Check if training exists
         const training=await TrainingProgram.findById(trainingId);
         if(!training){
-            return res.status(STATUS.OK).json({error:"Training not found",status:STATUS.NOT_FOUND});
+            return res.status(STATUS.OK).json({message:"Training not found",status:STATUS.NOT_FOUND});
         }
         if(training.t_status!=='Upcoming'){
-            return res.status(STATUS.OK).json({error:"Enrollment is only allowed for upcoming trainings",status:STATUS.FORBIDDEN});
+            return res.status(STATUS.OK).json({message:"Enrollment is only allowed for upcoming trainings",status:STATUS.FORBIDDEN});
         }
         // Check if capacity is reached
 
         const currentEnrollments=await Enrollment.countDocuments({training_program:trainingId,status:'Approved'});
         if(currentEnrollments>=training.t_capacity){
-            return res.status(STATUS.OK).json({error:"Training capacity reached",status:STATUS.BAD_REQUEST});
+            return res.status(STATUS.OK).json({message:"Training capacity reached",status:STATUS.BAD_REQUEST});
         }
 
         // Check if user already enrolled
         const existingEnrollment=await Enrollment.findOne({training_program:trainingId,user:req.user.user.id});
         if(existingEnrollment){
-            return res.status(STATUS.OK).json({error:"You are already enrolled in this training",status:STATUS.CONFLICT});
+            return res.status(STATUS.OK).json({message:"You are already enrolled in this training",status:STATUS.CONFLICT});
         }
 
         // Create enrollment
@@ -113,7 +113,7 @@ exports.enrollInTraining=async (req,res)=>{
     }catch(e){
         return res
             .status(STATUS.INTERNAL_SERVER_ERROR)
-            .json({ error: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+            .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }
 }
 exports.myEnrollments=async (req,res)=>{
@@ -124,13 +124,13 @@ exports.myEnrollments=async (req,res)=>{
     }catch (e) {
         return res
             .status(STATUS.INTERNAL_SERVER_ERROR)
-            .json({ error: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+            .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }
 }
 exports.myEnrollmentDetails=async (req,res)=>{
     const {enrollmentId}=req.params;
     if(!mongoose.Types.ObjectId.isValid(enrollmentId)){
-        return res.status(STATUS.OK).json({error:"Invalid enrollment ID",status:STATUS.BAD_REQUEST});
+        return res.status(STATUS.OK).json({message:"Invalid enrollment ID",status:STATUS.BAD_REQUEST});
     }
     try{
         const status = await Enrollment.findOne({
@@ -154,7 +154,7 @@ exports.myEnrollmentDetails=async (req,res)=>{
             }
 
             return res.status(STATUS.OK).json({
-                error: message,
+                message: message,
                 status: STATUS.FORBIDDEN
             });
         }
@@ -182,7 +182,7 @@ exports.myEnrollmentDetails=async (req,res)=>{
     }catch (e) {
         return res
             .status(STATUS.INTERNAL_SERVER_ERROR)
-            .json({ error: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+            .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }
 }
 exports.upsertMyRating = async (req, res) => {

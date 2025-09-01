@@ -82,7 +82,6 @@ exports.getEnrollmentById= async (req, res) => {
             enrollment
         });
     } catch (error) {
-        console.error("Error fetching enrollment by ID:", error);
         res.status(STATUS.INTERNAL_SERVER_ERROR).json({
             status: STATUS.INTERNAL_SERVER_ERROR,
             message: "Server Error"
@@ -110,7 +109,11 @@ exports.updateEnrollmentStatus= async (req, res) => {
                 message: "Enrollment not found"
             });
         }
-
+        const trainingId=enrollment.training_program._id;
+        const currentEnrollments=await Enrollment.countDocuments({training_program:trainingId,status:'Approved'});
+        if(currentEnrollments>=training.t_capacity){
+            return res.status(STATUS.OK).json({message:"Training capacity reached! Add to Waitlist",status:STATUS.BAD_REQUEST});
+        }
         enrollment.status = status;
         await enrollment.save();
 

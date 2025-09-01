@@ -25,7 +25,7 @@ exports.createUser = async (req, res) => {
     try {
         if (!full_name || !email || !password || !mobile || !designation) {
             return res.status(STATUS.OK).json({
-                error: "Please fill all required fields",
+                message: "Please fill all required fields",
                 status: STATUS.BAD_REQUEST
             });
         }
@@ -33,7 +33,7 @@ exports.createUser = async (req, res) => {
         const existingUser = await User.findOne({ $or: [{ mobile }, { email }] });
         if (existingUser) {
             return res.status(STATUS.OK).json({
-                error: "User with this email or mobile already exists",
+                message: "User with this email or mobile already exists",
                 status: STATUS.CONFLICT
             });
         }
@@ -62,8 +62,64 @@ exports.createUser = async (req, res) => {
 
     } catch (e) {
         return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
-            error: e.message,
+            message: e.message,
             status: STATUS.INTERNAL_SERVER_ERROR
+        });
+    }
+};
+exports.getAllUsers = async (req, res) => {
+    try {
+        // Extract query params
+        let { page = 1, limit = 10, search = "", sortField = "name", sortOrder = "asc", role = "" } = req.query;
+
+        page = parseInt(page);
+        limit = parseInt(limit);
+
+        // Build filter
+        const filter = {};
+
+        // Search by name/email (adjust fields as needed)
+        if (search) {
+            filter.$or = [
+                { name: { $regex: search, $options: "i" } },
+                { email: { $regex: search, $options: "i" } }
+            ];
+        }
+
+        // Role-based filtering
+        if (role) {
+            filter.roles = role; // assuming roles stores ObjectId, use roleId from frontend
+        }
+
+        // Sorting
+        const sort = {};
+        sort[sortField] = sortOrder === "asc" ? 1 : -1;
+
+        // Count total for pagination
+        const totalUsers = await User.countDocuments(filter);
+
+        // Query with filter, sort, paginate
+        const users = await User.find(filter)
+            .populate("roles", "name") // populate only necessary fields
+            .populate("district", "name")
+            .populate("department", "name")
+            .sort(sort)
+            .skip((page - 1) * limit)
+            .limit(limit);
+
+        return res.status(STATUS.OK).json({
+            status: STATUS.OK,
+            page,
+            limit,
+            totalUsers,
+            totalPages: Math.ceil(totalUsers / limit),
+            users,
+        });
+    } catch (e) {
+        console.error("Error fetching users:", e);
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            status: STATUS.INTERNAL_SERVER_ERROR,
+            message: e.message,
         });
     }
 };

@@ -17,12 +17,14 @@ const trainerTrainingController= require('../controllers/trainer/trainer_trainin
 const TrainingEnrollmentController= require('../controllers/admin/admin_training_enrollment_controller');
 //AUTH
 router.post('/login',upload.none(), authController.login);
+router.get('/me',authenticate, upload.none(), authController.me);
 
 //ADMIN ROLE.  ----------------------------------------------
 //USER CONTROLLER
 router.get('/get-all-roles', authenticate, authorizeRoles('Admin'), upload.none(), userController.getRoles);
 router.get('/get-all-district', authenticate, authorizeRoles('Admin'), upload.none(), userController.getDistrict);
 router.post('/create-user', authenticate, authorizeRoles('Admin'), upload.none(), userController.createUser);
+router.get('/users', authenticate, authorizeRoles('Admin'), upload.none(), userController.getAllUsers);
 
 //DEPARTMENT
 router.post('/department', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_department_controller').createDepartment);

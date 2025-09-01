@@ -8,7 +8,7 @@ exports.submitTrainingRoom= async (req, res) => {
 
     try {
         if (!room_name || !room_no) {
-            return res.status(STATUS.OK).json({ error: "Please fill all required fields" ,status:STATUS.BAD_REQUEST});
+            return res.status(STATUS.OK).json({ message: "Please fill all required fields" ,status:STATUS.BAD_REQUEST});
         }
 
         const existingRoom = await TrainingRoom.findOne({
@@ -16,7 +16,7 @@ exports.submitTrainingRoom= async (req, res) => {
         });
 
         if (existingRoom) {
-            return res.status(STATUS.OK).json({ error: "Room with same name or number already exists" ,status:STATUS.CONFLICT});
+            return res.status(STATUS.OK).json({ message: "Room with same name or number already exists" ,status:STATUS.CONFLICT});
         }
 
         const room = new TrainingRoom({
@@ -30,7 +30,7 @@ exports.submitTrainingRoom= async (req, res) => {
         return res.status(STATUS.OK).json({ message: "Training Room created successfully" ,status:STATUS.CREATED});
 
     } catch (e) {
-        return res.status(STATUS.OK).json({ error: e.message ,status:STATUS.INTERNAL_SERVER_ERROR});
+        return res.status(STATUS.OK).json({ message: e.message ,status:STATUS.INTERNAL_SERVER_ERROR});
     }
 };
 exports.getTrainingRoom= async (req, res) => {
@@ -38,7 +38,7 @@ exports.getTrainingRoom= async (req, res) => {
         const rooms = await TrainingRoom.find();
         return res.status(STATUS.OK).json({ rooms, status: STATUS.OK });
     } catch (e) {
-        return res.status(STATUS.OK).json({ error: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+        return res.status(STATUS.OK).json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }
 };
 exports.deleteTrainingRoom = async (req, res) => {
@@ -61,7 +61,7 @@ exports.deleteTrainingRoom = async (req, res) => {
 
     } catch (error) {
         return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
-            error: error.message,
+            message: error.message,
             status: STATUS.INTERNAL_SERVER_ERROR
         });
     }

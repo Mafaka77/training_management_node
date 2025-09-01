@@ -14,7 +14,7 @@ exports.getTrainer= async (req, res) => {
             .populate("roles", "name"); // optional: show role name
         return res.status(STATUS.OK).json({ trainers, status: STATUS.OK });
     } catch (e) {
-        return res.status(STATUS.OK).json({ error: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+        return res.status(STATUS.OK).json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }
 }
 
@@ -25,13 +25,13 @@ exports.submitTrainingCourse = async (req, res) => {
 
     try {
         if (!tc_topic || !tc_start_time || !tc_end_time || !t_program || !trainer) {
-            return res.status(STATUS.OK).json({ error: "Please fill all required fields" ,status:STATUS.BAD_REQUEST});
+            return res.status(STATUS.OK).json({ message: "Please fill all required fields" ,status:STATUS.BAD_REQUEST});
         }
 
         const existingCourse = await TrainingCourse.findOne({ tc_topic });
 
         if (existingCourse) {
-            return res.status(STATUS.OK).json({ error: "Training Course with same topic already exists" ,status:STATUS.CONFLICT});
+            return res.status(STATUS.OK).json({ message: "Training Course with same topic already exists" ,status:STATUS.CONFLICT});
         }
 
         const course = new TrainingCourse({
@@ -49,7 +49,7 @@ exports.submitTrainingCourse = async (req, res) => {
         return res.status(STATUS.OK).json({ message: "Training Course created successfully" ,status:STATUS.CREATED});
 
     } catch (e) {
-        return res.status(STATUS.OK).json({ error: e.message ,status:STATUS.INTERNAL_SERVER_ERROR});
+        return res.status(STATUS.OK).json({ message: e.message ,status:STATUS.INTERNAL_SERVER_ERROR});
     }
 }
 exports.getAllTrainingCourse = async (req, res) => {
@@ -96,7 +96,7 @@ exports.getAllTrainingCourse = async (req, res) => {
 
     } catch (e) {
         return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
-            error: e.message,
+            message: e.message,
             status: STATUS.INTERNAL_SERVER_ERROR
         });
     }

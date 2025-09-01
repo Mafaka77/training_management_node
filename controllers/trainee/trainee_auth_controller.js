@@ -9,10 +9,15 @@ const NodeCache = require("node-cache");
 // Initialize cache with a 5-minute expiration time
 const otpCache = new NodeCache({ stdTTL: 300 }); // 300 seconds = 5 minutes
 exports.login=async (req,res)=>{
-    const {email,password}=req.body;
+    const {mobile,password}=req.body;
 
     try{
-        let user=await User.findOne({email})
+        let user=await User.findOne({
+            $or: [
+                { mobile: mobile },
+                { email: mobile }
+            ]
+        })
             .populate('roles','-__v');
         if(!user){
             return res.status(STATUS.OK).json({message:"User not found",status:STATUS.NOT_FOUND});
@@ -24,7 +29,7 @@ exports.login=async (req,res)=>{
         const payload={
             user:{
                 id:user.id,
-                email: user.email,
+                mobile: user.mobile,
                 roles: user.roles.map(role => role.name),
             },
         };
@@ -53,14 +58,14 @@ exports.register=async (req,res)=>{
     try{
         if (!full_name || !email || !password || !mobile || !designation) {
             return res.status(STATUS.OK).json({
-                error: "Please fill all required fields",
+                message: "Please fill all required fields",
                 status: STATUS.BAD_REQUEST
             });
         }
         const existingUser = await User.findOne({ $or: [{ mobile }, { email }] });
         if (existingUser) {
             return res.status(STATUS.OK).json({
-                error: "User with this email or mobile already exists",
+                message: "User with this email or mobile already exists",
                 status: STATUS.CONFLICT
             });
         }
@@ -88,7 +93,7 @@ exports.register=async (req,res)=>{
         });
     }catch (e) {
         return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
-            error: e.message,
+            message: e.message,
             status: STATUS.INTERNAL_SERVER_ERROR
         });
     }

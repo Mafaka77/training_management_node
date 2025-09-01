@@ -36,7 +36,7 @@ exports.createTrainer= async (req, res) => {
 
         return res.status(STATUS.OK).json({ message: "Trainer created successfully", trainer: newTrainer, status: STATUS.CREATED });
     } catch (e) {
-        return res.status(STATUS.OK).json({ error: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+        return res.status(STATUS.OK).json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }
 }
 
@@ -101,7 +101,7 @@ exports.getAllTrainers = async (req, res) => {
     } catch (e) {
         return res
             .status(STATUS.OK)
-            .json({ error: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+            .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }
 };
 exports.deleteTrainer = async (req, res) => {
@@ -128,6 +128,6 @@ exports.deleteTrainer = async (req, res) => {
     } catch (e) {
         return res
             .status(STATUS.INTERNAL_SERVER_ERROR)
-            .json({ error: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+            .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }
 };
