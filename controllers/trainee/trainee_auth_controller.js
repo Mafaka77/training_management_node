@@ -101,7 +101,10 @@ exports.register=async (req,res)=>{
 }
 exports.sendOtp=async(req,res)=>{
     const {mobile}=req.body;
-    console.log(mobile);
+    const user=await User.findOne({mobile:mobile});
+    if(user){
+        return res.status(STATUS.OK).json({message:'User already exists',status:STATUS.CONFLICT})
+    }
     const otp=generateOTP(mobile);
     const templateId='1407173926279603243';
     const message=`Please enter OTP ${otp} to submit your Ruangphur application.EGOVMZ`;
