@@ -6,6 +6,10 @@ const trainingProgramSchema = new mongoose.Schema({
         unique: true,
 
     },
+    t_banner:{
+        type: String,
+        required: false,
+    },
     t_description: {
         type: String,
         required: false,
@@ -53,12 +57,21 @@ const trainingProgramSchema = new mongoose.Schema({
         ref: 'TrainingRoom',
         required: true
     },
-
+    averageRating: { type: Number, default: 0 },
+    ratingsCount:  { type: Number, default: 0 },
     createdAt: {
         type: Date,
         default: Date.now
     },
 
 });
+
+trainingProgramSchema.virtual('trainingCourse',{
+    ref:'TrainingCourse',
+    localField:'_id',
+    foreignField:'t_program',
+})
+trainingProgramSchema.set('toObject',{virtuals:true});
+trainingProgramSchema.set('toJSON',{virtuals:true});
 
 module.exports = mongoose.model('TrainingProgram', trainingProgramSchema);

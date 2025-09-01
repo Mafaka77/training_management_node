@@ -22,8 +22,6 @@ exports.authorizeRoles = (...allowedRoles) => {
     return (req, res, next) => {
         const roles = req.user?.user?.roles; // 👈 adjust for nested object
 
-        console.log("User roles from token:", roles);
-
         if (!roles) {
             return res.status(403).json({ message: "Forbidden: No roles found" });
         }
@@ -37,6 +35,7 @@ exports.authorizeRoles = (...allowedRoles) => {
         next();
     };
 };
+
 
 
 
