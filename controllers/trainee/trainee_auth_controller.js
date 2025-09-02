@@ -133,12 +133,12 @@ exports.verifyOtp=async(req,res)=>{
     const { mobile, otp } = req.body;
     try {
         const storedOtp = otpCache.get(`otp_${mobile}`);
-
+        console.log(storedOtp);
         if (!storedOtp) {
             return res.status(STATUS.OK).json({ message: 'OTP has expired or does not exist.', status: 400 });
         }
 
-        if (storedOtp !== otp) {
+        if (String(storedOtp) !== String(otp)) {
             return res.status(STATUS.OK).json({ message: 'Invalid OTP.', status: 400 });
         }
 
