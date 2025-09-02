@@ -12,6 +12,8 @@ router.post('/register',upload.none(), TraineeAuthController.register);
 router.post('/login',upload.none(), TraineeAuthController.login);
 router.post('/send-otp',upload.none(), TraineeAuthController.sendOtp);
 router.post('/verify-otp',upload.none(), TraineeAuthController.verifyOtp);
+router.get('/departments',upload.none(), TraineeAuthController.getDepartment);
+
 
 //TRAINING
 router.get('/trainings',upload.none(),authenticate,authorizeRoles('Trainee'), TraineeTrainingController.getTraining);

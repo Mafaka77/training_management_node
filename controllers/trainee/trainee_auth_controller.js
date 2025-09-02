@@ -2,6 +2,7 @@ const mongoose=require('mongoose');
 const axios = require('axios');
 const User=require('../../models/user_model');
 const Role=require('../../models/role_model');
+const Department=require('../../models/department_model');
 const STATUS = require("../../utils/httpStatus");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -148,6 +149,15 @@ exports.verifyOtp=async(req,res)=>{
         return res.status(STATUS.OK).json({ message: 'OTP is verified', status: STATUS.OK });
     } catch (ex) {
         return res.status(STATUS.OK).json({ message: ex.message, status: 500 });
+    }
+}
+
+exports.getDepartment=async (req,res)=>{
+    try{
+        const departments=await Department.find().select('-__v').lean();
+        return res.status(STATUS.OK).json({departments,status:STATUS.OK});
+    }catch (e) {
+        
     }
 }
 const generateOTP = (phone) => {
