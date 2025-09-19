@@ -106,10 +106,10 @@ exports.getAllTrainers = async (req, res) => {
 };
 exports.deleteTrainer = async (req, res) => {
     try {
-        const { id } = req.params;
+        const { trainerId } = req.params;
 
         // Check if user exists
-        const user = await User.findById(id);
+        const user = await User.findById(trainerId);
         if (!user) {
             return res
                 .status(STATUS.NOT_FOUND)
@@ -117,10 +117,10 @@ exports.deleteTrainer = async (req, res) => {
         }
 
         // Delete trainer profile if exists
-        await TrainerProfile.findOneAndDelete({ user_id: id });
+        await TrainerProfile.findOneAndDelete({ user_id: trainerId });
 
         // Delete trainer user
-        await User.findByIdAndDelete(id);
+        await User.findByIdAndDelete(trainerId);
 
         return res
             .status(STATUS.OK)
@@ -130,4 +130,28 @@ exports.deleteTrainer = async (req, res) => {
             .status(STATUS.INTERNAL_SERVER_ERROR)
             .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }
+};
+
+exports.getTrainerById = async (req, res) => {
+    try {
+        const { trainerId } = req.params;
+
+        // Check if user exists
+        const user = await User.findById(trainerId);
+       if (!user) {
+           return res.status(STATUS.OK).json({
+               message: "Trainer not found",
+               status: STATUS.NOT_FOUND,
+           });
+       }
+
+       return res.status(STATUS.OK).json({
+           user,
+           status: STATUS.OK,
+       });
+   } catch (e) {
+       return res
+           .status(STATUS.INTERNAL_SERVER_ERROR)
+           .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+   }
 };

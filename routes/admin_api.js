@@ -51,6 +51,8 @@ router.get('/get-all-training-course', authenticate, authorizeRoles('Admin'), up
 //TRAINER
 router.post('/trainer', authenticate, authorizeRoles('Admin'), upload.none(), trainerController.createTrainer);
 router.get('/trainers', authenticate, authorizeRoles('Admin'), upload.none(), trainerController.getAllTrainers);
+router.get('/trainer/:trainerId', authenticate, authorizeRoles('Admin'), upload.none(), trainerController.getTrainerById);
+router.delete('/trainer/:trainerId', authenticate, authorizeRoles('Admin'), upload.none(), trainerController.deleteTrainer);
 
 //TRAINEE
 router.get('/trainees', authenticate, authorizeRoles('Admin'), upload.none(), traineeController.getAllTrainee);
@@ -63,6 +65,7 @@ router.patch('/enrollment/:enrollmentId', authenticate, authorizeRoles('Admin'),
 
 //DOCUMENTS
 router.post('/documents', authenticate, authorizeRoles('Admin'), fileUpload.array('documents',1), require('../controllers/admin/admin_document_controller').submitDocument);
+router.delete('/document/:id', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_document_controller').deleteDocument);
 
 //TICKET
 router.get('/tickets',authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_ticket_controller').getAllTickets);
@@ -88,7 +91,9 @@ router.post('/trainer/document', authenticate, authorizeRoles('Trainer'), fileUp
 
 
 //BANNER
-router.post('/banner', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_banner_controller').uploadBanner);
+router.post('/banner', authenticate, authorizeRoles('Admin'), fileUpload.single('banner'), require('../controllers/admin/admin_banner_controller').uploadBanner);
+router.delete('/banner/:id', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_banner_controller').deleteBanner);
+
 
 module.exports=router;
 

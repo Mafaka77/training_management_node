@@ -1,5 +1,7 @@
 const Document=require('../../models/document_model');
-
+const fs = require('fs');
+const path = require('path');
+const STATUS=require('../../utils/httpStatus');
 
 exports.submitDocument = async (req, res) => {
     try {
@@ -35,5 +37,30 @@ exports.submitDocument = async (req, res) => {
     } catch (error) {
         console.error("Error uploading documents:", error);
         res.status(500).json({ message: "Server Error" });
+    }
+};
+exports.deleteDocument = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const document = await Document.findById(id);
+        if (!document) {
+            return res.status(STATUS.OK).json({ message: "Document not found" ,status:STATUS.NOT_FOUND});
+        }
+
+        // Remove the file from the server
+        if (document.fileUrl) {
+            const filePath = path.join(__dirname, '../../', document.fileUrl);
+            fs.unlink(filePath, (err) => {
+                if (err) {
+                    console.warn('File not found or already deleted:', filePath);
+                }
+            });
+        }
+
+        await Document.findByIdAndDelete(id);
+        res.status(STATUS.OK).json({ message: "Document deleted successfully" ,status:STATUS.OK });
+    } catch (error) {
+        console.error("Error deleting document:", error);
+        res.status(STATUS.INTERNAL_SERVER_ERROR).json({ message: "Server Error" ,status:STATUS.INTERNAL_SERVER_ERROR });
     }
 };
