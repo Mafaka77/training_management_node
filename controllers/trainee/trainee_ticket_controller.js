@@ -25,27 +25,49 @@ exports.raiseTicket=async (req, res)=>{
 exports.myTicket=async (req, res)=>{
     try{
         const user=req.user.user.id;
-        const tickets= await Ticket.find({user}).populate('user', 'name email').sort({createdAt: -1});
+        const tickets= await Ticket.find({user}).select(['subject','status','createdAt']).sort({createdAt: -1});
         return res.status(STATUS.OK).json({message: 'Tickets fetched successfully', tickets, status:STATUS.OK});
     }catch(error){
         console.error('Error fetching tickets:', error);
         return res.status(STATUS.INTERNAL_SERVER_ERROR).json({message: 'Internal server error',status:STATUS.INTERNAL_SERVER_ERROR});
     }
 }
-exports.getTicketById=async (req, res)=>{
-    try{
-        const user=req.user.user.id;
-        const {ticketId}= req.params;
-        const ticket= await Ticket.findOne({_id: ticketId, user}).populate('user', 'name email');
-        if(!ticket){
-            return res.status(STATUS.OK).json({message: 'Ticket not found', status:STATUS.NOT_FOUND});
+exports.getTicketById = async (req, res) => {
+    try {
+        const user = req.user.user.id;
+        const { ticketId } = req.params;
+
+        const ticket = await Ticket.findOne({ _id: ticketId, user })
+            .populate('user', 'name email')
+            .populate('replies.sender', 'name email')  // <--- populate nested sender
+            .lean();
+
+        if (!ticket) {
+            return res.status(STATUS.OK).json({
+                message: 'Ticket not found',
+                status: STATUS.NOT_FOUND
+            });
         }
-        return res.status(STATUS.OK).json({message: 'Ticket fetched successfully', ticket, status:STATUS.OK});
-    }catch(error){
+
+        // optional: ensure replies are sorted by createdAt ascending
+        if (ticket.replies && Array.isArray(ticket.replies)) {
+            ticket.replies.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+        }
+
+        return res.status(STATUS.OK).json({
+            message: 'Ticket fetched successfully',
+            ticket,
+            status: STATUS.OK
+        });
+    } catch (error) {
         console.error('Error fetching ticket:', error);
-        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({message: 'Internal server error',status:STATUS.INTERNAL_SERVER_ERROR});
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            message: 'Internal server error',
+            status: STATUS.INTERNAL_SERVER_ERROR
+        });
     }
-}
+};
+
 exports.replyTickets=async (req, res)=>{
     try{
         const user=req.user.user.id;

@@ -40,7 +40,7 @@ router.get('/get-training-category', authenticate, authorizeRoles('Admin'),uploa
 router.post('/submit-training-category', authenticate, authorizeRoles('Admin'), upload.none(), trainingCategoryController.createTrainingCategory);
 
 //TRAINING PROGRAM
-router.post('/submit-training-program',authenticate,authorizeRoles('Admin'),upload.none(), trainingController.submitTrainingProgram);
+router.post('/submit-training-program',authenticate,authorizeRoles('Admin'),fileUpload.single('banner'), trainingController.submitTrainingProgram);
 router.get('/get-all-training-program', authenticate, authorizeRoles('Admin'),upload.none(), trainingController.getTraining);
 
 //TRAINING COURSE
@@ -85,6 +85,10 @@ router.get('/trainer/trainings', authenticate, authorizeRoles('Trainer'), upload
 router.post('/trainer/course/:courseId/materials', authenticate, authorizeRoles('Trainer'), fileUpload.array('materials',5), trainerTrainingController.uploadMaterial);
 router.get('/trainer/training/:courseId', authenticate, authorizeRoles('Trainer'), upload.none(), trainerTrainingController.getTrainingById);
 router.post('/trainer/document', authenticate, authorizeRoles('Trainer'), fileUpload.array('documents',1), require('../controllers/trainer/trainer_document_controller').submitDocument);
+
+
+//BANNER
+router.post('/banner', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_banner_controller').uploadBanner);
 
 module.exports=router;
 

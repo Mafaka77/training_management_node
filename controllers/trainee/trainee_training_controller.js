@@ -1,9 +1,11 @@
 const mongoose=require('mongoose');
 const TrainingProgram=require('../../models/training_program_model');
+const TrainingCourse=require('../../models/training_course_model');
 const User=require('../../models/user_model');
 const STATUS=require('../../utils/httpStatus');
 const Enrollment=require('../../models/enrollment_model');
 const TrainingRatings=require('../../models/training_program_rating_model');
+const Material=require('../../models/materials_model');
 const {populate} = require("dotenv");
 //TRAINING PROGRAM-----------------------------------------------------------------------------------
 exports.getTraining = async (req, res) => {
@@ -62,7 +64,9 @@ exports.getTrainingById=async (req,res)=>{
     }
     try{
         const training=await TrainingProgram.findById(trainingId)
-            .populate('trainingCourse',['tc_topic','tc_description','-t_program']);
+            .populate('trainingCourse',['-t_program'])
+            .populate('t_category','name description')
+            .populate('t_room');
 
         if(!training){
             return res.status(STATUS.OK).json({message:"Training not found",status:STATUS.NOT_FOUND});
@@ -116,16 +120,90 @@ exports.enrollInTraining=async (req,res)=>{
             .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }
 }
-exports.myEnrollments=async (req,res)=>{
-    try{
-        const enrollments=await Enrollment.find({user:req.user.user.id})
-            .populate('training_program').select("-__v -user");
-        return res.status(STATUS.OK).json({enrollments,status:STATUS.OK});
-    }catch (e) {
+exports.myEnrollments = async (req, res) => {
+    try {
+        // Pagination
+        const offset = parseInt(req.query.offset) || 0;
+        const limit = parseInt(req.query.limit) || 10;
+
+        // Search (by training program name, title, etc.)
+        const search = req.query.search || "";
+
+        // Build query for enrollments
+        let query = { user: req.user.user.id };
+
+        // If searching inside populated training_program fields
+        const trainingProgramFilter = search
+            ? { name: { $regex: search, $options: "i" } } // adjust "name" to actual field
+            : {};
+
+        // Count total for pagination
+        const total = await Enrollment.countDocuments(query);
+
+        // Query with populate, filter, sort, pagination
+        const enrollments = await Enrollment.find(query)
+            .select("-__v -user")
+            .populate({
+                path: "training_program",
+                match: trainingProgramFilter, // apply search filter inside populate
+                select: "-__v"
+            })
+            .sort({ enrolledAt: -1 }) // latest first
+            .skip(offset)
+            .limit(limit);
+
+        // Filter out null training_program if search didn’t match
+        const filtered = enrollments.filter(e => e.training_program);
+
+        return res.status(STATUS.OK).json({
+            status: STATUS.OK,
+            total,
+            offset,
+            limit,
+            count: filtered.length,
+            enrollments: filtered
+        });
+    } catch (e) {
         return res
             .status(STATUS.INTERNAL_SERVER_ERROR)
             .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }
+};
+exports.checkStatus=async (req,res)=>{
+    const {enrollmentId}=req.params;
+    if(!mongoose.Types.ObjectId.isValid(enrollmentId)){
+        return res.status(STATUS.OK).json({message:"Invalid enrollment ID",status:STATUS.BAD_REQUEST});
+    }
+    try{
+        const data = await Enrollment.findById(enrollmentId);
+
+        if (!data) {
+            return res.status(STATUS.NOT_FOUND).json({
+                status: STATUS.NOT_FOUND,
+                message: "Enrollment not found",
+            });
+        }
+
+        if (data.status === "Pending") {
+            return res.status(STATUS.OK).json({
+                status: STATUS.FORBIDDEN,
+                message: "Your enrollment is pending for approval",
+            });
+        }
+        if (data.status === "Rejected") {
+            return res.status(STATUS.OK).json({
+                status: STATUS.FORBIDDEN,
+                message: "Your enrollment is rejected",
+            });
+        }
+        if (data.status === "Waitlisted") {
+            return res.status(STATUS.OK).json({
+                status: STATUS.FORBIDDEN,
+                message: "Your enrollment is waitlisted",
+            });
+        }
+        return res.status(STATUS.OK).json({status:STATUS.OK})
+    }catch (ex){}
 }
 exports.myEnrollmentDetails=async (req,res)=>{
     const {enrollmentId}=req.params;
@@ -133,44 +211,24 @@ exports.myEnrollmentDetails=async (req,res)=>{
         return res.status(STATUS.OK).json({message:"Invalid enrollment ID",status:STATUS.BAD_REQUEST});
     }
     try{
-        const status = await Enrollment.findOne({
-            status: { $in: ["Pending", "Rejected", "Waitlisted"] }
-        });
 
-        if (status) {
-            let message = "";
-            switch (status.status) {
-                case "Pending":
-                    message = "Your enrollment is pending for approval";
-                    break;
-                case "Rejected":
-                    message = "Your enrollment is rejected";
-                    break;
-                case "Waitlisted":
-                    message = "Your enrollment is waitlisted";
-                    break;
-                default:
-                    message = "Unknown status";
-            }
 
-            return res.status(STATUS.OK).json({
-                message: message,
-                status: STATUS.FORBIDDEN
-            });
-        }
-
-        const enrollment=await Enrollment.findById(enrollmentId)
-            .populate({path: 'training_program', populate:[
+        const enrollment = await Enrollment.findById(enrollmentId)
+            .populate({
+                path: 'training_program',
+                populate: [
+                    { path: 't_category' },          // replace with actual field name
+                    { path: 't_room' },              // replace with actual field name
                     {
-                        path:'trainingCourse',
-                        populate:[
-                            {
-                                path:'materials'
-                            }
+                        path: 'trainingCourse',              // replace with actual field name
+                        populate: [
+                            { path: 'materials' }              // nested populate inside trainingCourse
                         ]
                     }
-                ]})
-            .select("-__v");
+                ]
+            })
+            .select('-__v');
+
         if(!enrollment){
             return res.status(STATUS.OK).json({error:"Enrollment not found",status:STATUS.NOT_FOUND});
         }
@@ -207,3 +265,88 @@ exports.upsertMyRating = async (req, res) => {
         return res.status(400).json({ message: e.message });
     }
 };
+exports.getUpcomingTrainings = async (req, res) => {
+    try {
+        // Parse offset & limit from query params
+        const offset = parseInt(req.query.offset) || 0;  // default: 0
+        const limit = parseInt(req.query.limit) || 10;   // default: 10
+
+        // Count total upcoming trainings (for frontend pagination info)
+        const total = await TrainingProgram.countDocuments({ t_status: "Upcoming" });
+
+        // Fetch trainings with pagination
+        const trainings = await TrainingProgram.find({ t_status: "Upcoming" })
+            .populate("t_category", "name")
+            .populate("t_room", "room_name")
+            .sort({ createdAt: -1 }) // earliest first
+            .skip(offset)              // skip N docs
+            .limit(limit);             // limit results
+
+        return res.status(STATUS.OK).json({
+            status: STATUS.OK,
+            total,        // total available trainings
+            offset,       // current offset
+            limit,        // page size
+            count: trainings.length,
+            trainings,
+
+        });
+    } catch (e) {
+        return res
+            .status(STATUS.INTERNAL_SERVER_ERROR)
+            .json({
+                message: e.message,
+                status: STATUS.INTERNAL_SERVER_ERROR,
+            });
+    }
+};
+
+exports.getCourseByProgram=async (req,res)=>{
+    const {trainingId}=req.params;
+    try{
+        const data=await TrainingCourse.find({t_program:trainingId}).populate('t_program',['t_status']) .sort({ tc_start_time: 1, tc_session: 1 });
+        return res.status(STATUS.OK).json({status:STATUS.OK,data});
+    }catch (ex) {
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({status:STATUS.INTERNAL_SERVER_ERROR,message:ex.message});
+    }
+}
+
+exports.getMaterials=async (req,res)=>{
+    const {trainingId}=req.params;
+    try{
+        const course=await TrainingCourse.find({t_program:trainingId}).select('_id').lean();
+        const courseId=course.map(c=>c._id);
+
+        const materials=await Material.find({course:{$in:courseId}})
+            .lean();
+        return res.json({status:STATUS.OK,materials});
+
+    }catch (e) {
+        return  res.status(STATUS.INTERNAL_SERVER_ERROR).json({status:STATUS.INTERNAL_SERVER_ERROR,message:e.message})
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -5,6 +5,10 @@ const userSchema= new mongoose.Schema({
         type: String,
         required: true,
     },
+    profile_picture:{
+        type:String,
+        required:false,
+    },
     email: {
         type: String,
         required: false,
@@ -18,13 +22,13 @@ const userSchema= new mongoose.Schema({
         type: String,
         required: true,
     },
-    district: [{
+    district: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'District'
-    }],
+    },
     department: {
-        type:String,
-        required: false,
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'Department'
     },
    gender:{
         type:String,

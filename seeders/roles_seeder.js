@@ -31,7 +31,6 @@ await User.deleteMany(); // Clear existing users before creating a new one
             email: "admin@email.com",
             password: hashedPassword, // Store hashed password
             mobile: 1234567890, // Example mobile number
-            district: [], // Empty district
             roles: [adminRole._id] // Assign Admin role
         });
 
