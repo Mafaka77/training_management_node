@@ -15,7 +15,7 @@ connectDB();
 dotenv.config();
 
 // Initialize Admin SDK
-const credPath = process.env.GOOGLE_APPLICATION_CREDENTIALS || "./serviceAccount.json";
+const credPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
 const absCredPath = path.isAbsolute(credPath) ? credPath : path.join(process.cwd(), credPath);
 const serviceAccount = JSON.parse(fs.readFileSync(absCredPath, "utf8"));
 
