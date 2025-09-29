@@ -7,6 +7,7 @@ const Enrollment=require('../../models/enrollment_model');
 const TrainingRatings=require('../../models/training_program_rating_model');
 const Material=require('../../models/materials_model');
 const {populate} = require("dotenv");
+const {sendToUser}=require('../notification_controller');
 //TRAINING PROGRAM-----------------------------------------------------------------------------------
 exports.getTraining = async (req, res) => {
     try {
@@ -78,48 +79,62 @@ exports.getTrainingById=async (req,res)=>{
             .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }
 }
-exports.enrollInTraining=async (req,res)=>{
-    const {trainingId}=req.params;
-    if(!mongoose.Types.ObjectId.isValid(trainingId)){
-        return res.status(STATUS.OK).json({message:"Invalid training ID",status:STATUS.BAD_REQUEST});
+    exports.enrollInTraining=async (req,res)=>{
+        const {trainingId}=req.params;
+        if(!mongoose.Types.ObjectId.isValid(trainingId)){
+            return res.status(STATUS.OK).json({message:"Invalid training ID",status:STATUS.BAD_REQUEST});
+        }
+        try{
+            // Check if training exists
+            const training=await TrainingProgram.findById(trainingId);
+            if(!training){
+                return res.status(STATUS.OK).json({message:"Training not found",status:STATUS.NOT_FOUND});
+            }
+            if(training.t_status!=='Upcoming'){
+                return res.status(STATUS.OK).json({message:"Enrollment is only allowed for upcoming trainings",status:STATUS.FORBIDDEN});
+            }
+            // Check if capacity is reached
+
+            const currentEnrollments=await Enrollment.countDocuments({training_program:trainingId,status:'Approved'});
+            if(currentEnrollments>=training.t_capacity){
+                return res.status(STATUS.OK).json({message:"Training capacity reached",status:STATUS.BAD_REQUEST});
+            }
+
+            // Check if user already enrolled
+            const existingEnrollment=await Enrollment.findOne({training_program:trainingId,user:req.user.user.id});
+            if(existingEnrollment){
+                return res.status(STATUS.OK).json({message:"You are already enrolled in this training",status:STATUS.CONFLICT});
+            }
+
+            // Create enrollment
+            const newEnrollment=new Enrollment({
+                training_program:trainingId,
+                user:req.user.user.id,
+                status:'Pending'
+            });
+            await newEnrollment.save();
+            // Fire-and-forget; do not block API response
+sendToUser(req.user.user.id, {
+  title: 'Enrollment request received',
+  body: `You requested to enroll in "${training.t_title}"`,
+  data: {
+    action: 'open_training',              // <— your app switches on this
+    trainingId: String(training._id),
+    enrollmentId: String(newEnrollment._id),
+    status: 'Pending',
+    // optional context keys
+    screen: 'training_detail',
+    v: '1'                                // payload version for future changes
+  }
+}).catch(err => console.error('Notification error:', err));
+            return res.status(STATUS.OK).json({message:"Enrollment request submitted",enrollment:newEnrollment,status:STATUS.OK});
+
+        }catch(e){
+            return res
+                .status(STATUS.INTERNAL_SERVER_ERROR)
+                .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+        }
     }
-    try{
-        // Check if training exists
-        const training=await TrainingProgram.findById(trainingId);
-        if(!training){
-            return res.status(STATUS.OK).json({message:"Training not found",status:STATUS.NOT_FOUND});
-        }
-        if(training.t_status!=='Upcoming'){
-            return res.status(STATUS.OK).json({message:"Enrollment is only allowed for upcoming trainings",status:STATUS.FORBIDDEN});
-        }
-        // Check if capacity is reached
-
-        const currentEnrollments=await Enrollment.countDocuments({training_program:trainingId,status:'Approved'});
-        if(currentEnrollments>=training.t_capacity){
-            return res.status(STATUS.OK).json({message:"Training capacity reached",status:STATUS.BAD_REQUEST});
-        }
-
-        // Check if user already enrolled
-        const existingEnrollment=await Enrollment.findOne({training_program:trainingId,user:req.user.user.id});
-        if(existingEnrollment){
-            return res.status(STATUS.OK).json({message:"You are already enrolled in this training",status:STATUS.CONFLICT});
-        }
-
-        // Create enrollment
-        const newEnrollment=new Enrollment({
-            training_program:trainingId,
-            user:req.user.user.id,
-            status:'Pending'
-        });
-        await newEnrollment.save();
-        return res.status(STATUS.OK).json({message:"Enrollment request submitted",enrollment:newEnrollment,status:STATUS.OK});
-
-    }catch(e){
-        return res
-            .status(STATUS.INTERNAL_SERVER_ERROR)
-            .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
-    }
-}
 exports.myEnrollments = async (req, res) => {
     try {
         // Pagination

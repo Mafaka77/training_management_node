@@ -47,3 +47,13 @@ exports.deleteBanner = async (req, res) => {
     }
 }
 
+exports.getAllBanners=async (req,res)=>{
+    try{
+        const banners=await Banner.find().sort({uploadedAt:-1});
+        res.status(STATUS.OK).json({banners,status:STATUS.OK});
+    }catch(error){
+        console.error('Error fetching banners:',error);
+        res.status(STATUS.INTERNAL_SERVER_ERROR).json({message:'Server error',status:STATUS.INTERNAL_SERVER_ERROR});
+    }
+}
+

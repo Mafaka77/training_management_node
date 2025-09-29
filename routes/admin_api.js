@@ -40,7 +40,7 @@ router.get('/get-training-category', authenticate, authorizeRoles('Admin'),uploa
 router.post('/submit-training-category', authenticate, authorizeRoles('Admin'), upload.none(), trainingCategoryController.createTrainingCategory);
 
 //TRAINING PROGRAM
-router.post('/submit-training-program',authenticate,authorizeRoles('Admin'),fileUpload.single('banner'), trainingController.submitTrainingProgram);
+router.post('/submit-training-program',authenticate,authorizeRoles('Admin'),fileUpload.single('t_banner'), trainingController.submitTrainingProgram);
 router.get('/get-all-training-program', authenticate, authorizeRoles('Admin'),upload.none(), trainingController.getTraining);
 
 //TRAINING COURSE
@@ -92,8 +92,17 @@ router.post('/trainer/document', authenticate, authorizeRoles('Trainer'), fileUp
 
 //BANNER
 router.post('/banner', authenticate, authorizeRoles('Admin'), fileUpload.single('banner'), require('../controllers/admin/admin_banner_controller').uploadBanner);
+router.get('/banners', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_banner_controller').getAllBanners);
 router.delete('/banner/:id', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_banner_controller').deleteBanner);
 
+
+//NOTIFICATION
+
+// Tokens
+// router.post("/fcm/register-token", authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/token_controller').registerToken);
+// router.post("/unregister-token", authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/token_controller').deleteToken);
+// router.get("/tokens/:userId", authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/token_controller').listTokens);
+router.post("/fcm/send-notification", authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/notification_controller').sendToUser);
 
 module.exports=router;
 

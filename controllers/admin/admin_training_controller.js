@@ -66,7 +66,7 @@ exports.getTraining = async (req, res) => {
     }
 };
 exports.submitTrainingProgram= async (req, res) => {
-    const { t_name, t_description, t_start_date, t_end_date, t_duration, t_eligibility,t_category ,t_capacity,t_organizer,t_room} = req.body;
+    const { t_name, t_description, t_start_date, t_end_date, t_duration, t_eligibility,t_category ,t_capacity,t_organizer,t_room,t_banner} = req.body;
 
     try {
         // Required checks
@@ -91,7 +91,9 @@ exports.submitTrainingProgram= async (req, res) => {
         if (existingTraining) {
             return res.status(STATUS.OK).json({ message: "Training with same name already exists" ,status:STATUS.CONFLICT});
         }
-
+        // if(!req.file){
+        //     t_banner='https://ati.mizoram.gov.in/uploads/attachments/2025/06/4f0691cfe48c8f74fe413c7b92391ff4/banner1.jpg'
+        // }
         const program = new TrainingProgram({
             t_name,
             t_description,
@@ -103,8 +105,8 @@ exports.submitTrainingProgram= async (req, res) => {
             t_capacity,
             t_category ,
             t_room,
-            // t_banner:`/uploads/${req.file.filename}`
-            t_banner:'https://ati.mizoram.gov.in/uploads/attachments/2025/06/4f0691cfe48c8f74fe413c7b92391ff4/banner1.jpg'
+            t_banner:`/uploads/${req.file.filename}`
+            // t_banner:'https://ati.mizoram.gov.in/uploads/attachments/2025/06/4f0691cfe48c8f74fe413c7b92391ff4/banner1.jpg'
         });
 
         await program.save();

@@ -54,3 +54,6 @@ router.get('/faqs',upload.none(),authenticate,authorizeRoles('Trainee'),require(
 //BANNER
 router.get('/banners',authenticate,authorizeRoles('Trainee'), upload.none(), require('../controllers/banner_controller').getBanners);
 module.exports=router;
+
+// FCM
+router.post('/fcm/register-token',authenticate,authorizeRoles('Trainee'),upload.none(),require('../controllers/token_controller').registerToken);
