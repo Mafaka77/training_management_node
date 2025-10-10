@@ -84,7 +84,7 @@ router.delete('/faqs/:faqId', authenticate, authorizeRoles('Admin'), upload.none
 //TRAINER ROLE
 router.get('/trainer/me', authenticate, authorizeRoles('Trainer'), upload.none(), trainerProfileController.me);
 router.put('/trainer/proficiency', authenticate, authorizeRoles('Trainer'),fileUpload.single('profile_picture'), trainerProfileController.updateProficiency);
-router.get('/trainer/training/course', authenticate, authorizeRoles('Trainer'), upload.none(), trainerTrainingController.getMyTraining);
+router.get('/trainer/training/program', authenticate, authorizeRoles('Trainer'), upload.none(), trainerTrainingController.getMyTraining);
 router.post('/trainer/course/:courseId/materials', authenticate, authorizeRoles('Trainer'), fileUpload.array('materials',5), trainerTrainingController.uploadMaterial);
 router.get('/trainer/training/:courseId', authenticate, authorizeRoles('Trainer'), upload.none(), trainerTrainingController.getTrainingById);
 router.post('/trainer/document', authenticate, authorizeRoles('Trainer'), fileUpload.array('documents',1), require('../controllers/trainer/trainer_document_controller').submitDocument);
