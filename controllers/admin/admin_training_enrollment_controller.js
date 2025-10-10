@@ -110,7 +110,7 @@ exports.updateEnrollmentStatus= async (req, res) => {
                 message: "Enrollment not found"
             });
         }
-        const trainingId=enrollment.training_program.id;
+        const trainingId=enrollment.training_program._id;
         const training=await TrainingProgram.findById(trainingId);
         const currentEnrollments=await Enrollment.countDocuments({training_program:trainingId,status:'Approved'});
         if(currentEnrollments>=training.t_capacity){
