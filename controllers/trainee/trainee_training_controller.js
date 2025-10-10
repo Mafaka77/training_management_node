@@ -7,7 +7,7 @@ const Enrollment=require('../../models/enrollment_model');
 const TrainingRatings=require('../../models/training_program_rating_model');
 const Material=require('../../models/materials_model');
 const {populate} = require("dotenv");
-const {sendToUser}=require('../notification_controller');
+const {sendPushToUser}=require('../../services/push_service');
 //TRAINING PROGRAM-----------------------------------------------------------------------------------
 exports.getTraining = async (req, res) => {
     try {
@@ -113,20 +113,10 @@ exports.getTrainingById=async (req,res)=>{
                 status:'Pending'
             });
             await newEnrollment.save();
-            // Fire-and-forget; do not block API response
-sendToUser(req.user.user.id, {
-  title: 'Enrollment request received',
-  body: `You requested to enroll in "${training.t_title}"`,
-  data: {
-    action: 'open_training',              // <— your app switches on this
-    trainingId: String(training._id),
-    enrollmentId: String(newEnrollment._id),
-    status: 'Pending',
-    // optional context keys
-    screen: 'training_detail',
-    v: '1'                                // payload version for future changes
-  }
-}).catch(err => console.error('Notification error:', err));
+            sendPushToUser(req.user.user.id, {
+            title: "Pending",
+            body: `Your request is under review. You'll be notified once approved.`,
+             });
             return res.status(STATUS.OK).json({message:"Enrollment request submitted",enrollment:newEnrollment,status:STATUS.OK});
 
         }catch(e){

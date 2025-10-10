@@ -22,13 +22,11 @@ exports.authenticate = (req, res, next) => {
 exports.authorizeRoles = (...allowedRoles) => {
     return (req, res, next) => {
         const roles = req.user?.user?.roles; // 👈 adjust for nested object
-
         if (!roles) {
             return res.status(403).json({ message: "Forbidden: No roles found" });
         }
 
         const hasRole = roles.some(role => allowedRoles.includes(role));
-
         if (!hasRole) {
             return res.status(403).json({ message: "Forbidden: Insufficient privileges" });
         }

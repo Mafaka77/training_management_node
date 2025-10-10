@@ -1,11 +1,17 @@
 const DeviceToken=require('../models/device_token_model.js');
 const STATUS=require('../utils/httpStatus.js');
-
+const { getMessaging } = require("../services/fcm_services");
 exports.deleteToken=async (req,res)=>{
     const {token}=req.body;
     const userId=req.user.user.id;
     await DeviceToken.findOneAndDelete({user:userId,token});
     return res.status(STATUS.OK).json({message:'Token deleted successfully',status:STATUS.OK});
+}
+
+async function subscribeTokenToAllUsersTopic(token) {
+  const messaging = getMessaging();
+  // FCM lets up to 1000 tokens per subscribe call; here it's just one.
+  await messaging.subscribeToTopic([token], "all_users");
 }
 
 exports.registerToken = async (req, res) => {
@@ -25,6 +31,7 @@ exports.registerToken = async (req, res) => {
     );
 
     const deviceCount = await DeviceToken.countDocuments({ user: userId });
+    await subscribeTokenToAllUsersTopic(token);
     return res.status(STATUS.OK).json({ ok: true, devices: deviceCount ,status:STATUS.OK});
   } catch (e) {
     // Handle duplicate key race

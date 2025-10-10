@@ -21,12 +21,13 @@ exports.me=async (req,res)=>{
     return res.status(STATUS.OK).json({user,status:STATUS.OK});
 }
 exports.login=async (req,res)=>{
-    const {mobile,password}=req.body;
+    const {mobile,password,email}=req.body;
+    console.log(req.body);
     try{
         let user=await User.findOne({
             $or: [
                 { mobile: mobile },
-                { email: mobile }
+                { email: email }
             ]
         })
             .populate('roles','-__v');

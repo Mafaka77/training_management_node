@@ -84,7 +84,7 @@ router.delete('/faqs/:faqId', authenticate, authorizeRoles('Admin'), upload.none
 //TRAINER ROLE
 router.get('/trainer/me', authenticate, authorizeRoles('Trainer'), upload.none(), trainerProfileController.me);
 router.put('/trainer/proficiency', authenticate, authorizeRoles('Trainer'),fileUpload.single('profile_picture'), trainerProfileController.updateProficiency);
-router.get('/trainer/trainings', authenticate, authorizeRoles('Trainer'), upload.none(), trainerTrainingController.getMyTraining);
+router.get('/trainer/training/course', authenticate, authorizeRoles('Trainer'), upload.none(), trainerTrainingController.getMyTraining);
 router.post('/trainer/course/:courseId/materials', authenticate, authorizeRoles('Trainer'), fileUpload.array('materials',5), trainerTrainingController.uploadMaterial);
 router.get('/trainer/training/:courseId', authenticate, authorizeRoles('Trainer'), upload.none(), trainerTrainingController.getTrainingById);
 router.post('/trainer/document', authenticate, authorizeRoles('Trainer'), fileUpload.array('documents',1), require('../controllers/trainer/trainer_document_controller').submitDocument);
@@ -103,6 +103,7 @@ router.delete('/banner/:id', authenticate, authorizeRoles('Admin'), upload.none(
 // router.post("/unregister-token", authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/token_controller').deleteToken);
 // router.get("/tokens/:userId", authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/token_controller').listTokens);
 router.post("/fcm/send-notification", authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/notification_controller').sendToUser);
+router.post('/fcm/notify/all-users',authenticate,authorizeRoles('Admin'),upload.none(),require('../controllers/broadcast_controller').sendToAllUsers);
 
 module.exports=router;
 

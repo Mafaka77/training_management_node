@@ -2,9 +2,17 @@ const TrainingCourse=require('../../models/training_course_model');
 const STATUS=require('../../utils/httpStatus');
 const TrainingMaterial=require('../../models/materials_model');
 exports.getMyTraining=async(req,res)=>{
+ 
     try{
+        console.log("hello world")
         const trainerId=req.user.user.id;
         const myCourses=await TrainingCourse.find({trainer:trainerId}).populate('t_program');
+        if(!myCourses){
+            return res.status(STATUS.OK).json({
+                status:STATUS.NOT_FOUND,
+                message:'Training not Found'
+            })
+        }
         return res.status(STATUS.OK).json({
             status:STATUS.OK,
             data:myCourses

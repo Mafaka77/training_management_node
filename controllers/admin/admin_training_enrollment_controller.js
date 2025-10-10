@@ -1,5 +1,6 @@
 const User=require('../../models/user_model');
 const Enrollment=require('../../models/enrollment_model');
+const TrainingProgram=require('../../models/training_program_model');
 const STATUS=require('../../utils/httpStatus');
 
 exports.getAllEnrollment = async (req, res) => {
@@ -109,7 +110,8 @@ exports.updateEnrollmentStatus= async (req, res) => {
                 message: "Enrollment not found"
             });
         }
-        const trainingId=enrollment.training_program._id;
+        const trainingId=enrollment.training_program.id;
+        const training=await TrainingProgram.findById(trainingId);
         const currentEnrollments=await Enrollment.countDocuments({training_program:trainingId,status:'Approved'});
         if(currentEnrollments>=training.t_capacity){
             return res.status(STATUS.OK).json({message:"Training capacity reached! Add to Waitlist",status:STATUS.BAD_REQUEST});

@@ -16,6 +16,14 @@ const trainingRoomSchema = new mongoose.Schema({
         type:String,
         required:false,
     },
+    latitude:{
+        type: Number,
+        required: false,
+    },
+    longitude:{
+        type: Number,
+        required: false,
+    },
     createdAt: {
         type: Date,
         default: Date.now
