@@ -286,7 +286,6 @@ exports.getUpcomingTrainings = async (req, res) => {
             .sort({ createdAt: -1 }) // earliest first
             .skip(offset)              // skip N docs
             .limit(limit);             // limit results
-
         return res.status(STATUS.OK).json({
             status: STATUS.OK,
             total,        // total available trainings

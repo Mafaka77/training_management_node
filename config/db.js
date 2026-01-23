@@ -1,5 +1,6 @@
 const mongoose=require('mongoose');
 const trainingJobs = require("../jobs/training_jobs");
+const cleaningJobs = require("../jobs/cleanupPendingEnrollments");
 const connectDB=async()=>{
     try{
         await mongoose.connect(process.env.MONGO_URI,{
@@ -8,6 +9,7 @@ const connectDB=async()=>{
         });
         console.log("MongoDB Connected Successfully");
         trainingJobs();
+        cleaningJobs();
     }catch(error){
         console.error("MongoDB Connection Failed:",error);
         process.exit(1);
