@@ -53,7 +53,7 @@ app.use('/admin', adminApiRoutes);
 const frontendPath = path.join(__dirname, "dist/spa");
 app.use(express.static(frontendPath));
 // Catch-all route to serve index.html for SPA
-app.get('/',(req, res) => {
+app.get((req, res) => {
   res.sendFile(path.join(frontendPath, "index.html"));
   });
 const PORT = process.env.PORT || 5000;
