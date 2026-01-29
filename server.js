@@ -32,7 +32,6 @@ const corsOptions = {
   credentials: true,
 };
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
 
 // 🔥 ABSOLUTELY REQUIRED FOR PASSENGER
 app.use((req, res, next) => {
