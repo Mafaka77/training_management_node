@@ -5,7 +5,8 @@
   "scripts": {
     "start": "nodemon server.js",
     "dev": "nodemon server.js",
-    "seed": "node seeders/seed.js"
+    "seed": "node seeders/seed.js",
+    "build": "cd frontend  && npm run build &&  mv dist ../dist"
   },
   "keywords": [],
   "author": "",

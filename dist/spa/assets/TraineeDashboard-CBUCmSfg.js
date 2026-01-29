@@ -1,0 +1,1 @@
+import{Q as e}from"./QPage-C9X2vH88.js";import{_ as r}from"./_plugin-vue_export-helper-DlAUqK2U.js";import{k as o,m as t,n as s,q as n}from"./index-BDINY4c2.js";const c={};function f(m,a){return o(),t(e,{class:"q-pa-md"},{default:s(()=>[...a[0]||(a[0]=[n(" Trainee Dashboard Page ",-1)])]),_:1})}const p=r(c,[["render",f]]);export{p as default};
