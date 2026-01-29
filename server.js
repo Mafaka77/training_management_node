@@ -24,7 +24,25 @@ if (!admin.apps.length) {
 
 const fcm = admin.messaging();
 const userTokens = new Map(); // userId -> Set(tokens)
-app.use(cors());
+// Middleware
+app.set("trust proxy", 1);
+
+const corsOptions = {
+  origin: "*",
+  credentials: true,
+};
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
+
+// 🔥 ABSOLUTELY REQUIRED FOR PASSENGER
+app.use((req, res, next) => {
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+  next();
+});
+
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // <-- for form-data
 const uploadsPath = path.join(__dirname, 'uploads');
