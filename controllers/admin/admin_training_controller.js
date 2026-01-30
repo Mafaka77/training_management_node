@@ -117,4 +117,34 @@ exports.submitTrainingProgram= async (req, res) => {
     }
 }
 
+exports.getTrainingById= async (req, res) => {
+    const {programId} = req.params;
+    try {
+        const trainingProgram = await TrainingProgram.findById(programId)
+            .populate("t_room")
+            .populate("trainingCourse")
+            .populate("t_category");
+
+        if (!trainingProgram) {
+            return res.status(STATUS.OK).json({message: "Training Program not found", status: STATUS.NOT_FOUND});
+        }
+        return res.status(STATUS.OK).json({trainingProgram, status: STATUS.OK});
+    } catch (e) {
+        return res.status(STATUS.OK).json({message: e.message, status: STATUS.INTERNAL_SERVER_ERROR});
+    }
+
+    };
+exports.deleteTrainingProgram= async (req, res) => {
+    const {programId} = req.params;
+    try {
+        const trainingProgram = await TrainingProgram.findById(programId);
+        if (!trainingProgram) {
+            return res.status(STATUS.OK).json({message: "Training Program not found", status: STATUS.NOT_FOUND});
+        }
+        await TrainingProgram.findByIdAndDelete(programId);
+        return res.status(STATUS.OK).json({message: "Training Program deleted successfully", status: STATUS.OK});
+    } catch (e) {
+        return res.status(STATUS.OK).json({message: e.message, status: STATUS.INTERNAL_SERVER_ERROR});
+    }
+}
 

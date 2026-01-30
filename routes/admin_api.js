@@ -42,11 +42,21 @@ router.post('/submit-training-category', authenticate, authorizeRoles('Admin'), 
 //TRAINING PROGRAM
 router.post('/submit-training-program',authenticate,authorizeRoles('Admin'),fileUpload.single('t_banner'), trainingController.submitTrainingProgram);
 router.get('/get-all-training-program', authenticate, authorizeRoles('Admin'),upload.none(), trainingController.getTraining);
-
+router.get('/program/:programId',authenticate,authorizeRoles('Admin'), upload.none(), trainingController.getTrainingById);
+router.delete('/program/:programId', authenticate, authorizeRoles('Admin'), upload.none(), trainingController.deleteTrainingProgram);
 //TRAINING COURSE
 router.post('/submit-training-course', authenticate, authorizeRoles('Admin'), upload.none(), trainingCourseController.submitTrainingCourse);
 router.get('/get-trainer', authenticate, authorizeRoles('Admin'), upload.none(), trainingCourseController.getTrainer);
 router.get('/get-all-training-course', authenticate, authorizeRoles('Admin'), upload.none(), trainingCourseController.getAllTrainingCourse);
+router.get(
+    '/programs/:programId/courses',
+    authenticate,
+    authorizeRoles('Admin'),
+    trainingCourseController.getCoursesByProgramId
+);
+router.delete('/course/:courseId', authenticate, authorizeRoles('Admin'), upload.none(), trainingCourseController.deleteTrainingCourse);
+router.get('/course/:courseId',authenticate, authorizeRoles('Admin'), upload.none(), trainingCourseController.getCourseById);
+
 
 //TRAINER
 router.post('/trainer', authenticate, authorizeRoles('Admin'), upload.none(), trainerController.createTrainer);

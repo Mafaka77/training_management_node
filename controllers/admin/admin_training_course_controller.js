@@ -112,3 +112,47 @@ exports.getAllTrainingCourse = async (req, res) => {
         });
     }
 };
+exports.getCoursesByProgramId = async (req, res) => {
+    const { programId } = req.params;
+    try {
+        const courses = await TrainingCourse.find({t_program: programId})
+            .populate("t_program")
+            .populate("trainer", "full_name email mobile")
+        return res.status(STATUS.OK).json({
+            courses,
+            status: STATUS.OK
+        });
+    }catch (e) {
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            message: e.message,
+            status: STATUS.INTERNAL_SERVER_ERROR
+        });
+    }
+};
+exports.deleteTrainingCourse = async (req, res) => {
+    const { courseId } = req.params;
+    try {
+        const course = await TrainingCourse.findById(courseId);
+        if (!course) {
+            return res.status(STATUS.OK).json({ message: "Training Course not found", status: STATUS.NOT_FOUND });
+        }
+        await TrainingCourse.findByIdAndDelete(courseId);
+        return res.status(STATUS.OK).json({ message: "Training Course deleted successfully", status: STATUS.OK });
+    } catch (e) {
+        return res.status(STATUS.OK).json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+    }
+}
+exports.getCourseById = async (req, res) => {
+    const { courseId } = req.params;
+    try {
+        const course = await TrainingCourse.findById(courseId)
+            .populate("t_program")
+            .populate("trainer", "full_name email mobile roles")
+        return res.status(STATUS.OK).json({
+            course,
+            status: STATUS.OK
+        });
+    } catch (e) {
+        return res.status(STATUS.OK).json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+    }
+}
