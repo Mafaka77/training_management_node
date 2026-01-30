@@ -456,7 +456,7 @@ const allTrainersOptions = computed(() =>
 async function fetchPrograms() {
   loading.value = true
   try {
-    const res = await api.get("/admin/get-all-training-program?page=1&limit=100")
+    const res = await api.get("/admin-api/get-all-training-program?page=1&limit=100")
     programs.value = res.data.programs || []
     programs.value.forEach(p => {
       activeTab.value[p._id] = "courses"
@@ -479,7 +479,7 @@ async function fetchPrograms() {
 
 async function fetchCourses() {
   try {
-    const res = await api.get("/admin/get-all-training-course?page=1&limit=100")
+    const res = await api.get("/admin-api/get-all-training-course?page=1&limit=100")
     courses.value = res.data.courses || []
   } catch (err) {
     console.error("Failed to fetch courses:", err)
@@ -489,7 +489,7 @@ async function fetchCourses() {
 
 async function fetchTrainers() {
   try {
-    const res = await api.get("/admin/trainers?page=1&limit=100")
+    const res = await api.get("/admin-api/trainers?page=1&limit=100")
     trainers.value = res.data.trainers || []
   } catch (err) {
     console.error("Failed to fetch trainers:", err)
@@ -500,9 +500,9 @@ async function fetchTrainers() {
 async function fetchDropdowns() {
   try {
     const [roomRes, catRes, deptRes] = await Promise.all([
-      api.get("/admin/get-training-room"),
-      api.get("/admin/get-training-category"),
-      api.get("/admin/departments?limit=100")
+      api.get("/admin-api/get-training-room"),
+      api.get("/admin-api/get-training-category"),
+      api.get("/admin-api/departments?limit=100")
     ])
 
     roomsOptions.value = (roomRes.data.rooms || []).map(r => ({
@@ -540,7 +540,7 @@ async function submitProgram() {
     })
 
     // Fixed: removed unused 'response' variable
-    await api.post("/admin/submit-training-program", formData, {
+    await api.post("/admin-api/submit-training-program", formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       }
@@ -580,7 +580,7 @@ async function submitCourse() {
   submitCourseLoading.value = true
   try {
     courseForm.value.t_program = selectedProgramId.value
-    await api.post("/admin/submit-training-course", courseForm.value)
+    await api.post("/admin-api/submit-training-course", courseForm.value)
     $q.notify({ type: "positive", message: "Course added successfully" })
     showCourseDialog.value = false
     courseForm.value = {
@@ -607,7 +607,7 @@ async function submitTrainer() {
   submitTrainerLoading.value = true
   try {
     trainerForm.value.t_program = selectedTrainerProgramId.value
-    await api.post("/admin/submit-trainer", trainerForm.value)
+    await api.post("/admin-api/submit-trainer", trainerForm.value)
     $q.notify({ type: "positive", message: "Trainer added successfully" })
     showTrainerDialog.value = false
     trainerForm.value = {
