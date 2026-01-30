@@ -118,9 +118,9 @@ const pendingEnrollments = ref(0)
 const fetchDashboardData = async () => {
   try {
     const [traineesRes, programsRes, enrollmentsRes] = await Promise.all([
-      api.get("/admin/trainees?page=1&limit=10&search="),
-      api.get("/admin/get-all-training-program?page=1&limit=10&search="),
-      api.get("/admin/enrollments"),
+      api.get("/admin-api/trainees?page=1&limit=10&search="),
+      api.get("/admin-api/get-all-training-program?page=1&limit=10&search="),
+      api.get("/admin-api/enrollments"),
     ]);
 
     const trainees = traineesRes.data.trainees;
@@ -151,9 +151,9 @@ onMounted(fetchDashboardData);
 onMounted(async () => {
   // Fetch all APIs in parallel
   const [traineesRes, programsRes, enrollmentsRes] = await Promise.all([
-    api.get('https://staging2.egovmz.in/admin/trainees?page=1&limit=10&search='),
-    api.get('https://staging2.egovmz.in/admin/get-all-training-program?page=1&limit=10&search='),
-    api.get('https://staging2.egovmz.in/admin/enrollments')
+    api.get('https://staging2.egovmz.in/admin-api/trainees?page=1&limit=10&search='),
+    api.get('https://staging2.egovmz.in/admin-api/get-all-training-program?page=1&limit=10&search='),
+    api.get('https://staging2.egovmz.in/admin-api/enrollments')
   ])
 
   trainees.value = traineesRes.data.trainees
