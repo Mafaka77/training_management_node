@@ -22,7 +22,7 @@ export const useUserStore = defineStore("user", {
     },
     async login(email, password) {
       try {
-        const response = await api.post("/admin/login", {
+        const response = await api.post("/admin/api/login", {
          email,password,
         });
         if(response.status===200){
