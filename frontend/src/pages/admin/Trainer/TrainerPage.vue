@@ -169,7 +169,7 @@ const pagination = ref({
 // Fetch Trainers
 async function fetchTrainers() {
   try {
-    const res = await api.get(`/admin/api/trainers?search=${search.value}&page=${pagination.value.page}&limit=${pagination.value.limit}`)
+    const res = await api.get(`/admin/trainers?search=${search.value}&page=${pagination.value.page}&limit=${pagination.value.limit}`)
     trainers.value = res.data.trainers || []
     pagination.value.totalPages = res.data.pagination?.totalPages || 1
   } catch (err) {
@@ -180,7 +180,7 @@ async function fetchTrainers() {
 // Fetch Departments
 async function fetchDepartments() {
   try {
-    const res = await api.get("/admin/api/departments?limit=100")
+    const res = await api.get("/admin/departments?limit=100")
     departments.value = res.data.departments || []
   } catch (err) {
     console.error(err)
@@ -240,9 +240,9 @@ async function submitForm() {
   try {
     if (isEditing.value) {
       const trainerToUpdate = trainers.value.find(t => t.email === form.value.email)
-      await api.put(`/admin/api/trainer/${trainerToUpdate._id}`, form.value)
+      await api.put(`/admin/trainer/${trainerToUpdate._id}`, form.value)
     } else {
-      await api.post("/admin/api/trainer", form.value)
+      await api.post("/admin/trainer", form.value)
     }
     $q.notify({ type: "positive", message: "Trainer saved successfully!" })
     showDialog.value = false
@@ -267,7 +267,7 @@ async function deleteTrainer(id) {
     })
     if (!confirmed) return
 
-    await api.delete(`/admin/api/trainer/${id}`)
+    await api.delete(`/admin/trainer/${id}`)
     $q.notify({ type: "positive", message: "Trainer deleted successfully!" })
     fetchTrainers()
   } catch (err) {

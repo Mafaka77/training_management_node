@@ -166,7 +166,7 @@ const replyMessage = ref('')
 const fetchTickets = async () => {
   loading.value = true
   try {
-    const res = await api.get('/admin/api/tickets?page=1&limit=50')
+    const res = await api.get('/admin/tickets?page=1&limit=50')
     tickets.value = res.data.tickets || []
   } catch (err) {
     console.error('Failed to fetch tickets:', err)
@@ -191,7 +191,7 @@ const filteredTickets = computed(() => {
 // View Ticket
 const viewTicket = async (ticket) => {
   try {
-    const res = await api.get(`/admin/api/tickets/${ticket._id}`)
+    const res = await api.get(`/admin/tickets/${ticket._id}`)
     selectedTicket.value = res.data.ticket
     showTicketDialog.value = true
   } catch (err) {
@@ -204,7 +204,7 @@ const sendReply = async () => {
   if (!replyMessage.value.trim() || !selectedTicket.value?._id) return
   replying.value = true
   try {
-    const res = await api.post(`/admin/api/tickets/${selectedTicket.value._id}/replies`, { message: replyMessage.value })
+    const res = await api.post(`/admin/tickets/${selectedTicket.value._id}/replies`, { message: replyMessage.value })
     selectedTicket.value = res.data.ticket
     replyMessage.value = ''
     Notify.create({ type: 'positive', message: 'Reply sent successfully.' })
@@ -220,7 +220,7 @@ const sendReply = async () => {
 const changeStatus = async (status) => {
   if (!selectedTicket.value?._id) return
   try {
-    const res = await api.patch(`/admin/api/tickets/${selectedTicket.value._id}/status`, { status })
+    const res = await api.patch(`/admin/tickets/${selectedTicket.value._id}/status`, { status })
     selectedTicket.value = res.data.ticket
     Notify.create({ type: 'positive', message: 'Ticket status updated.' })
     fetchTickets()

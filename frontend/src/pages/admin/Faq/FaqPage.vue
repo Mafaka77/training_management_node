@@ -134,7 +134,7 @@ const filteredFAQs = computed(() => {
 const fetchFAQs = async () => {
   loading.value = true;
   try {
-    const res = await api.get("https://staging2.egovmz.in/admin/api/faqs");
+    const res = await api.get("https://staging2.egovmz.in/admin/faqs");
     faqs.value = res.data.faqs || [];
   } catch (err) {
     $q.notify({
@@ -178,10 +178,10 @@ const openEditDialog = (faq) => {
 const saveFAQ = async () => {
   try {
     if (isEdit.value && currentId.value) {
-      await api.put(`https://staging2.egovmz.in/admin/api/faqs/${currentId.value}`, form.value);
+      await api.put(`https://staging2.egovmz.in/admin/faqs/${currentId.value}`, form.value);
       $q.notify({ type: "positive", message: "FAQ updated successfully" });
     } else {
-      await api.post("https://staging2.egovmz.in/admin/api/faqs", form.value);
+      await api.post("https://staging2.egovmz.in/admin/faqs", form.value);
       $q.notify({ type: "positive", message: "FAQ created successfully" });
     }
     showDialog.value = false;
@@ -203,7 +203,7 @@ const deleteFAQ = async (id) => {
     persistent: true,
   }).onOk(async () => {
     try {
-      await api.delete(`https://staging2.egovmz.in/admin/api/faqs/${id}`);
+      await api.delete(`https://staging2.egovmz.in/admin/faqs/${id}`);
       $q.notify({ type: "positive", message: "FAQ deleted successfully" });
       fetchFAQs();
     } catch (err) {
