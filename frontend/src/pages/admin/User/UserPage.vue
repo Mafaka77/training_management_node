@@ -218,7 +218,7 @@ const roleOptions = [
 const fetchUsers = async () => {
   loading.value = true;
   try {
-    const query = `/admin/users?search=${search.value}&role=${selectedRole.value || ""}&page=1&limit=100`;
+    const query = `/admin-api/users?search=${search.value}&role=${selectedRole.value || ""}&page=1&limit=100`;
     const res = await api.get(query);
     users.value = res.data.users || [];
   } catch (err) {
@@ -239,10 +239,10 @@ const paginatedUsers = computed(() => {
 const saveUser = async () => {
   try {
     if (editing.value) {
-      await api.put(`/admin/users/${editId.value}`, form.value);
+      await api.put(`/admin-api/users/${editId.value}`, form.value);
       $q.notify({ type: "positive", message: "User updated successfully!" });
     } else {
-      await api.post("/admin/create-user", form.value);
+      await api.post("/admin-api/create-user", form.value);
       $q.notify({ type: "positive", message: "User created successfully!" });
     }
     showDialog.value = false;
@@ -277,7 +277,7 @@ const deleteUser = async (id) => {
     persistent: true
   }).onOk(async () => {
     try {
-      await api.delete(`/admin/users/${id}`);
+      await api.delete(`/admin-api/users/${id}`);
       $q.notify({ type: "positive", message: "User deleted!" });
       fetchUsers();
     } catch {
@@ -304,8 +304,8 @@ const resetForm = () => {
 const fetchDropdowns = async () => {
   try {
     const [distRes, deptRes] = await Promise.all([
-      api.get("/admin/get-all-district"),
-      api.get("/admin/departments?limit=100")
+      api.get("/admin-api/get-all-district"),
+      api.get("/admin-api/departments?limit=100")
     ]);
     districts.value = distRes.data.districts || [];
     departments.value = deptRes.data.departments || [];

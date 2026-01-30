@@ -100,8 +100,8 @@ const columns = [
 async function fetchDropdowns() {
   try {
     const [programRes, trainerRes] = await Promise.all([
-      api.get("/admin/get-all-training-program?page=1&limit=100&search="),
-      api.get("/admin/get-trainer")
+      api.get("/admin-api/get-all-training-program?page=1&limit=100&search="),
+      api.get("/admin-api/get-trainer")
     ])
     programs.value = programRes.data.programs || []
     trainers.value = trainerRes.data.trainers || []
@@ -112,7 +112,7 @@ async function fetchDropdowns() {
 
 const submitForm = async () => {
   try {
-    const res = await api.post("/admin/submit-training-course", form.value)
+    const res = await api.post("/admin-api/submit-training-course", form.value)
     $q.notify({
       type: "positive",
       message: res.data.message || "Training created successfully",
@@ -144,7 +144,7 @@ async function fetchCourse() {
   try {
     const { page, rowsPerPage } = pagination.value
     const res = await api.get(
-      `/admin/get-all-training-course?page=${page}&limit=${rowsPerPage}&search=${search.value}`
+      `/admin-api/get-all-training-course?page=${page}&limit=${rowsPerPage}&search=${search.value}`
     )
 
     courses.value = res.data.courses || []   // ✅ store courses

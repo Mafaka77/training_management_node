@@ -33,7 +33,7 @@ const selectedCourse = ref(null);
 
 const fetchCourses = async () => {
   try {
-    const res = await api.get("admin/trainer/courses");
+    const res = await api.get("/admin-api/trainer/courses");
     courses.value = res.data.data;
   } catch (err) {
     console.error(err);
@@ -51,7 +51,7 @@ const uploadMaterials = async () => {
 
 try {
   await api.post(
-    `/trainer/course/${selectedCourse.value}/materials`,
+    `/admin-api/trainer/course/${selectedCourse.value}/materials`,
     formData,
     {
       headers: { "Content-Type": "multipart/form-data" },

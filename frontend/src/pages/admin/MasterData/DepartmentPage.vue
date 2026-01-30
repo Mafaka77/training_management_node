@@ -88,7 +88,7 @@ const form = ref({ _id: null, name: "" });
 
 const fetchCategories = async () => {
   try {
-    const res = await api.get("/admin/departments");
+    const res = await api.get("/admin-api/departments");
     categories.value = res.data?.departments || [];
   } catch (err) {
     console.error("Failed to fetch categories:", err);
@@ -98,12 +98,12 @@ const fetchCategories = async () => {
 const saveCategory = async () => {
   try {
     if (isEditing.value && form.value._id) {
-      await api.put(`/admin/department/${form.value._id}`, {
+      await api.put(`/admin-api/department/${form.value._id}`, {
         name: form.value.name,
       });
       $q.notify({ type: "positive", message: "Department updated successfully" });
     } else {
-      await api.post("/admin/department", { name: form.value.name });
+      await api.post("/admin-api/department", { name: form.value.name });
       $q.notify({ type: "positive", message: "Department added successfully" });
     }
 
@@ -118,7 +118,7 @@ const saveCategory = async () => {
 
 const deleteDepartment = async (id) => {
   try {
-    const res = await api.delete(`/admin/department/${id}`);
+    const res = await api.delete(`/admin-api/department/${id}`);
     if (res.data?.status === 200) {
       $q.notify({
         type: "positive",

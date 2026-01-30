@@ -6,7 +6,7 @@
       <q-input filled v-model="profile.experience" label="Experience" required />
 
       <div>
-        <q-uploader url="" label="Profile Picture" :auto-upload="false" :factory="factoryUploader" ref="uploader" 
+        <q-uploader url="" label="Profile Picture" :auto-upload="false" :factory="factoryUploader" ref="uploader"
           v-model="uploader"
           accept="image/*"
           max-files="1"
@@ -39,7 +39,7 @@ const profile = ref({
 
 const fetchProfile = async () => {
   try {
-    const res = await api.get("/trainer/proficiency");
+    const res = await api.get("trainer/proficiency");
     profile.value = res.data.profile;
     // If API provides picture URL
     profile.value.profile_picture_preview = res.data.profile.profile_picture_url || null;

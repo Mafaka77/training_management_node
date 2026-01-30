@@ -71,7 +71,7 @@ const form = ref({ _id: null, name: "" });
 // ✅ Fetch categories
 const fetchCategories = async () => {
   try {
-    const res = await api.get("/admin/get-training-category");
+    const res = await api.get("/admin-api/get-training-category");
     categories.value = res.data?.categories || [];
   } catch (err) {
     console.error("Failed to fetch categories:", err);
@@ -84,7 +84,7 @@ const saveCategory = async () => {
     const payload = [
       { key: "name", value: form.value.name, type: "text", enabled: true },
     ];
-    await api.post("/admin/submit-training-category", payload);
+    await api.post("/admin-api/submit-training-category", payload);
     $q.notify({
       type: "positive",
       message: isEditing.value ? "Category updated successfully" : "Category added successfully",
