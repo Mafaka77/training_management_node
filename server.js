@@ -48,7 +48,7 @@ const uploadsPath = path.join(__dirname, 'uploads');
 console.log('[server] serving uploads from:', uploadsPath);
 app.use('/uploads', express.static(uploadsPath));
 app.use('/api', apiRoutes);
-app.use('/admin/api', adminApiRoutes);
+app.use('/admin', adminApiRoutes);
 // Serve Vue 3 frontend
 const frontendPath = path.join(__dirname, "dist/spa");
 app.use(express.static(frontendPath));
