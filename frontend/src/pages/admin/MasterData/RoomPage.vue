@@ -93,7 +93,7 @@ const form = ref({
 const fetchRooms = async () => {
   loading.value = true;
   try {
-    const res = await api.get("/admin/get-training-room");
+    const res = await api.get("/admin/api/get-training-room");
     rooms.value = res.data.rooms || [];
   } catch (err) {
     console.error("Error fetching rooms:", err);
@@ -121,10 +121,10 @@ const saveRoom = async () => {
   saving.value = true;
   try {
     if (isEditing.value && editId.value) {
-      await api.put(`/admin/training-room/${editId.value}`, form.value);
+      await api.put(`/admin/api/training-room/${editId.value}`, form.value);
       $q.notify({ type: "positive", message: "Training room updated successfully!" });
     } else {
-      await api.post("/admin/submit-training-room", form.value);
+      await api.post("/admin/api/submit-training-room", form.value);
       $q.notify({ type: "positive", message: "Training room added successfully!" });
     }
     showDialog.value = false;
@@ -145,7 +145,7 @@ const deleteRoom = async (room) => {
     persistent: true,
   }).onOk(async () => {
     try {
-      await api.delete(`/admin/training-room/${room._id}`);
+      await api.delete(`/admin/api/training-room/${room._id}`);
       $q.notify({ type: "positive", message: "Room deleted successfully!" });
       fetchRooms();
     } catch (err) {

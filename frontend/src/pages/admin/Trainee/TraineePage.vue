@@ -96,7 +96,7 @@ const columns = [
 // Submit new trainee
 const submitForm = async () => {
     try {
-        const { data } = await api.post("/admin/trainee", form.value);
+        const { data } = await api.post("/admin/api/trainee", form.value);
         showDialog.value = false;
         resetForm();
 
@@ -130,7 +130,7 @@ function resetForm() {
 
 async function fetchDistricts() {
     try {
-        const res = await api.get("/admin/get-all-district")
+        const res = await api.get("/admin/api/get-all-district")
         districts.value = res.data.districts || []
     } catch (err) {
         console.error("Error fetching districts:", err)
@@ -143,7 +143,7 @@ async function fetchTrainees() {
     try {
         const { page, rowsPerPage } = pagination.value;
         const res = await api.get(
-            `/admin/trainees?search=${search.value}&page=${page}&limit=${rowsPerPage}`
+            `/admin/api/trainees?search=${search.value}&page=${page}&limit=${rowsPerPage}`
         );
         trainees.value = res.data.trainees || [];
         pagination.value.rowsNumber = res.data.pagination?.total || 0;

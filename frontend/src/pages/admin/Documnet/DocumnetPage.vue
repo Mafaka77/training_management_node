@@ -216,8 +216,8 @@ const submitForm = async () => {
 
   try {
     const url = editingDoc.value
-      ? `/admin/document/${editingDoc.value._id}`
-      : "/admin/documents";
+      ? `/admin/api/document/${editingDoc.value._id}`
+      : "/admin/api/documents";
     const method = editingDoc.value ? "put" : "post";
 
     const res = await api[method](url, fd, {
@@ -253,7 +253,7 @@ const confirmDelete = (id) => {
 
 const deleteDocument = async (id) => {
   try {
-    await api.delete(`/admin/document/${id}`);
+    await api.delete(`/admin/api/document/${id}`);
     $q.notify({ type: "positive", message: "Document deleted" });
     fetchDocuments();
   } catch (err) {

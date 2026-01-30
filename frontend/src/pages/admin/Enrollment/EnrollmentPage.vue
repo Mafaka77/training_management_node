@@ -243,7 +243,7 @@ const fetchEnrollments = async () => {
     let totalPages = 1;
 
     do {
-      const res = await api.get("/admin/enrollments", { params: { page, limit: '' } });
+      const res = await api.get("/admin/api/enrollments", { params: { page, limit: '' } });
       allEnrollments.push(...(res.data.enrollments || []));
       totalPages = res.data.pagination.totalPages;
       page++;
@@ -288,7 +288,7 @@ const filteredUsers = computed(() => {
 // ✅ Update enrollment status
 const updateEnrollmentStatus = async (row) => {
   try {
-    await api.patch(`/admin/enrollment/${row._id}`, { status: row.status });
+    await api.patch(`/admin/api/enrollment/${row._id}`, { status: row.status });
     $q.notify({
       type: "positive",
       message: `Status updated to ${row.status}`,
