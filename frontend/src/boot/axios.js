@@ -2,7 +2,7 @@ import { boot } from "quasar/wrappers";
 import axios from "axios";
 import { useUserStore } from "src/stores/user";
 
-const api = axios.create({ baseURL: "https://staging2.egovmz.in/" });
+const api = axios.create({ baseURL: "https://staging2.egovmz.in" });
 
 // Attach token to ALL requests
 api.interceptors.request.use((config) => {

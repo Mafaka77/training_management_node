@@ -49,12 +49,16 @@ console.log('[server] serving uploads from:', uploadsPath);
 app.use('/uploads', express.static(uploadsPath));
 app.use('/api', apiRoutes);
 app.use('/admin/api', adminApiRoutes);
+
 // Serve Vue 3 frontend
 const frontendPath = path.join(__dirname, "dist/spa");
 app.use(express.static(frontendPath));
 // Catch-all route to serve index.html for SPA
-app.get(/.*/,(req, res) => {
+app.get(/^(?!\/api|\/admin\/api).*/, (req, res) => {
   res.sendFile(path.join(frontendPath, "index.html"));
-  });
+});
+// app.get(/.*/,(req, res) => {
+//   res.sendFile(path.join(frontendPath, "index.html"));
+//   });
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, "0.0.0.0", () => console.log(`Server running on port ${PORT}`));
