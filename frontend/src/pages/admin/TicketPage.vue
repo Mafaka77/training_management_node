@@ -166,7 +166,7 @@ const replyMessage = ref('')
 const fetchTickets = async () => {
   loading.value = true
   try {
-    const res = await api.get('/admin/tickets?page=1&limit=50')
+    const res = await api.get('/admin-api/tickets?page=1&limit=50')
     tickets.value = res.data.tickets || []
   } catch (err) {
     console.error('Failed to fetch tickets:', err)
@@ -191,7 +191,7 @@ const filteredTickets = computed(() => {
 // View Ticket
 const viewTicket = async (ticket) => {
   try {
-    const res = await api.get(`/admin/tickets/${ticket._id}`)
+    const res = await api.get(`/admin-api/tickets/${ticket._id}`)
     selectedTicket.value = res.data.ticket
     showTicketDialog.value = true
   } catch (err) {
