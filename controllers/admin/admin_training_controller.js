@@ -1,4 +1,5 @@
 const TrainingProgram= require('../../models/training_program_model');
+const TrainingCourse= require('../../models/training_course_model');
 const TrainingCategory= require('../../models/training_category_model');
 const User= require('../../models/user_model');
 const Role= require('../../models/role_model');
@@ -141,6 +142,7 @@ exports.deleteTrainingProgram= async (req, res) => {
         if (!trainingProgram) {
             return res.status(STATUS.OK).json({message: "Training Program not found", status: STATUS.NOT_FOUND});
         }
+        await TrainingCourse.deleteMany(programId);
         await TrainingProgram.findByIdAndDelete(programId);
         return res.status(STATUS.OK).json({message: "Training Program deleted successfully", status: STATUS.OK});
     } catch (e) {

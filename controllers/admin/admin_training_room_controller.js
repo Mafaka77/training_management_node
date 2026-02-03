@@ -45,7 +45,7 @@ exports.deleteTrainingRoom = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const room = await TrainingRoom.findByIdAndDelete(id);
+        const room= await TrainingRoom.findById(id);
 
         if (!room) {
             return res.status(STATUS.OK).json({
@@ -53,7 +53,7 @@ exports.deleteTrainingRoom = async (req, res) => {
                 status: STATUS.NOT_FOUND
             });
         }
-
+     await room.deleteOne(id);
         return res.status(STATUS.OK).json({
             message: "Training Room deleted successfully",
             status: STATUS.OK
