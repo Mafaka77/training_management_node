@@ -8,12 +8,12 @@ console.log("✅ MONGO_URI =", process.env.MONGO_URI);
 
 const connectDB = require("../config/db");
 connectDB();
-const {startCleanupJob} = require('../jobs/cleanupPendingEnrollments');
-const {sendTrainingReminderNotifications} = require('../jobs/sendNotification');
-const {trainingsStatusUpdater} = require('../jobs/training_jobs');
+const startCleanupJob = require('../jobs/cleanupPendingEnrollments');
+const sendTrainingReminderNotifications = require('../jobs/sendNotification');
+const trainingsStatusUpdater = require('../jobs/training_jobs');
 
 console.log("Reminder Stated Working");
-cron.schedule("59 11 * * *", async () => {
+cron.schedule("05 12 * * *", async () => {
     await startCleanupJob();
     await sendTrainingReminderNotifications();
     await trainingsStatusUpdater();
