@@ -2,8 +2,8 @@ const cron=require('node-cron');
 const Enrollment=require('../models/enrollment_model');
 const TrainingProgram=require('../models/training_program_model');
 
-function startCleanupJob() {
-    cron.schedule("0 0 * * *", async () => {
+async function startCleanupJob() {
+
         const now = new Date();
 
         const result = await Enrollment.deleteMany({
@@ -14,7 +14,7 @@ function startCleanupJob() {
         });
 
         console.log("Deleted:", result.deletedCount);
-    });
+
 }
 module.exports=startCleanupJob;
 

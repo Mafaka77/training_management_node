@@ -4,13 +4,13 @@ const connectDb=require('../config/db');
 
 dotenv.config();
 connectDb();
-const {cleanupPendingEnrollments} = require('../jobs/cleanupPendingEnrollments');
+const {startCleanupJob} = require('../jobs/cleanupPendingEnrollments');
 const {sendTrainingReminderNotifications} = require('../jobs/sendNotification');
 const {trainingsStatusUpdater} = require('../jobs/training_jobs');
 
 console.log("Reminder Stated Working");
-cron.schedule("45 10 * * *", async () => {
-    await cleanupPendingEnrollments();
+cron.schedule("17 11 * * *", async () => {
+    await startCleanupJob();
     await sendTrainingReminderNotifications();
     await trainingsStatusUpdater();
 });

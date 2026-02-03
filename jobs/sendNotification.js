@@ -4,8 +4,7 @@ const Enrollment = require("../models/enrollment_model");
 const Token = require("../models/device_token_model");
 const admin = require("firebase-admin");
 const cron = require("node-cron");
-function sendTrainingReminderNotifications() {
-    cron.schedule("0 7 * * *", async () => {
+async function sendTrainingReminderNotifications() {
         try {
             console.log("🔔 Running training reminder job...");
 
@@ -77,6 +76,5 @@ function sendTrainingReminderNotifications() {
         } catch (error) {
             console.error("❌ Reminder Job Error:", error.message);
         }
-    });
-
 }
+module.exports=sendTrainingReminderNotifications;

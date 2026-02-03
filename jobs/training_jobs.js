@@ -2,9 +2,8 @@
 const cron = require("node-cron");
 const TrainingProgram = require("../models/training_program_model");
 
-function startCronJobs() {
+async function startCronJobs() {
     // Runs every day at midnight (00:00)
-    cron.schedule("0 0 * * *", async () => {
         try {
             const today = new Date();
 
@@ -27,7 +26,6 @@ function startCronJobs() {
         } catch (err) {
             console.error("[CRON] Error updating training statuses:", err.message);
         }
-    });
 }
 
 module.exports = startCronJobs;
