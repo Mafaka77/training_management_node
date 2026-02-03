@@ -9,12 +9,13 @@
       <q-tab name="Ongoing" label="Ongoing" />
       <q-tab name="Finished" label="Finished" />
     </q-tabs>
+
     <!-- Filters & Search -->
     <div class="row q-col-gutter-md q-mb-md items-center">
 
       <!-- Search -->
       <div class="col-12 col-md-4">
-        <q-input dense debounce="300" v-model="searchQuery" placeholder="Search by program name or description..."
+        <q-input dense debounce="300" v-model="searchQuery" placeholder="Search programs..."
           outlined clearable @update:model-value="currentPage = 1">
           <template #append>
             <q-icon name="search" />
@@ -34,245 +35,297 @@
           label="Room" outlined clearable emit-value map-options @update:model-value="currentPage = 1" />
       </div>
 
-      <!-- Trainer Filter (Multi-select) -->
-      <div class="col-12 col-md-2">
-        <q-select dense v-model="trainerFilter" :options="allTrainersOptions" label="Trainer" outlined clearable
-          multiple emit-value map-options @update:model-value="currentPage = 1" />
+      <!-- Actions -->
+      <div class="col-12 col-md-4 text-right">
+        <q-btn icon="add" color="primary" label="Add Program" @click="openProgramDialog" />
       </div>
 
     </div>
 
-    <!-- Programs -->
-    <div class="row q-col-gutter-md">
-      <div class="col-12 col-md-6 col-lg-4" v-for="program in paginatedPrograms" :key="program._id">
-        <q-card flat bordered class="shadow-2 rounded-borders hover-card">
+    <!-- Programs Table -->
+    <q-table
+      flat
+      bordered
+      :rows="paginatedPrograms"
+      :columns="columns"
+      row-key="_id"
+      :loading="loading"
+      :pagination="pagination"
+      @request="onRequest"
+      class="sticky-header-table"
+    >
+      <!-- Header Slot -->
+      <template #top>
+        <div class="text-h6">Training Programs</div>
+        <q-space />
+        <div class="text-caption text-grey">
+          Showing {{ filteredPrograms.length }} of {{ programs.length }} programs
+        </div>
+      </template>
 
-          <!-- Banner Hero -->
-          <q-img :src="getBannerUrl(program.t_banner)" :ratio="16 / 9" class="rounded-borders-top"
-            spinner-color="primary">
-            <template v-if="!program.t_banner">
-              <div class="absolute-full flex flex-center bg-grey-4">
+      <!-- Body Slots -->
+      <template #body-cell-name="props">
+        <q-td :props="props">
+          <div class="row items-center no-wrap">
+            <div class="q-mr-sm" style="width: 60px; height: 40px;">
+              <q-img 
+                :src="getBannerUrl(props.row.t_banner)" 
+                style="width: 60px; height: 40px; border-radius: 4px;"
+                class="cursor-pointer"
+                @click="showBanner(props.row)"
+              >
+                <template v-if="!props.row.t_banner">
+                  <div class="absolute-full flex flex-center bg-grey-3">
+                    <q-icon name="image" size="20px" color="grey-6" />
+                  </div>
+                </template>
+              </q-img>
+            </div>
+            <div>
+              <div class="text-weight-medium">{{ props.row.t_name }}</div>
+              <div class="text-caption text-grey-7 ellipsis" style="max-width: 200px;">
+                {{ props.row.t_description || 'No description' }}
+              </div>
+            </div>
+          </div>
+        </q-td>
+      </template>
+
+      <template #body-cell-status="props">
+        <q-td :props="props">
+          <q-chip dense :color="getProgramStatusColor(props.row.t_status)" text-color="white" size="sm">
+            {{ props.row.t_status }}
+          </q-chip>
+        </q-td>
+      </template>
+
+      <template #body-cell-dates="props">
+        <q-td :props="props">
+          <div>{{ formatDate(props.row.t_start_date) }}</div>
+          <div class="text-caption text-grey-7">to {{ formatDate(props.row.t_end_date) }}</div>
+        </q-td>
+      </template>
+
+      <template #body-cell-capacity="props">
+        <q-td :props="props">
+          <div class="row items-center">
+            <q-icon name="people" size="16px" class="q-mr-xs" />
+            <span>{{ props.row.t_capacity > 0 ? props.row.t_capacity : 'Unlimited' }}</span>
+          </div>
+        </q-td>
+      </template>
+
+      <template #body-cell-rating="props">
+        <q-td :props="props">
+          <div class="row items-center">
+            <q-rating :model-value="props.row.averageRating || 0" max="5" color="yellow" readonly size="16px" />
+            <span class="q-ml-xs text-caption">({{ props.row.ratingsCount || 0 }})</span>
+          </div>
+        </q-td>
+      </template>
+
+      <template #body-cell-actions="props">
+        <q-td :props="props">
+          <div class="row no-wrap q-gutter-xs">
+            <q-btn 
+              dense 
+              flat 
+              color="primary" 
+              icon="visibility" 
+              size="sm"
+              @click="viewProgramDetails(props.row)"
+            >
+              <q-tooltip>View Details</q-tooltip>
+            </q-btn>
+            <q-btn 
+              dense 
+              flat 
+              color="secondary" 
+              icon="edit" 
+              size="sm"
+              @click="editProgram(props.row)"
+            >
+              <q-tooltip>Edit</q-tooltip>
+            </q-btn>
+            <q-btn 
+              dense 
+              flat 
+              color="negative" 
+              icon="delete" 
+              size="sm"
+              @click="confirmDelete(props.row)"
+            >
+              <q-tooltip>Delete</q-tooltip>
+            </q-btn>
+          </div>
+        </q-td>
+      </template>
+
+      <!-- Empty State -->
+      <template #no-data>
+        <div class="full-width row flex-center text-grey q-gutter-sm q-py-lg">
+          <q-icon name="info" size="2em" />
+          <span>No programs found</span>
+          <q-btn flat label="Create First Program" color="primary" @click="openProgramDialog" />
+        </div>
+      </template>
+
+    </q-table>
+
+    <!-- Banner Preview Dialog -->
+    <q-dialog v-model="showBannerDialog">
+      <q-card>
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6">{{ selectedProgram?.t_name }} - Banner</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+        <q-card-section class="q-pt-none">
+          <q-img 
+            :src="getBannerUrl(selectedProgram?.t_banner)" 
+            style="max-width: 600px; max-height: 400px;"
+            class="rounded-borders"
+          >
+            <template v-if="!selectedProgram?.t_banner">
+              <div class="absolute-full flex flex-center bg-grey-3">
                 <q-icon name="image" size="48px" color="grey-6" />
                 <div class="text-grey-6 q-mt-md">No Banner Available</div>
               </div>
             </template>
+          </q-img>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
 
-            <div class="absolute-bottom bg-gradient-to-top text-white q-pa-md">
-              <div class="text-h6 q-mb-xs">{{ program.t_name }}</div>
-              <div class="text-caption ellipsis">{{ program.t_description }}</div>
-              <div class="row items-center q-mt-xs justify-between">
-                <q-chip dense :color="getProgramStatusColor(program.t_status)" text-color="white">
-                  {{ program.t_status }}
-                </q-chip>
-                <div class="row items-center">
-                  <q-rating v-model="program.averageRating" max="5" color="yellow" readonly size="18px" />
-                  <div class="text-caption q-ml-xs">({{ program.ratingsCount }})</div>
+    <!-- Add/Edit Program Dialog -->
+    <q-dialog v-model="showProgramDialog" persistent>
+      <q-card style="min-width: 600px; max-width: 800px;" class="q-pa-md">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6 text-primary">{{ editMode ? 'Edit' : 'Add' }} Training Program</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+        
+        <q-separator />
+        
+        <q-card-section style="max-height: 70vh" class="scroll">
+          <q-form @submit.prevent="submitProgram" class="q-gutter-md">
+            <div class="row q-col-gutter-md">
+              <!-- Left Column -->
+              <div class="col-12 col-md-6">
+                <q-input v-model="programForm.t_name" label="Program Name" outlined required
+                  :rules="[val => !!val || 'Name is required']" />
+                
+                <q-input v-model="programForm.t_description" label="Description" type="textarea" outlined
+                  rows="3" />
+                
+                <div class="row q-col-gutter-sm">
+                  <div class="col-6">
+                    <q-input 
+                      v-model="programForm.t_start_date" 
+                      type="date" 
+                      label="Start Date" 
+                      outlined 
+                      required 
+                      @update:model-value="calculateDuration"
+                    />
+                  </div>
+                  <div class="col-6">
+                    <q-input 
+                      v-model="programForm.t_end_date" 
+                      type="date" 
+                      label="End Date" 
+                      outlined 
+                      required 
+                      @update:model-value="calculateDuration"
+                    />
+                  </div>
+                </div>
+                
+                <q-input v-model.number="programForm.t_duration" label="Duration (days)" type="number" outlined readonly />
+                
+                <q-input v-model="programForm.t_eligibility" label="Eligibility Criteria" outlined />
+              </div>
+              
+              <!-- Right Column -->
+              <div class="col-12 col-md-6">
+                <q-input v-model="programForm.t_organizer" label="Organizer" outlined />
+                
+                <q-input v-model.number="programForm.t_capacity" label="Capacity" type="number" outlined
+                  hint="-1 for unlimited" />
+                
+                <q-select v-model="programForm.t_room" :options="roomsOptions" label="Select Room" outlined emit-value
+                  map-options clearable />
+                
+                <q-select v-model="programForm.t_category" :options="catOptions" label="Select Category" outlined emit-value
+                  map-options clearable />
+                
+                <!-- Banner Upload -->
+                <div>
+                  <div class="text-caption q-mb-xs">Program Banner</div>
+                  <q-file v-model="programForm.t_banner" accept="image/*" outlined label="Choose banner image"
+                    clearable max-file-size="5242880" @rejected="onFileRejected">
+                    <template v-slot:prepend>
+                      <q-icon name="attach_file" />
+                    </template>
+                  </q-file>
+                  <div class="text-caption text-grey">
+                    Max size: 5MB (JPG, PNG, GIF)
+                  </div>
+                  
+                  <!-- Preview -->
+                  <div v-if="programForm.t_banner" class="q-mt-sm">
+                    <div class="text-caption">Preview:</div>
+                    <q-img :src="getFilePreview(programForm.t_banner)" style="max-width: 200px; max-height: 100px;"
+                      class="q-mt-xs rounded-borders" />
+                  </div>
                 </div>
               </div>
             </div>
-          </q-img>
-
-          <!-- Program Details -->
-          <q-card-section>
-            <div><b>Dates:</b> {{ formatDate(program.t_start_date) }} → {{ formatDate(program.t_end_date) }}</div>
-            <div><b>Duration:</b> {{ program.t_duration }} days</div>
-            <div><b>Capacity:</b> {{ program.t_capacity > 0 ? program.t_capacity : 'Unlimited' }}</div>
-            <div><b>Category:</b> {{ program.t_category?.name || 'N/A' }}</div>
-            <div><b>Room:</b> {{ program.t_room?.room_name || 'N/A' }}</div>
-          </q-card-section>
-
-          <q-separator />
-
-          <!-- Courses & Trainers Tabs -->
-          <q-tabs v-model="activeTab[program._id]" dense class="text-primary" active-color="primary"
-            indicator-color="primary">
-            <q-tab name="courses" label="Courses" icon="school" />
-            <q-tab name="trainers" label="Trainers" icon="person" />
-          </q-tabs>
-
-          <q-tab-panels v-model="activeTab[program._id]" animated>
-            <q-tab-panel name="courses">
-              <q-card-section>
-                <q-btn dense color="primary" icon="add" label="Add Course" @click="openCourseDialog(program._id)"
-                  class="q-mb-sm" />
-                <q-table dense flat bordered :rows="programCourses(program._id)" :columns="courseColumns" row-key="_id"
-                  hide-bottom />
-              </q-card-section>
-            </q-tab-panel>
-
-            <q-tab-panel name="trainers">
-              <q-card-section>
-                <q-btn dense color="primary" icon="add" label="Add Trainer" @click="openTrainerDialog(program._id)"
-                  class="q-mb-sm" />
-                <q-table dense flat bordered :rows="programTrainers(program._id)" :columns="trainerColumns"
-                  row-key="_id" hide-bottom />
-              </q-card-section>
-            </q-tab-panel>
-          </q-tab-panels>
-
-        </q-card>
-      </div>
-    </div>
-
-    <!-- Pagination & Rows-per-page -->
-    <div class="q-mt-lg q-pa-md flex flex-center column">
-      <q-pagination v-model="currentPage" :max="maxPages" max-pages="7" boundary-numbers direction-links color="primary"
-        class="q-mb-md" />
-
-      <q-select v-model="rowsPerPage" :options="[6, 12, 24]" label="Rows per page" outlined dense
-        style="width: 150px" />
-    </div>
-
-    <!-- Loading Indicator -->
-    <q-inner-loading :showing="loading">
-      <q-spinner color="primary" size="50px" />
-    </q-inner-loading>
-
-    <!-- Add Program Dialog -->
-    <q-dialog v-model="showProgramDialog" persistent>
-      <q-card style="min-width: 600px;" class="q-pa-md q-mb-lg q-mt-lg">
-        <q-card-section>
-          <div class="text-h6 text-primary">Add Training Program</div>
-        </q-card-section>
-        <q-separator />
-        <q-card-section>
-          <q-form @submit.prevent="submitProgram" class="q-gutter-md">
-            <q-input v-model="programForm.t_name" label="Name" outlined required />
-            <q-input v-model="programForm.t_description" label="Description" type="textarea" outlined />
-            <q-input v-model="programForm.t_start_date" type="date" label="Start Date" outlined required />
-            <q-input v-model="programForm.t_end_date" type="date" label="End Date" outlined required />
-            <q-input v-model.number="programForm.t_duration" label="Duration (days)" type="number" outlined readonly />
-            <q-input v-model="programForm.t_eligibility" label="Eligibility" outlined />
-            <q-input v-model="programForm.t_organizer" label="Organizer" outlined />
-            <q-input v-model.number="programForm.t_capacity" label="Capacity" type="number" outlined />
-            <q-select v-model="programForm.t_room" :options="roomsOptions" label="Select Room" outlined emit-value
-              map-options required />
-            <q-select v-model="programForm.t_category" :options="catOptions" label="Select Category" outlined emit-value
-              map-options required />
-
-            <!-- Improved File Upload -->
-            <div>
-              <div class="text-caption q-mb-xs">Upload Banner</div>
-              <q-file v-model="programForm.t_banner" accept="image/*" outlined label="Choose banner image" clearable
-                max-file-size="5242880" @rejected="onFileRejected">
-                <template v-slot:prepend>
-                  <q-icon name="attach_file" />
-                </template>
-              </q-file>
-              <div class="text-caption text-grey">
-                Supported formats: JPG, PNG, GIF. Max size: 5MB
-              </div>
-
-              <!-- Preview -->
-              <div v-if="programForm.t_banner" class="q-mt-sm">
-                <div class="text-caption">Preview:</div>
-                <q-img :src="getFilePreview(programForm.t_banner)" style="max-width: 200px; max-height: 100px;"
-                  class="q-mt-xs rounded-borders" />
-              </div>
-            </div>
-
-            <div class="row justify-end q-gutter-sm">
+            
+            <div class="row justify-end q-gutter-sm q-mt-lg">
               <q-btn flat label="Cancel" color="negative" v-close-popup />
-              <q-btn type="submit" label="Save" color="primary" :loading="submitProgramLoading" />
+              <q-btn type="submit" :label="editMode ? 'Update' : 'Save'" color="primary" :loading="submitProgramLoading" />
             </div>
           </q-form>
         </q-card-section>
       </q-card>
     </q-dialog>
-
-    <!-- Add Course Dialog -->
-    <q-dialog v-model="showCourseDialog" persistent>
-      <q-card style="min-width: 500px;" class="q-pa-md q-mb-lg q-mt-lg">
-        <q-card-section>
-          <div class="text-h6 text-primary">Add New Course to {{ getProgramName(selectedProgramId) }}</div>
-        </q-card-section>
-        <q-separator />
-        <q-card-section>
-          <q-form @submit.prevent="submitCourse" class="q-gutter-md">
-            <q-input v-model="courseForm.tc_topic" label="Topic" outlined required />
-            <q-input v-model="courseForm.tc_description" label="Description" type="textarea" outlined />
-            <q-input v-model="courseForm.tc_start_time" type="date" label="Start Date" outlined required />
-            <q-input v-model="courseForm.tc_end_time" type="date" label="End Date" outlined required />
-            <q-input v-model.number="courseForm.tc_session" type="number" label="Sessions" outlined />
-            <q-select v-model="courseForm.trainer" :options="allTrainersOptions" label="Trainer" outlined emit-value
-              map-options required />
-            <div class="row justify-end q-gutter-sm">
-              <q-btn flat label="Cancel" color="negative" v-close-popup />
-              <q-btn type="submit" label="Save" color="primary" :loading="submitCourseLoading" />
-            </div>
-          </q-form>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
-
-    <!-- Add Trainer Dialog -->
-    <q-dialog v-model="showTrainerDialog" persistent>
-      <q-card style="min-width: 500px;" class="q-pa-md q-mb-lg q-mt-lg">
-        <q-card-section>
-          <div class="text-h6 text-primary">Add Trainer to {{ getProgramName(selectedTrainerProgramId) }}</div>
-        </q-card-section>
-        <q-separator />
-        <q-card-section>
-          <q-form @submit.prevent="submitTrainer" class="q-gutter-md">
-            <q-input v-model="trainerForm.full_name" label="Full Name" outlined required />
-            <q-input v-model="trainerForm.email" label="Email" outlined type="email" required />
-            <q-input v-model="trainerForm.password" label="Password" outlined type="password" required />
-            <q-input v-model="trainerForm.mobile" label="Mobile" outlined required />
-            <q-select v-model="trainerForm.department"
-              :options="departments.map(d => ({ label: d.name, value: d._id }))" label="Select Department" outlined
-              emit-value map-options required />
-            <q-input v-model="trainerForm.designation" label="Designation" outlined required />
-            <div class="row justify-end q-gutter-sm">
-              <q-btn flat label="Cancel" color="negative" v-close-popup />
-              <q-btn type="submit" label="Save" color="primary" :loading="submitTrainerLoading" />
-            </div>
-          </q-form>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
-
-    <!-- Add Program Button -->
-    <q-btn icon="add" color="primary" label="Add Training Program" @click="openProgramDialog"
-      class="fixed-bottom-right q-mr-lg q-mb-lg" />
 
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from "vue"
+import { ref, onMounted, computed } from "vue"
 import { api } from "boot/axios"
 import { useQuasar } from "quasar"
+import { useRouter } from "vue-router"
+
+const router = useRouter()
 
 const $q = useQuasar()
 
 // --- State ---
 const programs = ref([])
-const courses = ref([])
-const trainers = ref([])
-const departments = ref([])
-
-const currentPage = ref(1)
-const rowsPerPage = ref(6)
 const loading = ref(false)
 const statusFilter = ref("all")
-
 const showProgramDialog = ref(false)
-const showCourseDialog = ref(false)
-const showTrainerDialog = ref(false)
-
-const selectedProgramId = ref(null)
-const selectedTrainerProgramId = ref(null)
-
+const showBannerDialog = ref(false)
+const editMode = ref(false)
 const submitProgramLoading = ref(false)
-const submitCourseLoading = ref(false)
-const submitTrainerLoading = ref(false)
-
+const selectedProgram = ref(null)
 
 // Filters
 const searchQuery = ref('')
 const categoryFilter = ref(null)
 const roomFilter = ref(null)
-const trainerFilter = ref(null)
+
+// Table pagination
+const pagination = ref({
+  page: 1,
+  rowsPerPage: 10,
+  rowsNumber: 0
+})
 
 const programForm = ref({
   t_name: "",
@@ -288,66 +341,78 @@ const programForm = ref({
   t_banner: null
 })
 
-const courseForm = ref({
-  tc_topic: "",
-  tc_description: "",
-  tc_start_time: "",
-  tc_end_time: "",
-  tc_session: 1,
-  trainer: null
-})
-
-const trainerForm = ref({
-  full_name: "",
-  email: "",
-  password: "",
-  mobile: "",
-  department: null,
-  designation: "",
-  district: [],
-  roles: []
-})
-
 const roomsOptions = ref([])
 const catOptions = ref([])
 
-const activeTab = ref({})
-
-// --- Improved Banner URL Handling ---
-const getBannerUrl = (banner) => {
-  if (!banner) {
-    return '' // Return empty string for fallback handling in template
+// Table Columns
+const columns = [
+  {
+    name: 'name',
+    required: true,
+    label: 'PROGRAM',
+    align: 'left',
+    field: row => row.t_name,
+    sortable: true
+  },
+  {
+    name: 'status',
+    label: 'STATUS',
+    align: 'center',
+    field: row => row.t_status,
+    sortable: true
+  },
+  {
+    name: 'dates',
+    label: 'DATES',
+    align: 'center',
+    field: row => row.t_start_date,
+    sortable: true,
+    sort: (a, b) => new Date(a) - new Date(b)
+  },
+  {
+    name: 'duration',
+    label: 'DURATION',
+    align: 'center',
+    field: row => `${row.t_duration} days`,
+    sortable: true
+  },
+  {
+    name: 'category',
+    label: 'CATEGORY',
+    align: 'center',
+    field: row => row.t_category?.name,
+    sortable: true
+  },
+  {
+    name: 'room',
+    label: 'ROOM',
+    align: 'center',
+    field: row => row.t_room?.room_name,
+    sortable: true
+  },
+  {
+    name: 'capacity',
+    label: 'CAPACITY',
+    align: 'center',
+    field: row => row.t_capacity,
+    sortable: true
+  },
+  {
+    name: 'rating',
+    label: 'RATING',
+    align: 'center',
+    field: row => row.averageRating,
+    sortable: true
+  },
+  {
+    name: 'actions',
+    label: 'ACTIONS',
+    align: 'center',
+    sortable: false
   }
+]
 
-  // If it's already a full URL
-  if (banner.startsWith('http://') || banner.startsWith('https://')) {
-    return banner
-  }
-
-  // If it starts with /, use as is (API returns "/uploads/filename.jpg")
-  if (banner.startsWith('/')) {
-    return `${api.defaults.baseURL}${banner}`
-  }
-  // Otherwise, assume it's a filename and prepend /uploads/
-  return `${api.defaults.baseURL}/uploads/${banner}`
-}
-
-// File preview for upload dialog
-const getFilePreview = (file) => {
-  if (file instanceof File) {
-    return URL.createObjectURL(file)
-  }
-  return getBannerUrl(file)
-}
-
-// File upload rejection handler
-const onFileRejected = (rejectedEntries) => {
-  $q.notify({
-    type: 'negative',
-    message: `File rejected: ${rejectedEntries[0]?.failedPropValidation || 'Invalid file'}`
-  })
-}
-
+// --- Computed Properties ---
 const filteredPrograms = computed(() => {
   let filtered = programs.value
 
@@ -366,109 +431,82 @@ const filteredPrograms = computed(() => {
     filtered = filtered.filter(p => p.t_room?._id === roomFilter.value)
   }
 
-  // Trainer filter (multi-select)
-  if (trainerFilter.value && trainerFilter.value.length) {
-    filtered = filtered.filter(p =>
-      courses.value.some(c =>
-        c.t_program?._id === p._id && trainerFilter.value.includes(c.trainer?._id)
-      )
-    )
-  }
-
-  // Search filter (name or description)
+  // Search filter
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(p =>
       p.t_name.toLowerCase().includes(query) ||
-      (p.t_description && p.t_description.toLowerCase().includes(query))
+      (p.t_description && p.t_description.toLowerCase().includes(query)) ||
+      (p.t_organizer && p.t_organizer.toLowerCase().includes(query)) ||
+      (p.t_category?.name && p.t_category.name.toLowerCase().includes(query))
     )
   }
 
   return filtered
 })
 
-
 const paginatedPrograms = computed(() => {
-  const start = (currentPage.value - 1) * rowsPerPage.value
-  const end = start + rowsPerPage.value
+  const start = (pagination.value.page - 1) * pagination.value.rowsPerPage
+  const end = start + pagination.value.rowsPerPage
   return filteredPrograms.value.slice(start, end)
 })
 
-const maxPages = computed(() =>
-  Math.max(1, Math.ceil(filteredPrograms.value.length / rowsPerPage.value))
-)
-
-watch([statusFilter, rowsPerPage], () => {
-  currentPage.value = 1
-})
-
-// --- Columns ---
-const courseColumns = [
-  { name: "tc_topic", label: "Topic", field: "tc_topic", sortable: true },
-  { name: "tc_description", label: "Description", field: "tc_description" },
-  { name: "tc_start_time", label: "Start", field: row => new Date(row.tc_start_time).toLocaleDateString() },
-  { name: "tc_end_time", label: "End", field: row => new Date(row.tc_end_time).toLocaleDateString() },
-  { name: "tc_session", label: "Sessions", field: "tc_session" },
-  { name: "trainer", label: "Trainer", field: row => row.trainer?.full_name || "-" }
-]
-
-const trainerColumns = [
-  { name: "full_name", label: "Name", field: "full_name" },
-  { name: "email", label: "Email", field: "email" },
-  { name: "mobile", label: "Mobile", field: "mobile" },
-  {
-    name: "department",
-    label: "Department",
-    field: row => {
-      const dep = departments.value.find(d => d._id === row.department)
-      return dep ? dep.name : "-"
-    }
-  },
-  { name: "designation", label: "Designation", field: "designation" }
-]
-
-// --- Utility ---
-const formatDate = str => new Date(str).toLocaleDateString()
-
-const getProgramStatusColor = status => {
-  if (status === "Upcoming") return "secondary"
-  if (status === "Ongoing") return "orange"
-  if (status === "Finished") return "green"
-  return "grey"
+// --- Utility Functions ---
+const getBannerUrl = (banner) => {
+  if (!banner) return ''
+  if (banner.startsWith('http://') || banner.startsWith('https://')) return banner
+  if (banner.startsWith('/')) return `${api.defaults.baseURL}${banner}`
+  return `${api.defaults.baseURL}/uploads/${banner}`
 }
 
-const getProgramName = programId => programs.value.find(p => p._id === programId)?.t_name || ""
-
-// --- Helpers ---
-const programCourses = (programId) => courses.value.filter(c => c.t_program?._id === programId)
-
-const programTrainers = (programId) => {
-  const courseList = courses.value.filter(c => c.t_program?._id === programId)
-  const trainerSet = new Set(courseList.map(c => c.trainer?._id).filter(Boolean))
-  return trainers.value.filter(t => trainerSet.has(t._id))
+const getFilePreview = (file) => {
+  if (file instanceof File) return URL.createObjectURL(file)
+  return getBannerUrl(file)
 }
 
-const allTrainersOptions = computed(() =>
-  trainers.value.map(t => ({ label: t.full_name, value: t._id }))
-)
+const formatDate = (str) => {
+  if (!str) return 'N/A'
+  const date = new Date(str)
+  if (isNaN(date.getTime())) return 'Invalid Date'
+  
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  })
+}
 
-// --- API Calls ---
+const getProgramStatusColor = (status) => {
+  const colors = {
+    "Upcoming": "secondary",
+    "Ongoing": "orange",
+    "Finished": "green"
+  }
+  return colors[status] || "grey"
+}
+
+const onFileRejected = (rejectedEntries) => {
+  $q.notify({
+    type: 'negative',
+    message: `File rejected: ${rejectedEntries[0]?.failedPropValidation || 'Invalid file'}`
+  })
+}
+
+// --- Table Functions ---
+function onRequest(props) {
+  const { page, rowsPerPage } = props.pagination
+  pagination.value.page = page
+  pagination.value.rowsPerPage = rowsPerPage
+  pagination.value.rowsNumber = filteredPrograms.value.length
+}
+
+// --- API Functions ---
 async function fetchPrograms() {
   loading.value = true
   try {
     const res = await api.get("/admin-api/get-all-training-program?page=1&limit=100")
     programs.value = res.data.programs || []
-    programs.value.forEach(p => {
-      activeTab.value[p._id] = "courses"
-
-      // Debug: log banner information
-      console.log(`Program: ${p.t_name}`, {
-        bannerField: p.t_banner,
-        bannerUrl: getBannerUrl(p.t_banner),
-        hasBanner: !!p.t_banner
-      })
-    })
-
+    pagination.value.rowsNumber = programs.value.length
   } catch (err) {
     console.error("Failed to fetch programs:", err)
     $q.notify({ type: "negative", message: "Failed to load programs" })
@@ -477,32 +515,11 @@ async function fetchPrograms() {
   }
 }
 
-async function fetchCourses() {
-  try {
-    const res = await api.get("/admin-api/get-all-training-course?page=1&limit=100")
-    courses.value = res.data.courses || []
-  } catch (err) {
-    console.error("Failed to fetch courses:", err)
-    $q.notify({ type: "negative", message: "Failed to load courses" })
-  }
-}
-
-async function fetchTrainers() {
-  try {
-    const res = await api.get("/admin-api/trainers?page=1&limit=100")
-    trainers.value = res.data.trainers || []
-  } catch (err) {
-    console.error("Failed to fetch trainers:", err)
-    $q.notify({ type: "negative", message: "Failed to load trainers" })
-  }
-}
-
 async function fetchDropdowns() {
   try {
-    const [roomRes, catRes, deptRes] = await Promise.all([
+    const [roomRes, catRes] = await Promise.all([
       api.get("/admin-api/get-training-room"),
-      api.get("/admin-api/get-training-category"),
-      api.get("/admin-api/departments?limit=100")
+      api.get("/admin-api/get-training-category")
     ])
 
     roomsOptions.value = (roomRes.data.rooms || []).map(r => ({
@@ -514,21 +531,17 @@ async function fetchDropdowns() {
       label: c.name,
       value: c._id
     }))
-
-    departments.value = deptRes.data.departments || []
   } catch (err) {
     console.error("Failed to fetch dropdowns:", err)
     $q.notify({ type: "negative", message: "Failed to load dropdown options" })
   }
 }
 
-// --- Submits ---
 async function submitProgram() {
   submitProgramLoading.value = true
   try {
     const formData = new FormData()
 
-    // Append all form fields
     Object.keys(programForm.value).forEach(key => {
       if (programForm.value[key] !== null && programForm.value[key] !== undefined) {
         if (key === 't_banner' && programForm.value[key] instanceof File) {
@@ -539,170 +552,172 @@ async function submitProgram() {
       }
     })
 
-    // Fixed: removed unused 'response' variable
-    await api.post("/admin-api/submit-training-program", formData, {
+    const url = editMode.value 
+      ? `/admin-api/update-training-program/${programForm.value._id}`
+      : "/admin-api/submit-training-program"
+    
+    const method = editMode.value ? 'put' : 'post'
+    
+    await api[method](url, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       }
     })
 
-    $q.notify({ type: "positive", message: "Program created successfully" })
+    $q.notify({ 
+      type: "positive", 
+      message: editMode.value ? "Program updated successfully" : "Program created successfully" 
+    })
+    
     showProgramDialog.value = false
-
-    // Reset form
-    programForm.value = {
-      t_name: "",
-      t_description: "",
-      t_start_date: "",
-      t_end_date: "",
-      t_duration: 0,
-      t_eligibility: "",
-      t_organizer: "",
-      t_capacity: null,
-      t_room: null,
-      t_category: null,
-      t_banner: null
-    }
-
+    resetForm()
     await fetchPrograms()
+    
   } catch (err) {
     console.error("Failed to submit program:", err)
     $q.notify({
       type: "negative",
-      message: err.response?.data?.message || "Failed to create program"
+      message: err.response?.data?.message || `Failed to ${editMode.value ? 'update' : 'create'} program`
     })
   } finally {
     submitProgramLoading.value = false
   }
 }
 
-async function submitCourse() {
-  submitCourseLoading.value = true
+async function deleteProgram(programId) {
   try {
-    courseForm.value.t_program = selectedProgramId.value
-    await api.post("/admin-api/submit-training-course", courseForm.value)
-    $q.notify({ type: "positive", message: "Course added successfully" })
-    showCourseDialog.value = false
-    courseForm.value = {
-      tc_topic: "",
-      tc_description: "",
-      tc_start_time: "",
-      tc_end_time: "",
-      tc_session: 1,
-      trainer: null
-    }
-    await fetchCourses()
+    await api.delete(`/admin-api/admin-api/program/${programId}`)
+    $q.notify({ type: "positive", message: "Program deleted successfully" })
+    await fetchPrograms()
   } catch (err) {
-    console.error("Failed to submit course:", err)
+    console.error("Failed to delete program:", err)
     $q.notify({
       type: "negative",
-      message: err.response?.data?.message || "Failed to add course"
+      message: err.response?.data?.message || "Failed to delete program"
     })
-  } finally {
-    submitCourseLoading.value = false
   }
 }
 
-async function submitTrainer() {
-  submitTrainerLoading.value = true
-  try {
-    trainerForm.value.t_program = selectedTrainerProgramId.value
-    await api.post("/admin-api/submit-trainer", trainerForm.value)
-    $q.notify({ type: "positive", message: "Trainer added successfully" })
-    showTrainerDialog.value = false
-    trainerForm.value = {
-      full_name: "",
-      email: "",
-      password: "",
-      mobile: "",
-      department: null,
-      designation: "",
-      district: [],
-      roles: []
-    }
-    await fetchTrainers()
-  } catch (err) {
-    console.error("Failed to submit trainer:", err)
-    $q.notify({
-      type: "negative",
-      message: err.response?.data?.message || "Failed to add trainer"
-    })
-  } finally {
-    submitTrainerLoading.value = false
-  }
-}
-
-// --- Dialogs ---
+// --- UI Functions ---
 function openProgramDialog() {
+  editMode.value = false
+  resetForm()
   showProgramDialog.value = true
 }
 
-function openCourseDialog(programId) {
-  selectedProgramId.value = programId;
-  showCourseDialog.value = true
+function editProgram(program) {
+  editMode.value = true
+  programForm.value = { ...program }
+  
+  // Trigger duration calculation when editing
+  calculateDuration()
+  
+  showProgramDialog.value = true
 }
 
-function openTrainerDialog(programId) {
-  selectedTrainerProgramId.value = programId;
-  showTrainerDialog.value = true
+function resetForm() {
+  programForm.value = {
+    t_name: "",
+    t_description: "",
+    t_start_date: "",
+    t_end_date: "",
+    t_duration: 0,
+    t_eligibility: "",
+    t_organizer: "",
+    t_capacity: null,
+    t_room: null,
+    t_category: null,
+    t_banner: null
+  }
+}
+
+function viewProgramDetails(program) {
+  router.push(`/admin/training/${program._id}`)
+}
+
+function showBanner(program) {
+  selectedProgram.value = program
+  showBannerDialog.value = true
+}
+
+function confirmDelete(program) {
+  $q.dialog({
+    title: 'Confirm Delete',
+    message: `Are you sure you want to delete "${program.t_name}"?`,
+    cancel: true,
+    persistent: true
+  }).onOk(() => {
+    deleteProgram(program._id)
+  })
 }
 
 // Duration calculation
-watch(
-  () => [programForm.value.t_start_date, programForm.value.t_end_date],
-  ([start, end]) => {
-    if (start && end) {
-      const startDate = new Date(start)
-      const endDate = new Date(end)
+const calculateDuration = () => {
+  const { t_start_date, t_end_date } = programForm.value
+  
+  if (t_start_date && t_end_date) {
+    try {
+      const startDate = new Date(t_start_date)
+      const endDate = new Date(t_end_date)
+      
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        programForm.value.t_duration = 0
+        return
+      }
+      
       const diffTime = endDate - startDate
-      programForm.value.t_duration = diffTime > 0 ? Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1 : 0
-    } else {
+      const diffDays = diffTime / (1000 * 60 * 60 * 24)
+      programForm.value.t_duration = Math.max(0, Math.ceil(diffDays))
+    } catch (error) {
+      console.error("Error calculating duration:", error)
       programForm.value.t_duration = 0
     }
+  } else {
+    programForm.value.t_duration = 0
   }
-)
+}
 
 // --- Mounted ---
 onMounted(async () => {
-  await Promise.all([fetchPrograms(), fetchCourses(), fetchTrainers(), fetchDropdowns()])
+  await Promise.all([fetchPrograms(), fetchDropdowns()])
 })
 </script>
 
 <style lang="sass">
-.styled-table
-  thead tr th
-    background-color: #00b4ff
-    color: white
-    font-weight: bold
+.sticky-header-table
+  .q-table__top
+    border-bottom: 1px solid #e0e0e0
+
+  .q-table__middle
+    max-height: calc(100vh - 250px)
+
+  .q-td, .q-th
+    padding: 8px 16px
+
+  .q-th
+    font-weight: 600
     text-transform: uppercase
-  tbody tr:nth-child(even)
-    background: #f5faff
-  tbody tr:hover
-    background: #e0f7ff
-    transition: background 0.2s
+    font-size: 12px
+    color: #666
 
-.hover-card
-  transition: all 0.2s ease-in-out
-  &:hover
-    transform: translateY(-4px)
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12)
+  .q-tr:hover
+    background-color: #f5f9ff
 
-// Ensure images display properly
-.q-img
-  background-color: #f5f5f5
-  .q-img__content
-    background-size: cover
-    background-position: center
-
-// Gradient for banner text overlay
-.bg-gradient-to-top
-  background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0) 100%)
-
-// Custom rounded borders
-.rounded-borders-top
-  border-top-left-radius: 8px
-  border-top-right-radius: 8px
+.ellipsis
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
 
 .rounded-borders
   border-radius: 8px
+
+// Status colors
+.text-secondary
+  color: $secondary !important
+
+.text-orange
+  color: $orange !important
+
+.text-green
+  color: $green !important
 </style>

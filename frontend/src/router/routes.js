@@ -21,6 +21,7 @@ const routes = [
     children: [
       { path: "dashboard", component: () => import("src/pages/admin/DashboardPage.vue") },
       { path: "training", component: () => import("pages/admin/Training/TrainingPage.vue") },
+      { path: "training/:id", component: () => import("pages/admin/Training/ProgramDetailPage.vue") },
       { path: "training-course", component: () => import("pages/admin/Training/TrainingCoursePage.vue") },
       { path: "trainer", component: () => import("src/pages/admin/Trainer/TrainerPage.vue") },
       { path: "trainee", component: () => import("pages/admin/Trainee/TraineePage.vue") },

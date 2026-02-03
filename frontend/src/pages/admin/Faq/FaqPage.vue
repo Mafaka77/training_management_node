@@ -6,32 +6,38 @@
       <q-btn color="primary" icon="add" label="Add FAQ" @click="openAddDialog" />
     </div>
 
-    <!-- Search Input -->
-    <q-input
-      dense
-      outlined
-      debounce="300"
-      v-model="filter"
-      placeholder="Search FAQs..."
-      class="q-mb-lg"
-    >
-      <template v-slot:append>
-        <q-icon name="search" />
-      </template>
-    </q-input>
+    <!-- Search + Category Filter -->
+    <div class="row q-col-gutter-md q-mb-lg">
+      <div class="col-12 col-md-8">
+        <q-input dense outlined debounce="300" v-model="filter" placeholder="Search FAQs...">
+          <template #append>
+            <q-icon name="search" />
+          </template>
+        </q-input>
+      </div>
+
+      <div class="col-12 col-md-4">
+        <q-select
+          dense
+          outlined
+          clearable
+          v-model="selectedCategory"
+          :options="categoryOptions"
+          label="Filter by Category"
+        />
+      </div>
+    </div>
 
     <!-- FAQ Cards -->
     <div class="row q-col-gutter-md">
-      <div
-        v-for="faq in filteredFAQs"
-        :key="faq._id"
-        class="col-12 col-sm-6 col-md-4 col-lg-3"
-      >
+      <div v-for="faq in filteredFAQs" :key="faq._id" class="col-12 col-sm-6 col-md-4 col-lg-3">
         <q-card bordered flat class="faq-card">
           <q-card-section>
-            <div class="text-h6 text-primary ellipsis-2-lines">{{ faq.question }}</div>
+            <div class="text-h6 text-primary ellipsis-2-lines cursor-pointer" @click="viewFAQ(faq)">
+              {{ faq.question }}
+            </div>
             <div class="text-caption text-grey q-mt-xs">
-              {{ faq.category || "Uncategorized" }}
+              {{ faq.category || 'Uncategorized' }}
             </div>
           </q-card-section>
 
@@ -65,10 +71,10 @@
 
     <!-- Add/Edit Dialog -->
     <q-dialog v-model="showDialog" persistent>
-      <q-card style="min-width: 600px;" class="q-pa-md">
+      <q-card style="min-width: 600px" class="q-pa-md">
         <q-card-section>
           <div class="text-h6 text-primary">
-            {{ isEdit ? "Edit FAQ" : "Add FAQ" }}
+            {{ isEdit ? 'Edit FAQ' : 'Add FAQ' }}
           </div>
         </q-card-section>
 
@@ -77,6 +83,7 @@
         <q-card-section>
           <q-form @submit.prevent="saveFAQ" class="q-gutter-md">
             <q-input v-model="form.question" label="Question" outlined dense required />
+
             <q-input
               v-model="form.answer"
               label="Answer"
@@ -86,7 +93,28 @@
               required
               autogrow
             />
-            <q-input v-model="form.category" label="Category" outlined dense />
+
+            <!-- Category Select (select or add new) -->
+            <q-select
+              v-model="form.category"
+              :options="categoryOptions"
+              label="Category"
+              outlined
+              dense
+              use-input
+              clearable
+              hide-dropdown-icon
+              @new-value="addNewCategory"
+              hint="Select existing or type to add new"
+            >
+              <template #no-option>
+                <q-item>
+                  <q-item-section class="text-grey">
+                    Press Enter to add new category
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
           </q-form>
         </q-card-section>
 
@@ -100,51 +128,96 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
-import { api } from "boot/axios";
-import { useQuasar } from "quasar";
+import { ref, onMounted, computed } from 'vue'
+import { api } from 'boot/axios'
+import { useQuasar } from 'quasar'
 
-const $q = useQuasar();
-const faqs = ref([]);
-const loading = ref(false);
-const filter = ref("");
-const showDialog = ref(false);
-const isEdit = ref(false);
-const currentId = ref(null);
+const $q = useQuasar()
+
+const faqs = ref([])
+const loading = ref(false)
+const filter = ref('')
+const selectedCategory = ref(null)
+
+const showDialog = ref(false)
+const isEdit = ref(false)
+const currentId = ref(null)
 
 const form = ref({
-  question: "",
-  answer: "",
-  category: "",
-});
+  question: '',
+  answer: '',
+  category: '',
+})
 
-// Computed filtered list
-const filteredFAQs = computed(() => {
-  if (!filter.value) return faqs.value;
-  const term = filter.value.toLowerCase();
-  return faqs.value.filter(
-    (f) =>
-      f.question.toLowerCase().includes(term) ||
-      f.answer.toLowerCase().includes(term) ||
-      f.category?.toLowerCase().includes(term)
+// 🔹 Category options (derived, no hardcoding)
+const categoryOptions = computed(() => {
+  return [...new Set(faqs.value.map((f) => f.category).filter(Boolean))]
+})
+const addNewCategory = (val) => {
+  if (!val) return;
+
+  const newCategory = val.trim();
+
+  if (!newCategory) return;
+
+  // prevent duplicates (case-insensitive)
+  const exists = categoryOptions.value.some(
+    c => c.toLowerCase() === newCategory.toLowerCase()
   );
-});
+
+  if (!exists) {
+    // locally add for immediate UX feedback
+    faqs.value.push({ category: newCategory });
+  }
+
+  // set model value explicitly
+  form.value.category = newCategory;
+};
+const normalizeCategory = (cat) =>
+  cat
+    ?.trim()
+    .replace(/\s+/g, " ")
+    .replace(/\b\w/g, l => l.toUpperCase());
+
+form.value.category = normalizeCategory(form.value.category);
+
+
+// 🔹 Combined filtering (category + search)
+const filteredFAQs = computed(() => {
+  let list = faqs.value
+
+  if (selectedCategory.value) {
+    list = list.filter((f) => f.category === selectedCategory.value)
+  }
+
+  if (filter.value) {
+    const term = filter.value.toLowerCase()
+    list = list.filter(
+      (f) =>
+        f.question.toLowerCase().includes(term) ||
+        f.answer.toLowerCase().includes(term) ||
+        f.category?.toLowerCase().includes(term),
+    )
+  }
+
+  return list
+})
 
 // ✅ Fetch FAQs
 const fetchFAQs = async () => {
-  loading.value = true;
+  loading.value = true
   try {
-    const res = await api.get("https://staging2.egovmz.in/admin-api/faqs");
-    faqs.value = res.data.faqs || [];
+    const res = await api.get('/admin-api/faqs')
+    faqs.value = res.data.faqs || []
   } catch (err) {
     $q.notify({
-      type: "negative",
-      message: err.response?.data?.message || "Failed to fetch FAQs",
-    });
+      type: 'negative',
+      message: err.response?.data?.message || 'Failed to fetch FAQs',
+    })
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-};
+}
 
 // ✅ View FAQ
 const viewFAQ = (faq) => {
@@ -152,70 +225,70 @@ const viewFAQ = (faq) => {
     title: faq.question,
     message: `
       <b>Answer:</b> ${faq.answer}<br/>
-      <b>Category:</b> ${faq.category || "—"}<br/>
+      <b>Category:</b> ${faq.category || '—'}<br/>
       <b>Created At:</b> ${new Date(faq.createdAt).toLocaleString()}
     `,
     html: true,
-  });
-};
+  })
+}
 
 // ✅ Add / Edit Dialog
 const openAddDialog = () => {
-  isEdit.value = false;
-  currentId.value = null;
-  form.value = { question: "", answer: "", category: "" };
-  showDialog.value = true;
-};
+  isEdit.value = false
+  currentId.value = null
+  form.value = { question: '', answer: '', category: '' }
+  showDialog.value = true
+}
 
 const openEditDialog = (faq) => {
-  isEdit.value = true;
-  currentId.value = faq._id;
-  form.value = { question: faq.question, answer: faq.answer, category: faq.category };
-  showDialog.value = true;
-};
+  isEdit.value = true
+  currentId.value = faq._id
+  form.value = { question: faq.question, answer: faq.answer, category: faq.category }
+  showDialog.value = true
+}
 
 // ✅ Save FAQ
 const saveFAQ = async () => {
   try {
     if (isEdit.value && currentId.value) {
-      await api.put(`https://staging2.egovmz.in/admin-api/faqs/${currentId.value}`, form.value);
-      $q.notify({ type: "positive", message: "FAQ updated successfully" });
+      await api.put(`https://staging2.egovmz.in/admin-api/faqs/${currentId.value}`, form.value)
+      $q.notify({ type: 'positive', message: 'FAQ updated successfully' })
     } else {
-      await api.post("https://staging2.egovmz.in/admin-api/faqs", form.value);
-      $q.notify({ type: "positive", message: "FAQ created successfully" });
+      await api.post('https://staging2.egovmz.in/admin-api/faqs', form.value)
+      $q.notify({ type: 'positive', message: 'FAQ created successfully' })
     }
-    showDialog.value = false;
-    fetchFAQs();
+    showDialog.value = false
+    fetchFAQs()
   } catch (err) {
     $q.notify({
-      type: "negative",
-      message: err.response?.data?.message || "Operation failed",
-    });
+      type: 'negative',
+      message: err.response?.data?.message || 'Operation failed',
+    })
   }
-};
+}
 
 // ✅ Delete FAQ
 const deleteFAQ = async (id) => {
   $q.dialog({
-    title: "Confirm",
-    message: "Are you sure you want to delete this FAQ?",
+    title: 'Confirm',
+    message: 'Are you sure you want to delete this FAQ?',
     cancel: true,
     persistent: true,
   }).onOk(async () => {
     try {
-      await api.delete(`https://staging2.egovmz.in/admin-api/faqs/${id}`);
-      $q.notify({ type: "positive", message: "FAQ deleted successfully" });
-      fetchFAQs();
+      await api.delete(`https://staging2.egovmz.in/admin-api/faqs/${id}`)
+      $q.notify({ type: 'positive', message: 'FAQ deleted successfully' })
+      fetchFAQs()
     } catch (err) {
       $q.notify({
-        type: "negative",
-        message: err.response?.data?.message || "Failed to delete FAQ",
-      });
+        type: 'negative',
+        message: err.response?.data?.message || 'Failed to delete FAQ',
+      })
     }
-  });
-};
+  })
+}
 
-onMounted(fetchFAQs);
+onMounted(fetchFAQs)
 </script>
 
 <style lang="sass">
