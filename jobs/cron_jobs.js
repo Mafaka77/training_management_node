@@ -13,8 +13,10 @@ const sendTrainingReminderNotifications = require('../jobs/sendNotification');
 const trainingsStatusUpdater = require('../jobs/training_jobs');
 
 console.log("Reminder Stated Working");
-cron.schedule("10 12 * * *", async () => {
+cron.schedule("0 0 * * *", async () => {
     await startCleanupJob();
-    await sendTrainingReminderNotifications();
     await trainingsStatusUpdater();
 });
+cron.schedule("0 6 * * *", async () => {
+    await sendTrainingReminderNotifications();
+})
