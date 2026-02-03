@@ -6,7 +6,7 @@ const DeviceTokenSchema = new mongoose.Schema(
     type: mongoose.Schema.Types.ObjectId, 
     ref: "User",       // 👈 reference to User model
     required: true, 
-    index: true 
+    // index: true
   },
     token: { type: String, required: true, unique: true },
     platform: { type: String, enum: ["android", "ios", "web"], default: "android" },
