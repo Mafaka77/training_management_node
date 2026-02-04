@@ -1,4 +1,4 @@
-const mongoose= require('mongoose');
+const mongoose = require('mongoose');
 const trainingProgramSchema = new mongoose.Schema({
     t_name: {
         type: String,
@@ -6,7 +6,7 @@ const trainingProgramSchema = new mongoose.Schema({
         unique: true,
 
     },
-    t_banner:{
+    t_banner: {
         type: String,
         required: false,
     },
@@ -15,13 +15,13 @@ const trainingProgramSchema = new mongoose.Schema({
         required: false,
 
     },
-    t_start_date:{
-        type:Date,
-        required:true,
+    t_start_date: {
+        type: Date,
+        required: true,
     },
-    t_end_date:{
-        type:Date,
-        required:true,
+    t_end_date: {
+        type: Date,
+        required: true,
     },
     t_duration: {
         type: Number, // Duration in days
@@ -32,11 +32,11 @@ const trainingProgramSchema = new mongoose.Schema({
         required: false,
 
     },
-    t_organizer:{
+    t_organizer: {
         type: String,
         required: false
     },
-    t_capacity:{
+    t_capacity: {
         type: Number,
         required: true,
         default: 0 // Default capacity if not specified
@@ -49,16 +49,16 @@ const trainingProgramSchema = new mongoose.Schema({
     },
     t_status: {
         type: String,
-        enum: ["Upcoming", "Ongoing", "Finished"], // allowed values
-        default: "Upcoming" // optional default
+        enum: ["Draft", "Upcoming", "Ongoing", "Completed"], // allowed values
+        default: "Draft" // optional default
     },
-    t_room:{
+    t_room: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'TrainingRoom',
         required: true
     },
     averageRating: { type: Number, default: 0 },
-    ratingsCount:  { type: Number, default: 0 },
+    ratingsCount: { type: Number, default: 0 },
     createdAt: {
         type: Date,
         default: Date.now
@@ -66,12 +66,12 @@ const trainingProgramSchema = new mongoose.Schema({
 
 });
 
-trainingProgramSchema.virtual('trainingCourse',{
-    ref:'TrainingCourse',
-    localField:'_id',
-    foreignField:'t_program',
+trainingProgramSchema.virtual('trainingCourse', {
+    ref: 'TrainingCourse',
+    localField: '_id',
+    foreignField: 't_program',
 })
-trainingProgramSchema.set('toObject',{virtuals:true});
-trainingProgramSchema.set('toJSON',{virtuals:true});
+trainingProgramSchema.set('toObject', { virtuals: true });
+trainingProgramSchema.set('toJSON', { virtuals: true });
 
 module.exports = mongoose.model('TrainingProgram', trainingProgramSchema);

@@ -20,7 +20,7 @@ async function startCronJobs() {
             {
                 t_end_date: { $lt: now },
             },
-            { $set: { t_status: "Finished" } }
+            { $set: { t_status: "Completed" } }
         );
 
         // ✅ Mark trainings as Upcoming (optional)

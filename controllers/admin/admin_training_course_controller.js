@@ -21,19 +21,21 @@ exports.getTrainer= async (req, res) => {
 
 
 exports.submitTrainingCourse = async (req, res) => {
-    const { tc_topic, tc_description, tc_start_time, tc_end_time, tc_session, t_program, trainer, qrVersion, } = req.body;
+    const { tc_topic, tc_description, tc_start_time, tc_end_time, tc_session, t_program, trainer, qrVersion,tc_date } = req.body;
     function parseIsoToDate(value) {
         if (!value) return null;
         const cleaned = value.toString().trim();
         const d = new Date(cleaned);
         return isNaN(d.getTime()) ? null : d;
     }
+    const date= parseIsoToDate(tc_date);
     const start = parseIsoToDate(tc_start_time);
     const end = parseIsoToDate(tc_end_time);
 
     if (!start || !end) {
         return res.status(STATUS.OK).json({ status: STATUS.BAD_REQUEST, message: 'Invalid start/end date'});
     }
+
     try {
         if (!tc_topic || !tc_start_time || !tc_end_time || !t_program || !trainer) {
             return res.status(STATUS.OK).json({ message: "Please fill all required fields" ,status:STATUS.BAD_REQUEST});
@@ -44,10 +46,22 @@ exports.submitTrainingCourse = async (req, res) => {
         if (existingCourse) {
             return res.status(STATUS.OK).json({ message: "Training Course with same topic already exists" ,status:STATUS.CONFLICT});
         }
+        const conflictCourse = await TrainingCourse.findOne({
+            date: date,
+            tc_start_time: { $lt: end },
+            tc_end_time: { $gt: start }
+        });
 
+        if (conflictCourse) {
+            return res.status(STATUS.OK).json({
+                message: "Another course already exists in this time slot",
+                status: STATUS.CONFLICT
+            });
+        }
         const course = new TrainingCourse({
             tc_topic,
             tc_description,
+            date:date,
             tc_start_time:start,
             tc_end_time:end,
             tc_session,

@@ -1,4 +1,4 @@
-const mongoose= require('mongoose');
+const mongoose = require('mongoose');
 const trainingCourseSchema = new mongoose.Schema({
     tc_topic: {
         type: String,
@@ -7,6 +7,10 @@ const trainingCourseSchema = new mongoose.Schema({
     tc_description: {
         type: String,
         required: false,
+    },
+    tc_date:{
+      type: Date,
+      required: true,
     },
     tc_start_time: {
         type: Date,
@@ -26,12 +30,12 @@ const trainingCourseSchema = new mongoose.Schema({
         ref: 'TrainingProgram',
         required: true
     },
-    trainer:{
+    trainer: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
-    qrVersion:{
+    qrVersion: {
         type: String,
         required: false,
         default: '1'
@@ -48,4 +52,4 @@ trainingCourseSchema.virtual('materials', {
 })
 trainingCourseSchema.set('toObject', { virtuals: true });
 trainingCourseSchema.set('toJSON', { virtuals: true });
-module.exports= mongoose.model('TrainingCourse', trainingCourseSchema);
+module.exports = mongoose.model('TrainingCourse', trainingCourseSchema);
