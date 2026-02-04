@@ -26,7 +26,9 @@ exports.getTraining = async (req, res) => {
         }
 
         // Build search filter
-        const filter = {};
+        const filter = {
+            t_status: { $ne: "Draft" }
+        };
         if (search) {
             filter.name = { $regex: search, $options: "i" }; // search by program name
         }
