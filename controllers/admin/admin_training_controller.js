@@ -39,7 +39,7 @@ exports.getTraining = async (req, res) => {
         // Build search filter
         const filter = {};
         if (search) {
-            filter.name = { $regex: search, $options: "i" }; // search by program name
+            filter.t_name = { $regex: search, $options: "i" }; // search by program name
         }
 
         // Get total count for pagination

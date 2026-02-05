@@ -4,6 +4,7 @@ const User = require('../../models/user_model');
 const Role = require('../../models/role_model');
 const Department = require('../../models/department_model');
 const District = require('../../models/district_model');
+const Group=require('../../models/group_model');
 const STATUS = require("../../utils/httpStatus");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -192,6 +193,14 @@ exports.getDistricts = async (req, res) => {
         const districts = await District.find().select('-__v').lean();
         return res.status(STATUS.OK).json({ districts, status: STATUS.OK });
     } catch (e) {
+        return res.status(STATUS.OK).json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+    }
+}
+exports.getGroups = async (req, res) => {
+    try{
+        const groups=await Group.find().select('-__v').lean();
+        return res.status(STATUS.OK).json({ groups, status: STATUS.OK });
+    }catch (e) {
         return res.status(STATUS.OK).json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }
 }

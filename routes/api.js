@@ -14,6 +14,7 @@ router.post('/send-otp',upload.none(), TraineeAuthController.sendOtp);
 router.post('/verify-otp',upload.none(), TraineeAuthController.verifyOtp);
 router.get('/departments',upload.none(), TraineeAuthController.getDepartment);
 router.get('/districts',upload.none(), TraineeAuthController.getDistricts);
+router.get('/groups',upload.none(), TraineeAuthController.getGroups);
 router.get('/me',authenticate,authorizeRoles('Trainee'), TraineeAuthController.me);
 router.post('/logout',authenticate,authorizeRoles('Trainee'),TraineeAuthController.logout);
 router.get('/my-profile',authenticate,authorizeRoles('Trainee'),TraineeAuthController.getMyProfile);
