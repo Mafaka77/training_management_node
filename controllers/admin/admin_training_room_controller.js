@@ -12,7 +12,7 @@ exports.submitTrainingRoom= async (req, res) => {
         }
 
         const existingRoom = await TrainingRoom.findOne({
-            $or: [{ room_name }, { room_no }]
+            $or: [{ room_name }]
         });
 
         if (existingRoom) {
