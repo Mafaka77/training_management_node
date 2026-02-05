@@ -4,10 +4,10 @@ const STATUS= require("../../utils/httpStatus");
 //ROOMS-----------------------------------------------
 
 exports.submitTrainingRoom= async (req, res) => {
-    const { room_name, room_no, capacity, details } = req.body;
+    const { room_name, room_no, capacity, details ,latitude,longitude} = req.body;
 
     try {
-        if (!room_name || !room_no) {
+        if (!room_name || !latitude || !longitude) {
             return res.status(STATUS.OK).json({ message: "Please fill all required fields" ,status:STATUS.BAD_REQUEST});
         }
 
@@ -24,6 +24,8 @@ exports.submitTrainingRoom= async (req, res) => {
             room_no,
             capacity,
             details,
+            latitude,
+            longitude,
         });
 
         await room.save();
