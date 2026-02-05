@@ -9,7 +9,7 @@ exports.submitDocument = async (req, res) => {
 
         // Validate file upload
         if (!req.files || req.files.length === 0) {
-            return res.status(400).json({ message: "No documents uploaded" });
+            return res.status(STATUS.OK).json({ message: "No documents uploaded" ,status:STATUS.NOT_FOUND});
         }
 
         // Store multiple documents
@@ -29,14 +29,15 @@ exports.submitDocument = async (req, res) => {
             uploadedDocs.push(doc);
         }
 
-        res.status(201).json({
+        res.status(STATUS.OK).json({
             message: "Documents uploaded successfully",
-            documents: uploadedDocs
+            documents: uploadedDocs,
+            status: STATUS.CREATED
         });
 
     } catch (error) {
         console.error("Error uploading documents:", error);
-        res.status(500).json({ message: "Server Error" });
+        res.status(STATUS.INTERNAL_SERVER_ERROR).json({ message: "Server Error", status: STATUS.INTERNAL_SERVER_ERROR });
     }
 };
 exports.deleteDocument = async (req, res) => {
