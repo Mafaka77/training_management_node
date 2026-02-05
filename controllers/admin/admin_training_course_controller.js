@@ -48,7 +48,7 @@ exports.submitTrainingCourse = async (req, res) => {
             return res.status(STATUS.OK).json({ message: "Training Course with same topic already exists" ,status:STATUS.CONFLICT});
         }
         const conflictCourse = await TrainingCourse.findOne({
-            date: date,
+            tc_date: date,
             tc_start_time: { $lt: end },
             tc_end_time: { $gt: start }
         });
