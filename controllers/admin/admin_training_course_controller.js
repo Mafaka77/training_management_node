@@ -62,7 +62,7 @@ exports.submitTrainingCourse = async (req, res) => {
         const course = new TrainingCourse({
             tc_topic,
             tc_description,
-            date:date,
+            tc_date:date,
             tc_start_time:start,
             tc_end_time:end,
             tc_session,
