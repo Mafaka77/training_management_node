@@ -70,7 +70,7 @@ exports.deleteTrainingRoom = async (req, res) => {
 };
 exports.updateTrainingRoom = async (req, res) => {
     try {        const { id } = req.params;
-        const { room_name, room_no, capacity, details ,latitude,longitude} = req.body;
+        const { room_name, capacity, details ,latitude,longitude} = req.body;
 
         const room = await TrainingRoom.findById(id);
 
@@ -82,7 +82,6 @@ exports.updateTrainingRoom = async (req, res) => {
         }
 
         room.room_name = room_name || room.room_name;
-        room.room_no = room_no || room.room_no;
         room.capacity = capacity || room.capacity;
         room.details = details || room.details;
         room.latitude = latitude || room.latitude;
