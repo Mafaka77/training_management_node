@@ -47,7 +47,8 @@ exports.deleteTrainingRoom = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const room= await TrainingRoom.findById(id);
+        // Directly find and delete in one database command
+        const room = await TrainingRoom.findByIdAndDelete(id);
 
         if (!room) {
             return res.status(STATUS.OK).json({
@@ -55,13 +56,14 @@ exports.deleteTrainingRoom = async (req, res) => {
                 status: STATUS.NOT_FOUND
             });
         }
-     await room.deleteOne(id);
+
         return res.status(STATUS.OK).json({
             message: "Training Room deleted successfully",
             status: STATUS.OK
         });
 
     } catch (error) {
+        console.error("Delete Error:", error); // Helpful for debugging PM2 logs
         return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
             message: error.message,
             status: STATUS.INTERNAL_SERVER_ERROR
