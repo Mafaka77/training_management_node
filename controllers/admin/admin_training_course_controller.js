@@ -28,12 +28,24 @@ exports.submitTrainingCourse = async (req, res) => {
         const d = new Date(cleaned);
         return isNaN(d.getTime()) ? null : d;
     }
+    function parseIsoToTime(value) {
+    if (!value) return null;
+    
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return null;
+
+    // Get hours and minutes, ensuring they are 2-digits (e.g., "09" instead of "9")
+    const hours = d.getHours().toString().padStart(2, '0');
+    const minutes = d.getMinutes().toString().padStart(2, '0');
+
+    return `${hours}:${minutes}`;
+}
     const date= parseIsoToDate(tc_date);
-    const start = parseIsoToDate(tc_start_time);
-    const end = parseIsoToDate(tc_end_time);
+    const start = parseIsoToTime(tc_start_time);
+    const end = parseIsoToTime(tc_end_time);
 
     if (!start || !end) {
-        return res.status(STATUS.OK).json({ status: STATUS.BAD_REQUEST, message: 'Invalid start/end date'});
+        return res.status(STATUS.OK).json({ status: STATUS.BAD_REQUEST, message: 'Invalid start/end time'});
     }
 
     try {
