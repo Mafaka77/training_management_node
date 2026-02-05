@@ -27,12 +27,20 @@ const userTokens = new Map(); // userId -> Set(tokens)
 // Middleware
 app.set("trust proxy", 1);
 
+// const corsOptions = {
+//   origin: "*",
+//   credentials: true,
+// };
+// app.use(cors(corsOptions));
 const corsOptions = {
-  origin: "*",
+  // Replace this with your actual frontend URL(s)
+  origin: ['http://localhost:5173', 'https://staging2.egovmz.in'], 
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 };
-app.use(cors(corsOptions));
 
+app.use(cors(corsOptions));
 // 🔥 ABSOLUTELY REQUIRED FOR PASSENGER
 app.use((req, res, next) => {
   if (req.method === "OPTIONS") {
