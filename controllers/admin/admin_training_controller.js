@@ -4,6 +4,7 @@ const TrainingCategory= require('../../models/training_category_model');
 const User= require('../../models/user_model');
 const Role= require('../../models/role_model');
 const STATUS=require('../../utils/httpStatus');
+const Group=require('../../models/group_model');
 const {parse,startOfDay}=require('date-fns');
 function parseDateFlexible(val) {
     if (val === undefined || val === null || val === '') return null;
@@ -147,6 +148,14 @@ exports.deleteTrainingProgram= async (req, res) => {
         return res.status(STATUS.OK).json({message: "Training Program deleted successfully", status: STATUS.OK});
     } catch (e) {
         return res.status(STATUS.OK).json({message: e.message, status: STATUS.INTERNAL_SERVER_ERROR});
+    }
+}
+exports.getGroups = async (req, res) => {
+    try{
+        const groups=await Group.find().select('-__v').lean();
+        return res.status(STATUS.OK).json({ groups, status: STATUS.OK });
+    }catch (e) {
+        return res.status(STATUS.OK).json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }
 }
 

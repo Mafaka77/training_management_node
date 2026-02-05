@@ -44,6 +44,7 @@ router.post('/submit-training-program',authenticate,authorizeRoles('Admin'),file
 router.get('/get-all-training-program', authenticate, authorizeRoles('Admin'),upload.none(), trainingController.getTraining);
 router.get('/program/:programId',authenticate,authorizeRoles('Admin'), upload.none(), trainingController.getTrainingById);
 router.delete('/program/:programId', authenticate, authorizeRoles('Admin'), upload.none(), trainingController.deleteTrainingProgram);
+router.get('/groups',authenticate, authorizeRoles('Admin'), upload.none(), traineeController.getGroups);
 //TRAINING COURSE
 router.post('/submit-training-course', authenticate, authorizeRoles('Admin'), upload.none(), trainingCourseController.submitTrainingCourse);
 router.get('/get-trainer', authenticate, authorizeRoles('Admin'), upload.none(), trainingCourseController.getTrainer);
