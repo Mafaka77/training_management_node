@@ -13,11 +13,11 @@ const trainingCourseSchema = new mongoose.Schema({
       required: true,
     },
     tc_start_time: {
-        type: Date,
+        type: String,
         required: true,
     },
     tc_end_time: {
-        type: Date,
+        type: String,
         required: true,
     },
     tc_session: {
