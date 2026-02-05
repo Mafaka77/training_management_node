@@ -35,6 +35,7 @@ router.post('/submit-training-room', authenticate, authorizeRoles('Admin'),uploa
 router.get('/get-training-room', authenticate, authorizeRoles('Admin'),upload.none(), trainingRoomController.getTrainingRoom);
 router.delete('/room/:id', authenticate, authorizeRoles('Admin'),upload.none(), trainingRoomController.deleteTrainingRoom);
 router.put('/room/:id', authenticate, authorizeRoles('Admin'),upload.none(), trainingRoomController.updateTrainingRoom);
+router.get('/room/:id', authenticate, authorizeRoles('Admin'),upload.none(), trainingRoomController.getTrainingRoomById);
 
 //TRAINING CATEGORY
 router.get('/get-training-category', authenticate, authorizeRoles('Admin'),upload.none(), trainingCategoryController.getTrainingCategory);
