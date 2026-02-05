@@ -79,6 +79,8 @@ router.patch('/enrollment/:enrollmentId', authenticate, authorizeRoles('Admin'),
 //DOCUMENTS
 router.post('/documents', authenticate, authorizeRoles('Admin'), fileUpload.array('documents',1), require('../controllers/admin/admin_document_controller').submitDocument);
 router.delete('/document/:id', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_document_controller').deleteDocument);
+router.get('/documents', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_document_controller').getAllDocuments);
+router.get('/document/:id', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_document_controller').getDocumentById);
 
 //TICKET
 router.get('/tickets',authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_ticket_controller').getAllTickets);

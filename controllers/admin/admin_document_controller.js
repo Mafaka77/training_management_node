@@ -64,3 +64,25 @@ exports.deleteDocument = async (req, res) => {
         res.status(STATUS.INTERNAL_SERVER_ERROR).json({ message: "Server Error" ,status:STATUS.INTERNAL_SERVER_ERROR });
     }
 };
+exports.getAllDocuments = async (req, res) => {
+    try {
+        const documents = await Document.find();
+        res.status(STATUS.OK).json({ documents, status: STATUS.OK });
+    } catch (error) {
+        console.error("Error fetching documents:", error);
+        res.status(STATUS.INTERNAL_SERVER_ERROR).json({ message: "Server Error", status: STATUS.INTERNAL_SERVER_ERROR });
+    }
+};
+exports.getDocumentById = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const document = await Document.findById(id);
+        if (!document) {
+            return res.status(STATUS.OK).json({ message: "Document not found", status: STATUS.NOT_FOUND });
+        }
+        res.status(STATUS.OK).json({ document, status: STATUS.OK });
+    } catch (error) {
+        console.error("Error fetching document:", error);
+        res.status(STATUS.INTERNAL_SERVER_ERROR).json({ message: "Server Error", status: STATUS.INTERNAL_SERVER_ERROR });
+    }
+};
