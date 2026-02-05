@@ -68,6 +68,40 @@ exports.deleteTrainingRoom = async (req, res) => {
         });
     }
 };
+exports.updateTrainingRoom = async (req, res) => {
+    try {        const { id } = req.params;
+        const { room_name, room_no, capacity, details ,latitude,longitude} = req.body;
+
+        const room = await TrainingRoom.findById(id);
+
+        if (!room) {
+            return res.status(STATUS.OK).json({
+                message: "Training Room not found",
+                status: STATUS.NOT_FOUND
+            });
+        }
+
+        room.room_name = room_name || room.room_name;
+        room.room_no = room_no || room.room_no;
+        room.capacity = capacity || room.capacity;
+        room.details = details || room.details;
+        room.latitude = latitude || room.latitude;
+        room.longitude = longitude || room.longitude;
+
+        await room.save();
+
+        return res.status(STATUS.OK).json({
+            message: "Training Room updated successfully",
+            status: STATUS.OK
+        });
+
+    } catch (error) {
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            message: error.message,
+            status: STATUS.INTERNAL_SERVER_ERROR
+        });
+    }
+}
 
 
 

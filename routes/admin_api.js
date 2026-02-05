@@ -34,6 +34,7 @@ router.delete('/department/:departmentId', authenticate, authorizeRoles('Admin')
 router.post('/submit-training-room', authenticate, authorizeRoles('Admin'),upload.none(), trainingRoomController.submitTrainingRoom);
 router.get('/get-training-room', authenticate, authorizeRoles('Admin'),upload.none(), trainingRoomController.getTrainingRoom);
 router.delete('/room/:id', authenticate, authorizeRoles('Admin'),upload.none(), trainingRoomController.deleteTrainingRoom);
+router.put('/room/:id', authenticate, authorizeRoles('Admin'),upload.none(), trainingRoomController.updateTrainingRoom);
 
 //TRAINING CATEGORY
 router.get('/get-training-category', authenticate, authorizeRoles('Admin'),upload.none(), trainingCategoryController.getTrainingCategory);
