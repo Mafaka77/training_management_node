@@ -66,6 +66,7 @@ router.post('/trainer', authenticate, authorizeRoles('Admin'), upload.none(), tr
 router.get('/trainers', authenticate, authorizeRoles('Admin'), upload.none(), trainerController.getAllTrainers);
 router.get('/trainer/:trainerId', authenticate, authorizeRoles('Admin'), upload.none(), trainerController.getTrainerById);
 router.delete('/trainer/:trainerId', authenticate, authorizeRoles('Admin'), upload.none(), trainerController.deleteTrainer);
+router.get('/districts', authenticate, authorizeRoles('Admin'), upload.none(), trainerController.getDistricts);
 
 //TRAINEE
 router.get('/trainees', authenticate, authorizeRoles('Admin'), upload.none(), traineeController.getAllTrainee);

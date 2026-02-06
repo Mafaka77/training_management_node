@@ -3,6 +3,7 @@ const STATUS= require('../../utils/httpStatus');
 const bcrypt = require("bcryptjs");
 const Role= require("../../models/role_model");
 const TrainerProfile= require("../../models/trainer_profile_model");
+const District= require("../../models/district_model");
 
 exports.createTrainer= async (req, res) => {
     try {
@@ -154,4 +155,17 @@ exports.getTrainerById = async (req, res) => {
            .status(STATUS.INTERNAL_SERVER_ERROR)
            .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
    }
+};
+exports.getDistricts = async (req, res) => {
+    try {
+        const districts = await District.find().select("-__v");
+        return res.status(STATUS.OK).json({
+            districts,
+            status: STATUS.OK,
+        });
+    } catch (e) {
+        return res
+            .status(STATUS.INTERNAL_SERVER_ERROR)
+            .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+    }
 };
