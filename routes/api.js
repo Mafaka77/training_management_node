@@ -58,3 +58,9 @@ module.exports=router;
 
 // FCM
 router.post('/fcm/register-token',authenticate,authorizeRoles('Trainee'),upload.none(),require('../controllers/token_controller').registerToken);
+
+
+//UNAUTH API
+
+router.get('/programs',upload.none(),require('../controllers/home_controller').getPrograms);
+router.get('/trainings/calendar',upload.none(),require('../controllers/home_controller').getCalendarTrainings);

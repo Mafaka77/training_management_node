@@ -6,6 +6,7 @@ const Role= require('../../models/role_model');
 const STATUS=require('../../utils/httpStatus');
 const Group=require('../../models/group_model');
 const {parse,startOfDay}=require('date-fns');
+const mongoose = require("mongoose");
 function parseDateFlexible(val) {
     if (val === undefined || val === null || val === '') return null;
 
@@ -33,7 +34,7 @@ function parseDateFlexible(val) {
 exports.getTraining = async (req, res) => {
     try {
         // Query params
-        let { page = 1, limit = 10, search = "" } = req.query;
+        let { page = 1, limit = 4, search = "",status = "" } = req.query;
         page = parseInt(page);
         limit = parseInt(limit);
 
@@ -45,11 +46,14 @@ exports.getTraining = async (req, res) => {
 
         // Get total count for pagination
         const total = await TrainingProgram.countDocuments(filter);
-
+        if (status && status !== "All") {
+            filter.t_status = status;
+        }
         // Fetch paginated data
         const programs = await TrainingProgram.find(filter)
             .populate("t_category", "name")
             .populate("t_room", "room_name")
+            .populate("t_eligibility","group_name")
             .skip((page - 1) * limit)
             .limit(limit)
             .sort({ createdAt: -1 }); // optional: latest first
@@ -68,7 +72,7 @@ exports.getTraining = async (req, res) => {
     }
 };
 exports.submitTrainingProgram= async (req, res) => {
-    const { t_name, t_description, t_start_date, t_end_date, t_duration, t_eligibility,t_category ,t_capacity,t_organizer,t_room,t_banner} = req.body;
+    const { t_name, t_description, t_start_date, t_end_date, t_duration, t_eligibility,t_category ,t_capacity,t_organizer,t_room,t_banner,t_director} = req.body;
 
     try {
         // Required checks
@@ -107,6 +111,7 @@ exports.submitTrainingProgram= async (req, res) => {
             t_capacity,
             t_category ,
             t_room,
+            t_director,
             t_banner:`/uploads/${req.file.filename}`
             // t_banner:'https://ati.mizoram.gov.in/uploads/attachments/2025/06/4f0691cfe48c8f74fe413c7b92391ff4/banner1.jpg'
         });
@@ -115,13 +120,17 @@ exports.submitTrainingProgram= async (req, res) => {
         return res.status(STATUS.OK).json({ message: "Training created successfully" ,status:STATUS.CREATED});
 
     } catch (e) {
+        console.log(e);
         return res.status(STATUS.OK).json({ message: e.message ,status:STATUS.INTERNAL_SERVER_ERROR});
     }
 }
 
 exports.getTrainingById= async (req, res) => {
-    const {programId} = req.params;
+    
+  
     try {
+        const { programId } = req.params;
+        console.log(programId);
         const trainingProgram = await TrainingProgram.findById(programId)
             .populate("t_room")
             .populate("trainingCourse")
@@ -130,7 +139,7 @@ exports.getTrainingById= async (req, res) => {
         if (!trainingProgram) {
             return res.status(STATUS.OK).json({message: "Training Program not found", status: STATUS.NOT_FOUND});
         }
-        return res.status(STATUS.OK).json({trainingProgram, status: STATUS.OK});
+        return res.status(STATUS.OK).json({training:trainingProgram, status: STATUS.OK});
     } catch (e) {
         return res.status(STATUS.OK).json({message: e.message, status: STATUS.INTERNAL_SERVER_ERROR});
     }
@@ -156,6 +165,122 @@ exports.getGroups = async (req, res) => {
         return res.status(STATUS.OK).json({ groups, status: STATUS.OK });
     }catch (e) {
         return res.status(STATUS.OK).json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+    }
+}
+exports.getTrainingDirectors=async (req, res) => {
+    try {
+        const trainerRole = await Role.findOne({ name: "Director" });
+        const directors = await User.find({ roles: trainerRole._id})
+            .select("full_name email mobile roles")
+            .populate("roles", "name"); // optional: show role name
+        return res.status(STATUS.OK).json({ data:directors, status: STATUS.OK });
+    } catch (e) {
+        return res.status(STATUS.OK).json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+    }
+}
+exports.updateStatus=async(req,res)=>{
+    try{
+        const {programId}=req.params;
+        const program=await TrainingProgram.findById(programId);
+        if(!program){
+             return res.status(STATUS.OK).json({
+                            message: "Training not found",
+                            status: STATUS.NOT_FOUND
+                        });
+        }
+        program.t_status='Upcoming'
+        await program.save();
+         return res.status(STATUS.OK).json({
+                    message: "Training status updated successfully",
+                    status: STATUS.OK
+                });
+    }catch(ex){
+         return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+                    message: ex.message,
+                    status: STATUS.INTERNAL_SERVER_ERROR
+                });
+    }
+}
+exports.getEnrollmentsByProgram=async (req, res) => {
+    try {
+        let {programId}=req.params;
+        let {
+            page = 1,
+            limit = 10,
+            search = "",
+            sortOrder = "desc",
+            status = ""
+        } = req.query;
+
+        page = Math.max(1, parseInt(page));
+        limit = parseInt(limit);
+        console.log(req.query);
+        const pipeline = [
+            {
+                $match: {
+                    training_program:new mongoose.Types.ObjectId(programId)
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'user',
+                    foreignField: '_id',
+                    as: 'user'
+                }
+            },
+            { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+            {
+                $lookup: {
+                    from: 'trainingprograms',
+                    localField: 'training_program',
+                    foreignField: '_id',
+                    as: 'training_program'
+                }
+            },
+            { $unwind: { path: '$training_program', preserveNullAndEmptyArrays: true } },
+            {
+                $match: {
+                    ...(status && status !== 'All' ? { status: status } : {}),
+                    ...(search ? {
+                        $or: [
+                            { "user.full_name": { $regex: search, $options: "i" } },
+                            { "training_program.t_name": { $regex: search, $options: "i" } }
+                        ]
+                    } : {})
+                }
+            }
+        ];
+        const countResult = await mongoose.model('Enrollment').aggregate([
+            ...pipeline,
+            { $count: "total" }
+        ]);
+        const total = countResult.length > 0 ? countResult[0].total : 0;
+        pipeline.push(
+            { $sort: { createdAt: sortOrder === "desc" ? -1 : 1 } },
+            { $skip: (page - 1) * limit },
+            { $limit: limit },
+        );
+
+        const enrollments = await mongoose.model('Enrollment').aggregate(pipeline);
+
+        res.status(STATUS.OK).json({
+            status: STATUS.OK,
+            enrollments,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
+            }
+        });
+
+    } catch (error) {
+        console.error("Aggregation Error:", error);
+        res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            status: STATUS.INTERNAL_SERVER_ERROR,
+            message: "Error fetching paginated enrollments"
+        });
     }
 }
 

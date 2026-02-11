@@ -5,44 +5,49 @@ const bcrypt = require("bcryptjs");
 
 exports.getAllTrainee = async (req, res) => {
     try {
-        // Get pagination params from query string
         let { page = 1, limit = 10, search = "" } = req.query;
 
-        page = parseInt(page);
+        page = Math.max(1, parseInt(page));
         limit = parseInt(limit);
-
-        // Build filter (with optional search by name/email/mobile)
-        const filter =await Role.findOne({ name: "Trainee" });
-        console.log(filter);
-
+        const traineeRole = await Role.findOne({ name: "Trainee" });
+        if (!traineeRole) {
+            return res.status(STATUS.OK).json({ trainees: [], status: STATUS.NOT_FOUND });
+        }
+        const query = { roles: traineeRole._id };
         if (search) {
-            filter.$or = [
+            query.$or = [
                 { full_name: { $regex: search, $options: "i" } },
                 { email: { $regex: search, $options: "i" } },
-                { mobile: { $regex: search, $options: "i" } }
+                { mobile: { $regex: search, $options: "i" } },
+                { department: { $regex: search, $options: "i" } }
             ];
         }
+        const [total, trainees] = await Promise.all([
+            User.countDocuments(query),
+            User.find(query)
+                .populate('district', 'name')
+                .populate('group', 'group_name')
+                .select("-password -__v")
+                .sort({ _id: -1 }) 
+                .skip((page - 1) * limit)
+                .limit(limit)
+        ]);
 
-        // Count total documents
-        const total = await User.countDocuments(filter);
+        const totalPages = Math.ceil(total / limit);
 
-        // Fetch paginated data
-        const trainees = await User.find({ roles: filter._id, })
-            .select("-password -__v") // exclude sensitive fields
-            .skip((page - 1) * limit)
-            .limit(limit);
-        console.log(trainees)
         return res.status(STATUS.OK).json({
+            success: true,
             trainees,
             pagination: {
                 total,
                 page,
                 limit,
-                totalPages: Math.ceil(total / limit),
+                totalPages: totalPages || 1,
             },
             status: STATUS.OK,
         });
     } catch (e) {
+        console.log(e);
         return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
             message: e.message,
             status: STATUS.INTERNAL_SERVER_ERROR,
@@ -52,7 +57,8 @@ exports.getAllTrainee = async (req, res) => {
 
 exports.createTrainee = async (req, res) => {
     try {
-        const { full_name, email, mobile, password ,department,district} = req.body;
+        // 1. Destructure groups from req.body
+        const { full_name, email, mobile, password, department, district, group, gender } = req.body;
 
         // Basic validation
         if (!full_name || !email || !mobile || !password) {
@@ -70,25 +76,34 @@ exports.createTrainee = async (req, res) => {
                 status: STATUS.CONFLICT,
             });
         }
+
         const role = await Role.findOne({ name: "Trainee" });
+        if (!role) {
+            return res.status(STATUS.OK).json({
+                message: "Trainee role not found in database",
+                status: STATUS.NOT_FOUND,
+            });
+        }
+
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
-        // Create new trainee
+
+        // 2. Create new trainee with groups array
         const newTrainee = new User({
             full_name,
+            gender,
             email,
             mobile,
             department,
             district,
-            password:hashedPassword, // Assume password hashing middleware is in place
-            roles:role._id,
+            password: hashedPassword,
+            roles: [role._id], // Roles is usually an array in your model
+            group: group || null, // Assign the Group ID
         });
 
         await newTrainee.save();
-
         return res.status(STATUS.OK).json({
             message: "Trainee created successfully",
-            trainee: newTrainee,
             status: STATUS.CREATED,
         });
     } catch (e) {

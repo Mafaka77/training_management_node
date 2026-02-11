@@ -27,8 +27,13 @@ const userSchema= new mongoose.Schema({
         ref: 'District'
     },
     department: {
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'Department'
+        type:String,
+        required: false,
+    },
+    group: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Group',
+        required: false
     },
    gender:{
         type:String,
@@ -39,6 +44,7 @@ const userSchema= new mongoose.Schema({
         type:String,
         required: false
     },
+    
     roles: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Role',

@@ -6,6 +6,7 @@ const STATUS=require('../../utils/httpStatus');
 const Enrollment=require('../../models/enrollment_model');
 const TrainingRatings=require('../../models/training_program_rating_model');
 const Material=require('../../models/materials_model');
+const Notification=require('../../models/notification_model')
 const {populate} = require("dotenv");
 const {sendPushToUser}=require('../../services/push_service');
 //TRAINING PROGRAM-----------------------------------------------------------------------------------
@@ -87,6 +88,7 @@ exports.getTrainingById=async (req,res)=>{
             return res.status(STATUS.OK).json({message:"Invalid training ID",status:STATUS.BAD_REQUEST});
         }
         try{
+            const user=await User.findById(req.user.user.id);
             // Check if training exists
             const training=await TrainingProgram.findById(trainingId);
             if(!training){
@@ -115,11 +117,22 @@ exports.getTrainingById=async (req,res)=>{
                 status:'Pending'
             });
             await newEnrollment.save();
+            const adminNotification = new Notification({
+            sender_id: req.user.user.id,
+            type: "Training",
+            title: "New Enrollment Request",
+            message: `${user.full_name} applied for ${training.t_name}`,
+            // Attach the ID here:
+            target_url: `/admin/training/enrollment/${newEnrollment._id}`, 
+            is_read: false
+            });
+            await adminNotification.save();
             sendPushToUser(req.user.user.id, {
             title: "Pending",
             body: `Your request is under review. You'll be notified once approved.`,
              });
-            return res.status(STATUS.OK).json({message:"Enrollment request submitted",enrollment:newEnrollment,status:STATUS.OK});
+
+            return res.status(STATUS.OK).json({message:"Enrollment request submitted",enrollment:newEnrollment,status:STATUS.CREATED});
 
         }catch(e){
             return res

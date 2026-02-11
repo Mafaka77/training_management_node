@@ -9,7 +9,7 @@ exports.createTrainer= async (req, res) => {
     try {
         const trainerRole = await Role.findOne({ name: "Trainer" });
         const { full_name, email, mobile,password,district,department,designation } = req.body;
-
+      
         if (!full_name || !email || !mobile) {
             return res.status(STATUS.OK).json({ message: "All fields are required", status: STATUS.BAD_REQUEST });
         }
@@ -32,11 +32,12 @@ exports.createTrainer= async (req, res) => {
             department,
             roles: trainerRole._id
         });
-
+          
         await newTrainer.save();
 
         return res.status(STATUS.OK).json({ message: "Trainer created successfully", trainer: newTrainer, status: STATUS.CREATED });
     } catch (e) {
+        console.log(e);
         return res.status(STATUS.OK).json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }
 }

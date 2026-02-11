@@ -1,15 +1,11 @@
 import { createApp } from 'vue'
-import { createPinia } from 'pinia'
+import 'flowbite'
+import './style.css'
 import App from './App.vue'
-import router from './router'
-
+import router from './router/index.js'
+import {createPinia} from "pinia";
 const app = createApp(App)
-
-// ✅ Create Pinia
-const pinia = createPinia()
-
-// ✅ Tell Vue to use Pinia & Router before mounting
-app.use(pinia)
+const pinia=createPinia()
 app.use(router)
-
+app.use(pinia);
 app.mount('#app')

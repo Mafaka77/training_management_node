@@ -27,11 +27,12 @@ const trainingProgramSchema = new mongoose.Schema({
         type: Number, // Duration in days
         required: false
     },
-    t_eligibility: {
-        type: String,
-        required: false,
+    t_eligibility: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Group',
+        required: true,
 
-    },
+    }],
     t_organizer: {
         type: String,
         required: false
@@ -56,6 +57,11 @@ const trainingProgramSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'TrainingRoom',
         required: true
+    },
+    t_director:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'User',
+        required:false,
     },
     averageRating: { type: Number, default: 0 },
     ratingsCount: { type: Number, default: 0 },

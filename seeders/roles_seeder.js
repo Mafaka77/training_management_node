@@ -9,6 +9,7 @@ const roles = [
     { name: "Trainer" },
     { name: "Trainee" },
     { name: "Guest" },
+    {name:"Director"},
 
 ];
 

@@ -19,13 +19,29 @@ const storage = multer.diskStorage({
     },
 });
 
-// File filter (allow images and PDFs)
 const fileFilter = (req, file, cb) => {
-    const allowedTypes = ["image/jpeg", "image/png", "image/jpg", "application/pdf"];
+    const allowedTypes = [
+        // Images & PDF
+        "image/jpeg", "image/png", "image/jpg", "application/pdf",
+        
+        // Word Documents (.doc and .docx)
+        "application/msword", 
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        
+        // Excel Spreadsheets (.xls and .xlsx)
+        "application/vnd.ms-excel", 
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        
+        // PowerPoint Presentations (.ppt and .pptx)
+        "application/vnd.ms-powerpoint", 
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+    ];
+
     if (allowedTypes.includes(file.mimetype)) {
         cb(null, true);
     } else {
-        cb(new Error("Only images and PDFs are allowed"), false);
+        // Passing a more descriptive error message
+        cb(new Error("File type not supported. Please upload Images, PDFs, or MS Office documents."), false);
     }
 };
 

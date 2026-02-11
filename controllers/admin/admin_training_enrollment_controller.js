@@ -2,48 +2,63 @@ const User=require('../../models/user_model');
 const Enrollment=require('../../models/enrollment_model');
 const TrainingProgram=require('../../models/training_program_model');
 const STATUS=require('../../utils/httpStatus');
-
+const mongoose=require('mongoose');
 exports.getAllEnrollment = async (req, res) => {
     try {
         let {
             page = 1,
             limit = 10,
             search = "",
-            sortOrder = "asc", // asc | desc
-            status = "" // filter by enrollment status
+            sortOrder = "desc",
+            status = ""
         } = req.query;
 
-        page = parseInt(page);
+        page = Math.max(1, parseInt(page));
         limit = parseInt(limit);
+        console.log(req.query);
+        const pipeline = [
+            {
+                $lookup: {
+                    from: 'users', 
+                    localField: 'user',
+                    foreignField: '_id',
+                    as: 'user'
+                }
+            },
+            { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+            {
+                $lookup: {
+                    from: 'trainingprograms', 
+                    localField: 'training_program',
+                    foreignField: '_id',
+                    as: 'training_program'
+                }
+            },
+            { $unwind: { path: '$training_program', preserveNullAndEmptyArrays: true } },
+            {
+                $match: {
+                    ...(status && status !== 'All' ? { status: status } : {}),
+                    ...(search ? {
+                        $or: [
+                            { "user.full_name": { $regex: search, $options: "i" } },
+                            { "training_program.t_name": { $regex: search, $options: "i" } }
+                        ]
+                    } : {})
+                }
+            }
+        ];
+        const countResult = await mongoose.model('Enrollment').aggregate([
+            ...pipeline, 
+            { $count: "total" }
+        ]);
+        const total = countResult.length > 0 ? countResult[0].total : 0;
+        pipeline.push(
+            { $sort: { createdAt: sortOrder === "desc" ? -1 : 1 } },
+            { $skip: (page - 1) * limit },
+            { $limit: limit },
+        );
 
-        // Build filter object
-        let filter = {};
-
-        if (status) {
-            filter.status = status; // e.g., Pending, Approved, Rejected
-        }
-
-        if (search) {
-            // Case-insensitive search in user name or training program name
-            filter.$or = [
-                { "user.name": { $regex: search, $options: "i" } },
-                { "training_program.title": { $regex: search, $options: "i" } }
-            ];
-        }
-
-        // Sorting (status ascending/descending)
-        let sort = { status: sortOrder === "desc" ? -1 : 1 };
-
-        // Query with population
-        const enrollments = await Enrollment.find(filter)
-            .populate("user")
-            .populate("training_program")
-            .sort(sort)
-            .skip((page - 1) * limit)
-            .limit(limit);
-
-        // Count total for pagination
-        const total = await Enrollment.countDocuments(filter);
+        const enrollments = await mongoose.model('Enrollment').aggregate(pipeline);
 
         res.status(STATUS.OK).json({
             status: STATUS.OK,
@@ -55,11 +70,12 @@ exports.getAllEnrollment = async (req, res) => {
                 totalPages: Math.ceil(total / limit)
             }
         });
+
     } catch (error) {
-        console.error("Error fetching enrollments:", error);
+        console.error("Aggregation Error:", error);
         res.status(STATUS.INTERNAL_SERVER_ERROR).json({
             status: STATUS.INTERNAL_SERVER_ERROR,
-            message: "Server Error"
+            message: "Error fetching paginated enrollments"
         });
     }
 };
@@ -68,7 +84,14 @@ exports.getEnrollmentById= async (req, res) => {
         const { enrollmentId } = req.params;
 
         const enrollment = await Enrollment.findById(enrollmentId)
-            .populate("user")
+            .populate({
+                path:'user',
+                select:'full_name email department designation mobile',
+                populate:{
+                    path:'group',
+                    select:'group_name'
+                }
+            })
             .populate("training_program");
 
         if (!enrollment) {
@@ -89,46 +112,64 @@ exports.getEnrollmentById= async (req, res) => {
         });
     }
 }
-exports.updateEnrollmentStatus= async (req, res) => {
+exports.updateEnrollmentStatus = async (req, res) => {
     try {
         const { enrollmentId } = req.params;
-        const { status } = req.body;
-
-        // Validate status
+        // Destructure 'status' directly from req.body
+        const { status } = req.body; 
+        console.log(status);
+        // 1. Validation: Ensure status exists and is valid
         const validStatuses = ["Pending", "Approved", "Rejected", "Waitlisted"];
-        if (!validStatuses.includes(status)) {
+        if (!status || !validStatuses.includes(status)) {
             return res.status(STATUS.OK).json({
                 status: STATUS.BAD_REQUEST,
-                message: "Invalid status value"
+                message: `Invalid status. Please choose: ${validStatuses.join(", ")}`
             });
         }
 
-        const enrollment = await Enrollment.findById(enrollmentId);
+        // 2. Fetch Enrollment with User and Training info
+        const enrollment = await Enrollment.findById(enrollmentId).populate('training_program');
         if (!enrollment) {
             return res.status(STATUS.OK).json({
                 status: STATUS.NOT_FOUND,
                 message: "Enrollment not found"
             });
         }
-        const trainingId=enrollment.training_program._id;
-        const training=await TrainingProgram.findById(trainingId);
-        const currentEnrollments=await Enrollment.countDocuments({training_program:trainingId,status:'Approved'});
-        if(currentEnrollments>=training.t_capacity){
-            return res.status(STATUS.OK).json({message:"Training capacity reached! Add to Waitlist",status:STATUS.BAD_REQUEST});
+
+        // 3. Capacity Logic (Only if the admin is trying to Approve)
+        if (status === "Approved") {
+            const training = enrollment.training_program;
+            
+            // Count currently approved users, excluding THIS user 
+            // (in case they were already approved, we don't want to double count)
+            const approvedCount = await Enrollment.countDocuments({
+                training_program: training._id,
+                status: 'Approved',
+                _id: { $ne: enrollmentId } 
+            });
+
+            if (approvedCount >= training.t_capacity) {
+                console.log('a khat');
+                return res.status(STATUS.OK).json({
+                    status: STATUS.BAD_REQUEST,
+                    message: `Training Capacity full (${training.t_capacity}).`
+                });
+            }
         }
+        // 4. Save Status
         enrollment.status = status;
         await enrollment.save();
-
-        res.status(STATUS.OK).json({
+        // 6. Final Response
+        return res.status(STATUS.OK).json({
             status: STATUS.OK,
-            message: "Enrollment status updated successfully",
-            enrollment
+            message: `Enrollment marked as ${status} successfully`,
         });
+
     } catch (error) {
-        console.error("Error updating enrollment status:", error);
-        res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+        console.error("Enrollment Update Error:", error);
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
             status: STATUS.INTERNAL_SERVER_ERROR,
-            message: "Server Error"
+            message: "Something went wrong on the server."
         });
     }
-}
+};

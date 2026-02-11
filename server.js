@@ -36,7 +36,7 @@ const corsOptions = {
   // Replace this with your actual frontend URL(s)
   origin: ['http://localhost:5173', 'https://staging2.egovmz.in'], 
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS','PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization']
 };
 
@@ -59,7 +59,7 @@ app.use('/api', apiRoutes);
 app.use('/admin-api', adminApiRoutes);
 
 // Serve Vue 3 frontend
-const frontendPath = path.join(__dirname, "dist/spa");
+const frontendPath = path.join(__dirname, "dist");
 app.use(express.static(frontendPath));
 // Catch-all route to serve index.html for SPA
 // app.get(/^(?!\/api|\/admin\/api).*/, (req, res) => {
