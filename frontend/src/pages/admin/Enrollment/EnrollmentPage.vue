@@ -1,159 +1,125 @@
 <template>
   <div class="q-pa-md">
-    <!-- Page Header -->
-    <div class="text-h5 text-weight-bold q-mb-lg">Program Enrollments</div>
-
-    <!-- Programs Grid -->
-    <div class="row q-col-gutter-lg">
-      <div
-        v-for="program in paginatedPrograms"
-        :key="program._id"
-        class="col-12 col-md-6 col-lg-4"
-      >
-        <q-card
-          flat
-          bordered
-          class="hoverable-card cursor-pointer"
-          @click="openDialog(program)"
+    <!-- Filters -->
+    <div class="row q-col-gutter-md q-mb-md items-center">
+      <div class="col-12 col-md-4">
+        <q-input
+          dense
+          debounce="300"
+          v-model="searchQuery"
+          placeholder="Search programs..."
+          outlined
+          clearable
+          @update:model-value="pagination.page = 1"
         >
-          <!-- Banner Section -->
-          <q-img
-            :src="getBanner(program.t_banner)"
-            :ratio="16/9"
-            alt="Program Banner"
-            class="rounded-t-borders"
-          >
-            <!-- Fallback for Missing Banner -->
-            <template v-if="!program.t_banner">
-              <div class="absolute-full flex flex-center bg-grey-4 text-grey-7">
-                <q-icon name="image" size="48px" class="q-mr-sm" />
-                <div>No Banner Available</div>
-              </div>
-            </template>
-
-            <!-- Overlay Content -->
-            <div class="absolute-bottom bg-gradient-to-top from-black/70 text-white q-pa-md">
-              <div class="text-h6 q-mb-xs ellipsis">{{ program.t_name }}</div>
-              <div class="text-caption ellipsis">{{ program.t_description }}</div>
-
-              <div class="row items-center justify-between q-mt-xs">
-                <q-chip
-                  dense
-                  :color="statusColor(program.t_status)"
-                  text-color="white"
-                >
-                  {{ program.t_status }}
-                </q-chip>
-                <div class="row items-center">
-                  <q-rating
-                    v-model="program.averageRating"
-                    max="5"
-                    color="amber"
-                    readonly
-                    size="16px"
-                  />
-                  <span class="text-caption q-ml-xs">({{ program.ratingsCount || 0 }})</span>
-                </div>
-              </div>
-            </div>
-          </q-img>
-
-          <!-- Details -->
-          <q-card-section>
-            <div class="text-caption"><b>Start:</b> {{ formatDate(program.t_start_date) }}</div>
-            <div class="text-caption"><b>End:</b> {{ formatDate(program.t_end_date) }}</div>
-            <div class="text-caption"><b>Duration:</b> {{ program.t_duration }} days</div>
-            <div class="text-caption"><b>Capacity:</b> {{ program.t_capacity }}</div>
-            <div class="text-caption"><b>Enrollments:</b> {{ program.enrollments.length }}</div>
-          </q-card-section>
-
-          <q-separator />
-
-          <q-card-actions align="right">
-            <q-btn
-              color="primary"
-              flat
-              icon="people"
-              label="View Enrollments"
-              @click.stop="openDialog(program)"
-            />
-          </q-card-actions>
-        </q-card>
+          <template #append>
+            <q-icon name="search" />
+          </template>
+        </q-input>
       </div>
     </div>
 
-    <!-- Pagination Controls -->
-    <div class="q-mt-lg q-pa-md flex flex-center column">
-      <q-pagination
-        v-model="currentPage"
-        :max="maxPages"
-        max-pages="7"
-        boundary-numbers
-        direction-links
-        color="primary"
-        class="q-mb-md"
-      />
-      <q-select
-        v-model="rowsPerPage"
-        :options="[6, 12, 24]"
-        label="Rows per page"
-        outlined
-        dense
-        style="width: 150px"
-      />
-    </div>
+    <!-- Programs Table -->
+    <q-table
+      flat
+      bordered
+      :rows="paginatedPrograms"
+      :columns="columns"
+      row-key="_id"
+      :loading="loading"
+      :pagination="pagination"
+      @request="onRequest"
+      class="sticky-header-table"
+    >
+      <template #top>
+        <div class="text-h6">Program Enrollments</div>
+        <q-space />
+        <div class="text-caption text-grey">
+          Showing {{ filteredPrograms.length }} of {{ programs.length }} programs
+        </div>
+      </template>
 
-    <!-- Enrollment Dialog -->
-    <q-dialog v-model="dialog">
-      <q-card style="min-width: 700px; max-width: 90vw;">
-        <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6">{{ selectedProgram?.t_name }} - Enrollments</div>
-          <q-space />
-          <q-btn dense flat icon="close" v-close-popup />
-        </q-card-section>
-
-        <q-separator />
-
-        <q-card-section>
-          <!-- Filters -->
-          <div class="row q-gutter-sm q-mb-md items-center">
-            <q-input dense outlined debounce="300" v-model="search" placeholder="Search user/email" clearable>
-              <template v-slot:append>
-                <q-icon name="search" />
-              </template>
-            </q-input>
-
-            <q-select
-              dense
-              outlined
-              v-model="statusFilter"
-              :options="['all', 'Approved', 'Pending', 'Waitlisted', 'Rejected']"
-              style="min-width: 150px"
-            />
+      <template #body-cell-name="props">
+        <q-td :props="props">
+          <div class="row items-center no-wrap">
+            <div class="q-mr-sm" style="width: 60px; height: 40px">
+              <q-img
+                :src="getBannerUrl(programBanner(props.row))"
+                style="width: 60px; height: 40px; border-radius: 4px"
+                class="cursor-pointer"
+              >
+                <template v-if="!programBanner(props.row)">
+                  <div class="absolute-full flex flex-center bg-grey-3">
+                    <q-icon name="image" size="20px" color="grey-6" />
+                  </div>
+                </template>
+              </q-img>
+            </div>
+            <div>
+              <div class="text-weight-medium">{{ programName(props.row) }}</div>
+              <div class="text-caption text-grey-7 ellipsis" style="max-width: 200px">
+                {{ programDescription(props.row) || 'No description' }}
+              </div>
+            </div>
           </div>
+        </q-td>
+      </template>
 
-          <!-- Users Table -->
-          <q-table :rows="filteredUsers" :columns="columns" row-key="_id" flat bordered>
-            <template v-slot:body-cell-actions="props">
-              <q-td align="right">
-                <q-select
-                  dense
-                  outlined
-                  v-model="props.row.status"
-                  :options="statusOptions"
-                  emit-value
-                  map-options
-                  style="min-width: 120px"
-                  @update:model-value="updateEnrollmentStatus(props.row)"
-                />
-              </q-td>
-            </template>
-          </q-table>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
+      <template #body-cell-status="props">
+        <q-td :props="props">
+          <q-chip dense :color="getProgramStatusColor(programStatus(props.row))" text-color="white" size="sm">
+            {{ programStatus(props.row) }}
+          </q-chip>
+        </q-td>
+      </template>
 
-    <!-- Loading Indicator -->
+      <template #body-cell-dates="props">
+        <q-td :props="props">
+          <div>{{ formatDate(programStartDate(props.row)) }}</div>
+          <div class="text-caption text-grey-7">to {{ formatDate(programEndDate(props.row)) }}</div>
+        </q-td>
+      </template>
+
+      <template #body-cell-capacity="props">
+        <q-td :props="props">
+          <div class="row items-center">
+            <q-icon name="people" size="16px" class="q-mr-xs" />
+            <span>{{ programCapacity(props.row) ?? 'Unlimited' }}</span>
+          </div>
+        </q-td>
+      </template>
+
+      <template #body-cell-enrollments="props">
+        <q-td :props="props">
+          {{ props.row.enrollments.length }}
+        </q-td>
+      </template>
+
+      <template #body-cell-actions="props">
+        <q-td :props="props">
+          <div class="row no-wrap q-gutter-xs">
+            <q-btn
+              dense
+              flat
+              color="primary"
+              icon="visibility"
+              size="sm"
+              @click="viewEnrollments(props.row)"
+            >
+              <q-tooltip>View Enrollments</q-tooltip>
+            </q-btn>
+          </div>
+        </q-td>
+      </template>
+
+      <template #no-data>
+        <div class="full-width row flex-center text-grey q-gutter-sm q-py-lg">
+          <q-icon name="info" size="2em" />
+          <span>No programs found</span>
+        </div>
+      </template>
+    </q-table>
+
     <q-inner-loading :showing="loading">
       <q-spinner color="primary" size="50px" />
     </q-inner-loading>
@@ -161,170 +127,165 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
-import { api } from "boot/axios";
-import { useQuasar } from "quasar";
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { api } from 'boot/axios'
 
-const $q = useQuasar();
-const loading = ref(false);
-const enrollments = ref([]);
-const programs = ref([]);
-const dialog = ref(false);
-const selectedProgram = ref(null);
+const router = useRouter()
 
-// Pagination
-const currentPage = ref(1);
-const rowsPerPage = ref(6);
+const loading = ref(false)
+const enrollments = ref([])
+const programs = ref([])
 
-// Filters
-const search = ref("");
-const statusFilter = ref("all");
+const searchQuery = ref('')
 
-// ✅ Date formatter
-const formatDate = (dateStr) => {
-  if (!dateStr) return "N/A";
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-IN", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-};
+const pagination = ref({
+  page: 1,
+  rowsPerPage: 10,
+  rowsNumber: 0,
+})
 
-// ✅ Banner helper (same logic as trainee)
-const getBanner = (banner) => {
-  if (!banner) return "";
-  if (banner.startsWith("http")) return banner;
-  if (banner.startsWith("/")) return `${api.defaults.baseURL}${banner}`;
-  return `${api.defaults.baseURL}/uploads/${banner}`;
-};
-
-// ✅ Status color
-const statusColor = (status) =>
-  ({
-    Upcoming: "blue",
-    Ongoing: "green",
-    Finished: "grey",
-  }[status] || "primary");
-
-// ✅ Pagination logic
-const paginatedPrograms = computed(() => {
-  const start = (currentPage.value - 1) * rowsPerPage.value;
-  const end = start + rowsPerPage.value;
-  return programs.value.slice(start, end);
-});
-
-const maxPages = computed(() =>
-  Math.max(1, Math.ceil(programs.value.length / rowsPerPage.value))
-);
-
-// ✅ Table columns
 const columns = [
-  { name: "name", label: "Name", field: (row) => row.user.full_name, align: "left" },
-  { name: "email", label: "Email", field: (row) => row.user.email, align: "left" },
-  { name: "mobile", label: "Mobile", field: (row) => row.user.mobile, align: "left" },
-  { name: "status", label: "Status", field: "status", align: "center" },
-  { name: "actions", label: "Actions", field: "actions", align: "right" },
-];
+  { name: 'name', label: 'PROGRAM', align: 'left', field: (row) => row._id, sortable: true },
+  { name: 'status', label: 'STATUS', align: 'center', field: (row) => programStatus(row), sortable: true },
+  { name: 'dates', label: 'DATES', align: 'center', field: (row) => programStartDate(row), sortable: true },
+  { name: 'capacity', label: 'CAPACITY', align: 'center', field: (row) => programCapacity(row), sortable: true },
+  { name: 'enrollments', label: 'ENROLLMENTS', align: 'center', field: (row) => row.enrollments.length },
+  { name: 'actions', label: 'ACTIONS', align: 'center', sortable: false },
+]
 
-const statusOptions = [
-  { label: "Approved", value: "Approved" },
-  { label: "Pending", value: "Pending" },
-  { label: "Rejected", value: "Rejected" },
-  { label: "Waitlisted", value: "Waitlisted" },
-];
+const filteredPrograms = computed(() => {
+  let filtered = programs.value
 
-// ✅ Fetch all enrollments
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    filtered = filtered.filter(
+      (p) =>
+        programName(p).toLowerCase().includes(query) ||
+        (programDescription(p) || '').toLowerCase().includes(query),
+    )
+  }
+
+  return filtered
+})
+
+const paginatedPrograms = computed(() => {
+  const start = (pagination.value.page - 1) * pagination.value.rowsPerPage
+  return filteredPrograms.value.slice(start, start + pagination.value.rowsPerPage)
+})
+
+function onRequest(props) {
+  const { page, rowsPerPage } = props.pagination
+  pagination.value.page = page
+  pagination.value.rowsPerPage = rowsPerPage
+  pagination.value.rowsNumber = filteredPrograms.value.length
+}
+
+const formatDate = (str) => {
+  if (!str) return 'N/A'
+  const date = new Date(str)
+  if (isNaN(date.getTime())) return 'Invalid Date'
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
+const getBannerUrl = (banner) => {
+  if (!banner) return ''
+  if (banner.startsWith('http://') || banner.startsWith('https://')) return banner
+  if (banner.startsWith('/')) return `${api.defaults.baseURL}${banner}`
+  return `${api.defaults.baseURL}/uploads/${banner}`
+}
+
+const getProgramStatusColor = (status) => {
+  const colors = {
+    Upcoming: 'secondary',
+    Ongoing: 'orange',
+    Completed: 'green',
+  }
+  return colors[status] || 'grey'
+}
+
+const programName = (program) => program?.t_name || program?.title || 'Program'
+const programDescription = (program) => program?.t_description || program?.description || ''
+const programStatus = (program) => {
+  const raw = program?.t_status || program?.status || 'Unknown'
+  return raw === 'Finished' ? 'Completed' : raw
+}
+const programStartDate = (program) => program?.t_start_date || program?.start_date
+const programEndDate = (program) => program?.t_end_date || program?.end_date
+const programCapacity = (program) => program?.t_capacity ?? program?.capacity
+const programBanner = (program) => program?.t_banner || program?.banner
+
 const fetchEnrollments = async () => {
-  loading.value = true;
+  loading.value = true
   try {
-    let allEnrollments = [];
-    let page = 1;
-    let totalPages = 1;
+    let allEnrollments = []
+    let page = 1
+    let totalPages = 1
 
     do {
-      const res = await api.get("/admin-api/enrollments", { params: { page, limit: '' } });
-      allEnrollments.push(...(res.data.enrollments || []));
-      totalPages = res.data.pagination.totalPages;
-      page++;
-    } while (page <= totalPages);
+      const res = await api.get('/admin-api/enrollments', { params: { page } })
+      allEnrollments.push(...(res.data.enrollments || []))
+      totalPages = res.data.pagination.totalPages
+      page++
+    } while (page <= totalPages)
 
-    enrollments.value = allEnrollments;
+    enrollments.value = allEnrollments
 
-    // Group by program
-    const grouped = {};
+    const grouped = {}
     enrollments.value.forEach((en) => {
-      const prog = en.training_program;
-      if (!grouped[prog._id]) grouped[prog._id] = { ...prog, enrollments: [] };
-      grouped[prog._id].enrollments.push(en);
-    });
+      const prog = en.training_program
+      if (!prog || !prog._id) return
+      if (!grouped[prog._id]) {
+        grouped[prog._id] = { ...prog, enrollments: [] }
+      }
+      grouped[prog._id].enrollments.push(en)
+    })
 
-    programs.value = Object.values(grouped);
+    programs.value = Object.values(grouped)
+    pagination.value.rowsNumber = programs.value.length
   } catch (error) {
-    console.error("Fetch error:", error);
+    console.error('Fetch error:', error)
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-};
+}
 
-// ✅ Open dialog
-const openDialog = (program) => {
-  selectedProgram.value = program;
-  dialog.value = true;
-};
+const viewEnrollments = (program) => {
+  if (!program.enrollments?.length) return
 
-// ✅ Filter users
-const filteredUsers = computed(() => {
-  if (!selectedProgram.value) return [];
-  return selectedProgram.value.enrollments.filter((e) => {
-    const matchesSearch =
-      e.user.full_name.toLowerCase().includes(search.value.toLowerCase()) ||
-      e.user.email.toLowerCase().includes(search.value.toLowerCase());
-    const matchesStatus = statusFilter.value === "all" || e.status === statusFilter.value;
-    return matchesSearch && matchesStatus;
-  });
-});
+  const enrollmentId = program.enrollments[0]._id
+  router.push(`/admin/enrollment/${enrollmentId}`)
+}
 
-// ✅ Update enrollment status
-const updateEnrollmentStatus = async (row) => {
-  try {
-    await api.patch(`/admin-api/enrollment/${row._id}`, { status: row.status });
-    $q.notify({
-      type: "positive",
-      message: `Status updated to ${row.status}`,
-    });
-  } catch (error) {
-    // Handle backend response if training is full
-    const message =
-      error.response?.data?.message ||
-      error.response?.data?.error ||
-      "Failed to update status";
-
-    if (
-      error.response?.status === 400 &&
-      message.includes("Training capacity reached")
-    ) {
-      $q.notify({
-        type: "warning",
-        message: "Training capacity reached! Enrollment moved to Waitlist.",
-      });
-    } else {
-      console.error("Status update failed:", error.response?.data || error.message);
-      $q.notify({
-        type: "negative",
-        message,
-      });
-    }
-  }
-};
-
-
-onMounted(fetchEnrollments);
+onMounted(fetchEnrollments)
 </script>
 
-<style scoped>
-.hoverable-card:hover {
-  transform: translateY(-4px);
-  transition: all 0.2s ease;
-}
+<style lang="sass">
+.sticky-header-table
+  .q-table__top
+    border-bottom: 1px solid #e0e0e0
+
+  .q-table__middle
+    max-height: calc(100vh - 250px)
+
+  .q-td, .q-th
+    padding: 8px 16px
+
+  .q-th
+    font-weight: 600
+    text-transform: uppercase
+    font-size: 12px
+    color: #666
+
+  .q-tr:hover
+    background-color: #f5f9ff
+
+.ellipsis
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
 </style>

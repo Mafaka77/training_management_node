@@ -30,6 +30,7 @@ const routes = [
       { path: "department", component: () => import("pages/admin/MasterData/DepartmentPage.vue") },
       { path: "user", component: () => import("pages/admin/User/UserPage.vue") },
       { path: "enrollment", component: () => import("pages/admin/Enrollment/EnrollmentPage.vue") },
+      { path: "enrollment/:id", component: () => import("pages/admin/Enrollment/EnrollmentDetailPage.vue") },
       { path: "doc", component: () => import("pages/admin/Documnet/DocumnetPage.vue") },
       { path: "faqs", component: () => import("pages/admin/Faq/FaqPage.vue") },
       { path: "tickets", component: () => import("pages/admin/TicketPage.vue") },

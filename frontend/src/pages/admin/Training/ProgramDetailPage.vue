@@ -20,9 +20,10 @@
         <div class="col-3">
           <q-img
             :src="getBannerUrl(program.t_banner)"
+            @click="showBanner(program)"
             ratio="16/9"
             class="rounded-borders"
-            style="min-height:180px"
+            style="min-height: 180px"
             spinner-color="primary"
           >
             <template #loading>
@@ -63,6 +64,14 @@
                 {{ program.t_status }}
               </q-badge>
             </div>
+            <q-btn
+              v-if="program.t_status === 'Draft'"
+              color="primary"
+              icon="publish"
+              label="Publish Program"
+              class="q-mt-sm"
+              @click="publishProgram"
+            />
           </div>
         </div>
       </div>
@@ -74,11 +83,6 @@
         <div class="col">
           <div class="row items-center q-gutter-sm">
             <div class="text-h5">Courses in this Program</div>
-
-            <!-- Course Count -->
-            <q-badge color="primary" outline>
-              {{ courseCount }} / {{ program.t_capacity ?? '∞' }}
-            </q-badge>
           </div>
 
           <div class="text-caption text-grey">
@@ -91,14 +95,10 @@
             color="primary"
             icon="add"
             label="Add Course"
-            :disable="program.t_status === 'Finished'
-              || !trainersLoaded
-              || capacityReached"
+            :disable="program.t_status === 'Finished' || !trainersLoaded || capacityReached"
             @click="showAddCourseDialog = true"
           >
-            <q-tooltip v-if="capacityReached">
-              Course capacity reached
-            </q-tooltip>
+            <q-tooltip v-if="capacityReached"> Course capacity reached </q-tooltip>
           </q-btn>
         </div>
       </div>
@@ -158,41 +158,48 @@
 
     <!-- ================= ADD COURSE DIALOG ================= -->
     <q-dialog v-model="showAddCourseDialog" persistent>
-      <q-card style="min-width:500px" class="q-pa-md">
-        <q-card-section class="text-h6">
-          Add Course
-        </q-card-section>
+      <q-card style="min-width: 500px" class="q-pa-md">
+        <q-card-section class="text-h6"> Add Sessions </q-card-section>
 
         <q-form @submit.prevent="submitCourse" class="q-gutter-md">
+          <q-input label="Program" :model-value="program.t_name" readonly outlined />
+
           <q-input
-            label="Program"
-            :model-value="program.t_name"
-            readonly
+            v-model="courseForm.tc_topic"
+            label="Topic"
             outlined
+            :rules="[required('Topic is required')]"
           />
 
-          <q-input v-model="courseForm.tc_topic" label="Topic" outlined required />
           <q-input
             v-model="courseForm.tc_description"
             label="Description"
             type="textarea"
             outlined
           />
+          <q-input
+            v-model="courseForm.tc_date"
+            type="date"
+            label="Course Date"
+            outlined
+            :rules="[required('Date is required')]"
+          />
 
           <div class="row q-col-gutter-sm">
             <q-input
-              class="col-6"
-              type="datetime-local"
               v-model="courseForm.tc_start_time"
+              type="time"
+              label="Start Time"
               outlined
-              required
+              :rules="[required('Start time is required')]"
             />
+
             <q-input
-              class="col-6"
-              type="datetime-local"
               v-model="courseForm.tc_end_time"
+              type="time"
+              label="End Time"
               outlined
-              required
+              :rules="[required('End time is required'), validTimeOrder]"
             />
           </div>
 
@@ -218,12 +225,7 @@
 
           <div class="row justify-end q-gutter-sm">
             <q-btn flat label="Cancel" v-close-popup />
-            <q-btn
-              color="primary"
-              type="submit"
-              :loading="courseLoading"
-              label="Add"
-            />
+            <q-btn color="primary" type="submit" :loading="courseLoading" label="Add" />
           </div>
         </q-form>
       </q-card>
@@ -234,8 +236,10 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { useQuasar } from 'quasar'
 import { api } from 'boot/axios'
 
+const $q = useQuasar()
 const route = useRoute()
 
 const loading = ref(true)
@@ -247,28 +251,47 @@ const showAddCourseDialog = ref(false)
 
 const page = ref(1)
 const rowsPerPage = 5
+// Validation
+const required = (msg) => (val) => !!val || msg
+const combineDateTime = (date, time) => {
+  if (!date || !time) return null
+  const iso = `${date}T${time}`
+  const d = new Date(iso)
+  return isNaN(d.getTime()) ? null : d.toISOString()
+}
+
+const validTimeOrder = () => {
+  const { tc_date, tc_start_time, tc_end_time } = courseForm.value
+  if (!tc_date || !tc_start_time || !tc_end_time) return true
+
+  const start = new Date(`${tc_date}T${tc_start_time}`)
+  const end = new Date(`${tc_date}T${tc_end_time}`)
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+    return 'Invalid date or time'
+  }
+  if (end <= start) {
+    return 'End time must be after start time'
+  }
+  return true
+}
 
 // ---------- COMPUTED ----------
 const trainersLoaded = computed(() => trainers.value.length > 0)
 
 const courses = computed(() => {
   if (!program.value.trainingCourse) return []
-  return program.value.trainingCourse.map(c => ({
+  return program.value.trainingCourse.map((c) => ({
     ...c,
-    trainerName: trainers.value.find(t => t._id === c.trainer)?.full_name || ''
+    trainerName: trainers.value.find((t) => t._id === c.trainer)?.full_name || '',
   }))
 })
 
-const courseCount = computed(() => courses.value.length)
-
 const capacityReached = computed(() => {
   if (program.value.t_capacity == null) return false
-  return courseCount.value >= program.value.t_capacity
+  return courses.value.length >= program.value.t_capacity
 })
 
-const totalPages = computed(() =>
-  Math.ceil(courses.value.length / rowsPerPage)
-)
+const totalPages = computed(() => Math.ceil(courses.value.length / rowsPerPage))
 
 const paginatedCourses = computed(() => {
   const start = (page.value - 1) * rowsPerPage
@@ -276,77 +299,124 @@ const paginatedCourses = computed(() => {
 })
 
 const trainerOptions = computed(() =>
-  trainers.value.map(t => ({
+  trainers.value.map((t) => ({
     label: t.full_name,
-    value: t._id
-  }))
+    value: t._id,
+  })),
 )
 
 // ---------- TABLE ----------
 const courseColumns = [
-  { name: 'topic', label: 'TOPIC', field: row => row.tc_topic, align: 'left', sortable: true },
+  { name: 'topic', label: 'TOPIC', field: (row) => row.tc_topic, align: 'left', sortable: true },
   {
     name: 'dates',
     label: 'DATES',
-    field: row => row.tc_start_time,
+    field: (row) => row.tc_start_time,
     sortable: true,
-    sort: (a, b) => new Date(a) - new Date(b)
+    sort: (a, b) => new Date(a) - new Date(b),
   },
-  { name: 'trainer', label: 'TRAINER', field: row => row.trainerName, sortable: true }
+  { name: 'trainer', label: 'TRAINER', field: (row) => row.trainerName, sortable: true },
 ]
 
 // ---------- UTILS ----------
 const getBannerUrl = (banner) => {
   if (!banner) return ''
-  if (banner.startsWith('http')) return banner
-  if (banner.startsWith('/uploads')) return `${window.location.origin}${banner}`
-  return banner
+  if (banner.startsWith('http://') || banner.startsWith('https://')) return banner
+  if (banner.startsWith('/')) return `${api.defaults.baseURL}${banner}`
+  return `${api.defaults.baseURL}/uploads/${banner}`
 }
+// function showBanner(program) {
+//   selectedProgram.value = program
+//   showBannerDialog.value = true
+// }
 
-const formatDate = d => new Date(d).toLocaleDateString()
-const formatDateTime = d => new Date(d).toLocaleString()
+const formatDate = (d) => new Date(d).toLocaleDateString()
+const formatDateTime = (d) => new Date(d).toLocaleString()
 
-const getProgramStatusColor = s =>
-  ({ Upcoming: 'secondary', Ongoing: 'orange', Finished: 'green' }[s] || 'grey')
+const getProgramStatusColor = (s) =>
+  ({ Upcoming: 'secondary', Ongoing: 'orange', Completed: 'green' })[s] || 'grey'
 
 // ---------- API ----------
-async function fetchProgram () {
+async function fetchProgram() {
   const res = await api.get(`/admin-api/program/${route.params.id}`)
   program.value = res.data.trainingProgram
 }
 
-async function submitCourse () {
+async function submitCourse() {
   courseLoading.value = true
+  try {
+    const tc_start_time = combineDateTime(courseForm.value.tc_date, courseForm.value.tc_start_time)
+    const tc_end_time = combineDateTime(courseForm.value.tc_date, courseForm.value.tc_end_time)
 
-  await api.post('/admin-api/submit-training-course', {
-    ...courseForm.value,
-    t_program: route.params.id,
-    tc_start_time: new Date(courseForm.value.tc_start_time).toISOString(),
-    tc_end_time: new Date(courseForm.value.tc_end_time).toISOString()
-  })
+    if (!tc_start_time || !tc_end_time) {
+      $q.notify({ type: 'negative', message: 'Invalid date or time' })
+      return
+    }
 
-  showAddCourseDialog.value = false
-  await fetchProgram()
-  courseLoading.value = false
+    const res = await api.post('/admin-api/submit-training-course', {
+      tc_topic: courseForm.value.tc_topic,
+      tc_description: courseForm.value.tc_description,
+      tc_date: courseForm.value.tc_date, // 👈 backend uses this
+      tc_start_time,
+      tc_end_time,
+      tc_session: courseForm.value.tc_session,
+      trainer: courseForm.value.trainer,
+      t_program: route.params.id,
+    })
 
-  courseForm.value = {
-    tc_topic: '',
-    tc_description: '',
-    tc_start_time: '',
-    tc_end_time: '',
-    tc_session: 1,
-    trainer: null
+    if (res.data.status === 409 || res.data.status === 400) {
+      $q.notify({ type: 'negative', message: res.data.message })
+      return
+    }
+
+    $q.notify({ type: 'positive', message: res.data.message })
+
+    showAddCourseDialog.value = false
+    await fetchProgram()
+
+    // reset
+    courseForm.value = {
+      tc_topic: '',
+      tc_description: '',
+      tc_date: '',
+      tc_start_time: '',
+      tc_end_time: '',
+      tc_session: 1,
+      trainer: null,
+    }
+  } finally {
+    courseLoading.value = false
   }
 }
 
 const courseForm = ref({
   tc_topic: '',
   tc_description: '',
-  tc_start_time: '',
-  tc_end_time: '',
+  tc_date: '', // 👈 date only
+  tc_start_time: '', // 👈 time only (HH:mm)
+  tc_end_time: '', // 👈 time only (HH:mm)
   tc_session: 1,
-  trainer: null
+  trainer: null,
 })
+async function publishProgram () {
+  try {
+    await api.put(`/admin-api/update-training-program/${program.value._id}`, {
+      t_status: 'Upcoming'
+    })
+
+    program.value.t_status = 'Upcoming'
+
+    $q.notify({
+      type: 'positive',
+      message: 'Program published. Status set to Upcoming.'
+    })
+  } catch (err) {
+    $q.notify({
+      type: 'negative',
+      message: `Failed to publish program: ${err.message}`,
+    })
+  }
+}
 
 onMounted(async () => {
   trainers.value = (await api.get('/admin-api/get-trainer')).data.trainers || []
