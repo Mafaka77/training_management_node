@@ -298,6 +298,7 @@ exports.getUpcomingTrainings = async (req, res) => {
         const trainings = await TrainingProgram.find({ t_status: "Upcoming" })
             .populate("t_category", "name")
             .populate("t_room", "room_name")
+            .populate("t_eligibility","group_name")
             .sort({ createdAt: -1 }) // earliest first
             .skip(offset)              // skip N docs
             .limit(limit);             // limit results
