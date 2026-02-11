@@ -41,6 +41,7 @@ exports.getTraining = async (req, res) => {
         const programs = await TrainingProgram.find(filter)
             .populate("t_category", "name")
             .populate("t_room", "room_name")
+            .populate("t_eligibility")
             .skip(skip)
             .limit(limit)
             .sort({ createdAt: -1 });
