@@ -11,6 +11,8 @@ export const useMasterStore = defineStore('master', {
         isDocLoading: false,
         faqs: [],
         isFAQLoading: false,
+        isBannerLoading:false,
+        banners:[],
     }),
     actions: {
         async submitRoom(data) {
@@ -191,5 +193,13 @@ export const useMasterStore = defineStore('master', {
                 return {success: false, message: err.response?.data?.message || "Deletion failed"};
             }
         },
+        async fetchBanners(){
+            try{
+                const response=await api.post('/banners');
+                this.banners = response.data.banners;
+            }catch(err){
+
+            }
+        }
     },
 });

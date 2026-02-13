@@ -218,8 +218,6 @@ exports.markAttendance = async (req, res) => {
     try {
 
         const {userId,sessionId, enrollmentId, status } = req.body;
-
-
         const existingAttendance = await Attendance.findOne({
             user: userId,
             sessionId: sessionId
@@ -231,12 +229,10 @@ exports.markAttendance = async (req, res) => {
                 message: "Attendance already recorded for this session."
             });
         }
-
-        // 2. Fetch Session for Time Validation
         const session = await TrainingCourse.findById(sessionId);
         if (!session) return res.status(STATUS.OK).json({ message: "Session not found." ,status:STATUS.NOT_FOUND});
 
-        // 3. Time-Window Validation
+
         const now = dayjs();
         const sessionDateStr = dayjs(session.tc_date).format('YYYY-MM-DD');
         const startTime = dayjs(`${sessionDateStr} ${session.tc_start_time}`, 'YYYY-MM-DD HH:mm');
@@ -249,8 +245,6 @@ exports.markAttendance = async (req, res) => {
         //     });
         // }
 
-        // 4. Create the Record
-        // We use .create() instead of findOneAndUpdate
         const attendance = await Attendance.create({
             user: userId,
             enrollmentId: enrollmentId,
@@ -258,7 +252,6 @@ exports.markAttendance = async (req, res) => {
             sessionId: sessionId,          // Specific session link
             date: dayjs(session.tc_date).startOf('day').toDate(),
             status: status,
-            signInTime: now.toDate(),
             notes: `Session ${session.tc_session} marked at ${now.format('HH:mm')}`
         });
 

@@ -286,6 +286,22 @@ const routes = [
                 ]
             },
             {
+                path: "/admin/master/banner",
+                component: () => import("../pages/master/banner/bannerParent.vue"),
+                meta: {
+                    middleware: ["auth", "role"],
+                    roles: ["Admin"],
+                },
+                children: [
+                    {
+                        path:"",
+                        name: "banner",
+                        component: () => import("../pages/master/banner/Index.vue"),
+                    }
+                ]
+
+            },
+            {
                 path: "/admin/trainer",
                 component: () => import("../pages/user/trainer/trainerParent.vue"),
                 meta: {
@@ -369,7 +385,9 @@ const routes = [
                         component: () => import("../pages/ticket/Index.vue"),
                     },
                 ]
-            }
+            },
+
+
         ],
     },
 ]

@@ -78,6 +78,7 @@
               <SidebarItem to="/admin/master/category" :isDark="isDark" isChild icon="Tag">Categories</SidebarItem>
               <SidebarItem to="/admin/master/documents" :isDark="isDark" isChild icon="FileText">Documents</SidebarItem>
               <SidebarItem to="/admin/master/faq" :isDark="isDark" isChild icon="HelpCircle">FAQs</SidebarItem>
+              <SidebarItem to="/admin/master/banner" :isDark="isDark" isChild icon="HelpCircle">Banner</SidebarItem>
             </div>
           </Transition>
         </div>

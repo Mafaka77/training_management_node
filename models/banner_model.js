@@ -10,7 +10,7 @@ const BannerSchema=new mongoose.Schema({
     },
     is_active:{
         type:Boolean,
-        enum:['true','false'],
+        enum:[true,false],
         default:true,
     },
 });

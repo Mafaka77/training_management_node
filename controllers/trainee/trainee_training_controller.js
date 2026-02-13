@@ -70,7 +70,8 @@ exports.getTrainingById=async (req,res)=>{
     try{
         const training=await TrainingProgram.findById(trainingId)
             .populate('trainingCourse',['-t_program'])
-            .populate('t_category','name description')
+            .populate('t_category')
+            .populate('t_eligibility')
             .populate('t_room');
 
         if(!training){
@@ -90,10 +91,34 @@ exports.getTrainingById=async (req,res)=>{
         }
         try{
             const user=await User.findById(req.user.user.id);
+         console.log(user);
+
             // Check if training exists
             const training=await TrainingProgram.findById(trainingId);
             if(!training){
                 return res.status(STATUS.OK).json({message:"Training not found",status:STATUS.NOT_FOUND});
+            }
+            if (training.t_eligibility && training.t_eligibility.length > 0) {
+
+                // Check if user even has a group assigned
+                if (!user.group) {
+                    return res.status(STATUS.OK).json({
+                        message: "This training is restricted to specific groups. Please update your profile.",
+                        status: STATUS.FORBIDDEN
+                    });
+                }
+
+                // Check if user's group ID exists in the t_eligibility array
+                const isEligible = training.t_eligibility.some(groupId =>
+                    groupId.equals(user.group)
+                );
+
+                if (!isEligible) {
+                    return res.status(STATUS.OK).json({
+                        message: "You are not eligible for this training based on your group.",
+                        status: STATUS.FORBIDDEN
+                    });
+                }
             }
             if(training.t_status!=='Upcoming'){
                 return res.status(STATUS.OK).json({message:"Enrollment is only allowed for upcoming trainings",status:STATUS.FORBIDDEN});
@@ -124,12 +149,12 @@ exports.getTrainingById=async (req,res)=>{
             title: "New Enrollment Request",
             message: `${user.full_name} applied for ${training.t_name}`,
             // Attach the ID here:
-            target_url: `/admin/training/enrollment/${newEnrollment._id}`, 
+            target_url: `/admin/training/enrollment/${newEnrollment._id}`,
             is_read: false
             });
             await adminNotification.save();
             sendPushToUser(req.user.user.id, {
-            title: "Pending",
+            title: "Enrollment",
             body: `Your request is under review. You'll be notified once approved.`,
              });
 
@@ -143,51 +168,72 @@ exports.getTrainingById=async (req,res)=>{
     }
 exports.myEnrollments = async (req, res) => {
     try {
-        // Pagination
         const offset = parseInt(req.query.offset) || 0;
         const limit = parseInt(req.query.limit) || 10;
-
-        // Search (by training program name, title, etc.)
         const search = req.query.search || "";
 
-        // Build query for enrollments
+        // 1. Basic query for this specific user
         let query = { user: req.user.user.id };
 
-        // If searching inside populated training_program fields
+        // 2. Search filter for the training program title
         const trainingProgramFilter = search
-            ? { name: { $regex: search, $options: "i" } } // adjust "name" to actual field
+            ? { t_name: { $regex: search, $options: "i" } }
             : {};
 
-        // Count total for pagination
-        const total = await Enrollment.countDocuments(query);
-
-        // Query with populate, filter, sort, pagination
+        // 3. Fetch enrollments
         const enrollments = await Enrollment.find(query)
-            .select("-__v -user")
+            .select("-__v")
             .populate({
                 path: "training_program",
-                match: trainingProgramFilter, // apply search filter inside populate
-                select: "-__v"
+                match: trainingProgramFilter,
+                select: "-__v",
+                populate: {
+                    path: 't_eligibility',
+                    select: 'group_name' // Keep it lightweight
+                }
             })
-            .sort({ enrolledAt: -1 }) // latest first
-            .skip(offset)
-            .limit(limit);
+            .sort({ enrolledAt: -1 }); // Initial sort by date
 
-        // Filter out null training_program if search didn’t match
-        const filtered = enrollments.filter(e => e.training_program);
+        // 4. Filter out items where training_program didn't match the search
+        let filtered = enrollments.filter(e => e.training_program);
+
+        // 5. CUSTOM SORT: "Ongoing" first, then "Upcoming", then "Finished"
+        filtered.sort((a, b) => {
+            const priority = {
+                'Ongoing': 1,
+                'Upcoming': 2,
+                'Completed': 3
+            };
+
+            const statusA = a.training_program.t_status || 'Upcoming';
+            const statusB = b.training_program.t_status || 'Upcoming';
+
+            // If statuses are different, sort by priority weight
+            if (priority[statusA] !== priority[statusB]) {
+                return (priority[statusA] || 4) - (priority[statusB] || 4);
+            }
+
+            // If statuses are the same, maintain the 'enrolledAt' date order
+            return 0;
+        });
+
+        // 6. Manual Pagination (Since we filtered and sorted in memory)
+        const paginatedEnrollments = filtered.slice(offset, offset + limit);
 
         return res.status(STATUS.OK).json({
             status: STATUS.OK,
-            total,
+            total: filtered.length, // Total count after search filter
             offset,
             limit,
-            count: filtered.length,
-            enrollments: filtered
+            count: paginatedEnrollments.length,
+            enrollments: paginatedEnrollments
         });
+
     } catch (e) {
-        return res
-            .status(STATUS.INTERNAL_SERVER_ERROR)
-            .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            message: e.message,
+            status: STATUS.INTERNAL_SERVER_ERROR
+        });
     }
 };
 exports.checkStatus=async (req,res)=>{
@@ -239,7 +285,8 @@ exports.myEnrollmentDetails=async (req,res)=>{
                 path: 'training_program',
                 populate: [
                     { path: 't_category' },          // replace with actual field name
-                    { path: 't_room' },              // replace with actual field name
+                    { path: 't_room' },
+                    { path:'t_eligibility' },// replace with actual field name
                     {
                         path: 'trainingCourse',              // replace with actual field name
                         populate: [
@@ -326,6 +373,7 @@ exports.getCourseByProgram=async (req,res)=>{
     const {trainingId}=req.params;
     try{
         const data=await TrainingCourse.find({t_program:trainingId}).populate('t_program',['t_status']) .sort({ tc_start_time: 1, tc_session: 1 });
+        console.log(data);
         return res.status(STATUS.OK).json({status:STATUS.OK,data});
     }catch (ex) {
         return res.status(STATUS.INTERNAL_SERVER_ERROR).json({status:STATUS.INTERNAL_SERVER_ERROR,message:ex.message});

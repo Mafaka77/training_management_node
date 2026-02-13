@@ -41,15 +41,17 @@ exports.submitTrainingCourse = async (req, res) => {
             return res.status(STATUS.OK).json({ message: "Please fill all required fields" ,status:STATUS.BAD_REQUEST});
         }
 
-        const existingCourse = await TrainingCourse.findOne({ tc_topic });
-
-        if (existingCourse) {
-            return res.status(STATUS.OK).json({ message: "Session with same topic already exists" ,status:STATUS.CONFLICT});
-        }
+        // const existingCourse = await TrainingCourse.findOne({ tc_topic });
+        //
+        // if (existingCourse) {
+        //     return res.status(STATUS.OK).json({ message: "Session with same topic already exists" ,status:STATUS.CONFLICT});
+        // }
         const conflictCourse = await TrainingCourse.findOne({
             tc_date: date,
             tc_start_time: { $lt: end },
-            tc_end_time: { $gt: start }
+            tc_end_time: { $gt: start },
+            t_program:t_program,
+
         });
 
         if (conflictCourse) {
@@ -195,21 +197,21 @@ exports.updateCourse = async (req, res) => {
     }
 
     try {
-        // 2. Conflict Check (Overlap Logic)
-        // We check for conflicts but EXCLUDE the current course ID ($ne: id)
-        const conflictCourse = await TrainingCourse.findOne({
-            _id: { $ne: courseId }, // This is the crucial line for updates
-            tc_date: date,
-            tc_start_time: { $lt: end },
-            tc_end_time: { $gt: start }
-        });
-
-        if (conflictCourse) {
-            return res.status(STATUS.OK).json({
-                message: "Another session already exists in this time slot",
-                status: STATUS.CONFLICT
-            });
-        }
+        // // 2. Conflict Check (Overlap Logic)
+        // // We check for conflicts but EXCLUDE the current course ID ($ne: id)
+        // const conflictCourse = await TrainingCourse.findOne({
+        //     _id: { $ne: courseId }, // This is the crucial line for updates
+        //     tc_date: date,
+        //     tc_start_time: { $lt: end },
+        //     tc_end_time: { $gt: start }
+        // });
+        //
+        // if (conflictCourse) {
+        //     return res.status(STATUS.OK).json({
+        //         message: "Another session already exists in this time slot",
+        //         status: STATUS.CONFLICT
+        //     });
+        // }
 
         // 3. Perform Update
         const updatedCourse = await TrainingCourse.findByIdAndUpdate(

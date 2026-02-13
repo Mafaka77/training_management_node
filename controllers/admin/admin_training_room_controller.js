@@ -3,36 +3,53 @@ const STATUS= require("../../utils/httpStatus");
 
 //ROOMS-----------------------------------------------
 
-exports.submitTrainingRoom= async (req, res) => {
-    const { room_name, room_no, capacity, details ,latitude,longitude} = req.body;
+exports.submitTrainingRoom = async (req, res) => {
+    const { room_name, room_no, capacity, details, latitude, longitude } = req.body;
 
     try {
-        if (!room_name || !latitude || !longitude) {
-            return res.status(STATUS.OK).json({ message: "Please fill all required fields" ,status:STATUS.BAD_REQUEST});
+        // 1. Basic Validation
+        if (!room_name || latitude === undefined || longitude === undefined) {
+            return res.status(STATUS.OK).json({
+                message: "Please fill all required fields",
+                status: STATUS.BAD_REQUEST
+            });
         }
 
-        const existingRoom = await TrainingRoom.findOne({
-            $or: [{ room_name }]
-        });
+        // 2. Check for existing room
+        const existingRoom = await TrainingRoom.findOne({ room_name });
 
         if (existingRoom) {
-            return res.status(STATUS.OK).json({ message: "Room with same name or number already exists" ,status:STATUS.CONFLICT});
+            return res.status(STATUS.OK).json({
+                message: "Room with same name already exists",
+                status: STATUS.CONFLICT
+            });
         }
 
+        // 3. Create new room with GeoJSON structure
         const room = new TrainingRoom({
             room_name,
             room_no,
             capacity,
             details,
-            latitude,
-            longitude,
+            location: {
+                type: "Point",
+                // IMPORTANT: MongoDB GeoJSON uses [longitude, latitude]
+                coordinates: [parseFloat(longitude), parseFloat(latitude)],
+            },
         });
 
         await room.save();
-        return res.status(STATUS.OK).json({ message: "Training Room created successfully" ,status:STATUS.CREATED});
+
+        return res.status(STATUS.OK).json({
+            message: "Training Room created successfully",
+            status: STATUS.CREATED
+        });
 
     } catch (e) {
-        return res.status(STATUS.OK).json({ message: e.message ,status:STATUS.INTERNAL_SERVER_ERROR});
+        return res.status(STATUS.OK).json({
+            message: e.message,
+            status: STATUS.INTERNAL_SERVER_ERROR
+        });
     }
 };
 exports.getTrainingRoom= async (req, res) => {
