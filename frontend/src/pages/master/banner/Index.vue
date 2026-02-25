@@ -98,7 +98,7 @@
     <template #title>Delete Banner</template>
     <template #content>
       Are you sure you want to delete <span class="font-bold text-zinc-900 dark:text-zinc-100">{{ docToDelete?.title
-        }}</span>?
+      }}</span>?
       This action cannot be undone.
     </template>
     <template #confirm-text>Delete Permanently</template>
@@ -133,7 +133,7 @@ import { useAlertStore } from "../../../store/alertStore.js";
 import { useMasterStore } from "../../../store/masterStore.js";
 
 // Constants
-const BASE_URL = import.meta.env.VITE_BASE_URL || 'http://192.168.0.82:5001';
+const BASE_URL = import.meta.env.VITE_BASE_URL || 'https://staging2.egovmz.in';
 
 const store = useMasterStore();
 const alert = useAlertStore();
