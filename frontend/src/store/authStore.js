@@ -11,7 +11,7 @@ export const useAuthStore = defineStore("auth", {
                 return null
             }
         })(),
-        role: (() => {
+        roles: (() => {
             try {
                 return JSON.parse(localStorage.getItem("role"))
             } catch {
@@ -23,15 +23,16 @@ export const useAuthStore = defineStore("auth", {
 
     getters: {
         isLoggedIn: (state) => !!state.token,
-        isAdmin: (state) => state.role === "Admin",
-        isTrainer: (state) => state.role === "Trainer",
-        isTrainee: (state) => state.role === "Trainee",
+        isAdmin: (state) => state.roles === "Admin",
+        isTrainer: (state) => state.roles === "Trainer",
+        isTrainee: (state) => state.roles === "Trainee",
+        isEmployee: (state) => state.roles === "Employee",
+        isDirector:(state)=>state.roles === "Director",
     },
 
     actions: {
         async login(email, password) {
             this.loading = true
-
             try {
                 const res = await api.post("/login", {
                     email,
@@ -41,13 +42,13 @@ export const useAuthStore = defineStore("auth", {
                 if(statusCode){
                     this.token = res.data.token
                     this.user = res.data.user
-                    this.role = res.data.user.roles[0]
+                    this.roles = res.data.user.roles
                     localStorage.setItem("token", this.token)
                     localStorage.setItem("user", JSON.stringify(this.user))
-                    localStorage.setItem("role", JSON.stringify(this.role))
+                    localStorage.setItem("role", JSON.stringify(this.roles))
                     return {success:true, message:res.data.message}
                 }
-                return {success:false, message:"An error occurred during login."}
+                return {success:false, message:res.data.message}
             } catch (err) {
                 return {success:false, message:err.message}
             } finally {

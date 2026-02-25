@@ -10,6 +10,7 @@ export const useSessionStore = defineStore('session', {
         materials: [],
         isMaterialLoading: false,
         expandedDates:new Set(),
+        activeTab:'schedule'
     }),
     actions: {
         async fetchSession(id) {

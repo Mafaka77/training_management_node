@@ -73,7 +73,7 @@
         <h3 class="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-6">Trainer Performance</h3>
         <div class="space-y-6">
           <div v-for="j in 3" :key="j" class="flex items-center gap-4">
-            <div class="w-10 h-10 rounded-full bg-zinc-100 dark:bg-white/5 overflow-hidden flex-shrink-0">
+            <div class="w-10 h-10 rounded-full bg-zinc-100 dark:bg-white/5 overflow-hidden shrink-0">
               <img src="https://ui-avatars.com/api/?name=Trainer+X" class="w-full h-full" />
             </div>
             <div class="flex-1 min-w-0">

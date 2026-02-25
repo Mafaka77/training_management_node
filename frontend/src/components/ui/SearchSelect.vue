@@ -1,97 +1,101 @@
 <template>
   <div class="relative w-full" ref="container">
-    <label v-if="label" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2 ml-1">
+    <label v-if="label" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white ml-1">
       {{ label }}
     </label>
 
-    <Transition
-      enter-active-class="transition duration-200 ease-out"
-      enter-from-class="transform translate-y-2 opacity-0 scale-95"
-      enter-to-class="transform translate-y-0 opacity-100 scale-100"
-      leave-active-class="transition duration-150 ease-in"
-      leave-from-class="transform translate-y-0 opacity-100 scale-100"
-      leave-to-class="transform translate-y-2 opacity-0 scale-95"
-    >
-      <div v-if="isOpen" 
-           class="absolute z-[60] bottom-full mb-2 w-full p-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-2xl shadow-2xl max-h-64 overflow-y-auto custom-scrollbar">
-        
-        <div v-if="filteredOptions.length === 0" class="p-4 text-center text-sm text-zinc-500">
-          No matches found
-        </div>
-
-        <div 
-          v-for="item in filteredOptions" 
-          :key="item._id"
-          @click="selectOption(item)"
-          class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors hover:bg-blue-50 dark:hover:bg-blue-500/10 group"
-        >
-          <img :src="getImageUrl(item.image,item.full_name)" class="w-10 h-10 rounded-full object-cover border border-zinc-100 dark:border-white/5" />
-          
-          <div class="flex-1 min-w-0 text-left">
-            <div class="flex justify-between items-start">
-              <h4 class="text-sm font-bold text-zinc-900 dark:text-zinc-100 truncate">{{ item.full_name }}</h4>
-              <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-white/5 text-zinc-500">{{ item.department }}</span>
-            </div>
-            <p class="text-[11px] text-zinc-500 truncate">{{ item.designation }}</p>
-          </div>
-        </div>
-      </div>
-    </Transition>
-
     <div 
-      @click="isOpen = !isOpen"
-      class="relative flex items-center w-full px-4 py-3 rounded-2xl border transition-all cursor-pointer
-             bg-white dark:bg-gray-700
-             border-zinc-200 dark:border-white/10
-             hover:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 "
+      @click="toggleDropdown"
+      class="relative w-full cursor-default rounded-lg border py-2 pl-3 pr-10 text-left text-sm transition-all
+             bg-gray-50 dark:bg-gray-700 
+             border-gray-300 dark:border-gray-600 
+             text-gray-900 dark:text-white
+             focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
     >
-      <div class="flex flex-1 items-center gap-3 overflow-hidden ">
-        <template v-if="modelValue && !isOpen">
-          <img :src="getImageUrl(modelValue.image,modelValue.full_name)" class="w-8 h-8 rounded-full object-cover" />
-          <div class="flex flex-col truncate text-left">
-            <span class="text-sm font-bold text-zinc-900 dark:text-zinc-100">{{ modelValue.full_name }}</span>
-            <span class="text-[10px] text-zinc-500 dark:text-white">{{ modelValue.designation }}</span>
-          </div>
-        </template>
+      <div class="flex items-center gap-2 overflow-hidden">
+        <img v-if="selectedOption" 
+             :src="getImageUrl(selectedOption.image, selectedOption[optionLabel])" 
+             class="w-5 h-5 rounded-full object-cover" />
         
-        <input
-          v-else
-          v-model="query"
-          type="text"
-          :placeholder="modelValue ? modelValue.full_name : placeholder"
-          class="w-full bg-transparent border-none outline-none text-sm text-zinc-900 dark:text-zinc-100 "
-          @input="isOpen = true"
-        />
+        <div class="flex-1 min-w-0 relative">
+          <input
+            ref="inputRef"
+            v-model="query"
+            type="text"
+            class="w-full bg-transparent border-none outline-none p-0 text-sm text-gray-900 dark:text-white focus:ring-0 placeholder-gray-500"
+            :placeholder="selectedOption ? '' : placeholder"
+            @input="isOpen = true"
+          />
+          
+          <span v-if="selectedOption && !query" 
+                class="absolute inset-0 pointer-events-none flex items-center truncate">
+            {{ selectedOption[optionLabel] }}
+          </span>
+        </div>
       </div>
 
-      <div class="flex items-center gap-2 pr-1 ">
+      <span class="absolute inset-y-0 right-0 flex items-center pr-2 gap-1">
         <button 
-          v-if="modelValue"
+          v-if="selectedOption"
           type="button"
-          @click.stop="clearSelection"
-          class="p-1 rounded-full text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-white/10 transition-colors"
+          @click.stop="handleClear"
+          class="p-0.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-400 transition-colors"
         >
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
-        <svg class="w-4 h-4 text-zinc-400 transition-transform" :class="{ 'rotate-180': isOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"/>
+        <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 3a1 1 0 01.707.293l3 3a1 1 0 01-1.414 1.414L10 5.414 7.707 7.707a1 1 0 01-1.414-1.414l3-3A1 1 0 0110 3zm-3.707 9.293a1 1 0 011.414 0L10 14.586l2.293-2.293a1 1 0 011.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
         </svg>
+      </span>
+    </div>
+
+    <div
+        v-show="isOpen"
+        class="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm dark:bg-gray-800"
+    >
+      <div v-if="filteredOptions.length === 0" class="p-3 text-center text-sm text-gray-500">
+        No results found
+      </div>
+
+      <div
+          v-for="option in filteredOptions"
+          :key="option._id"
+          @click="selectOption(option)"
+          class="relative cursor-pointer select-none py-2.5 pl-3 pr-9 text-gray-900 dark:text-gray-200 hover:bg-blue-600 hover:text-white"
+          :class="{ 'bg-blue-50 dark:bg-gray-700': selectedOption && selectedOption._id === option._id }"
+      >
+        <div class="flex items-center gap-3">
+          <img :src="getImageUrl(option.image, option[optionLabel])" class="w-6 h-6 rounded-full object-cover" />
+          <div class="flex flex-col">
+            <span class="block truncate" :class="{ 'font-semibold': selectedOption && selectedOption._id === option._id }">
+              {{ option[optionLabel] }}
+            </span>
+            <span class="text-[10px] opacity-70">{{ option.designation }}</span>
+          </div>
+        </div>
+
+        <span v-if="selectedOption && selectedOption._id === option._id" class="absolute inset-y-0 right-0 flex items-center pr-4 text-blue-600 dark:text-blue-400">
+          <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+          </svg>
+        </span>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 
 const props = defineProps({
-  modelValue: Object,
-  options: Array,
+  modelValue: [String, Object], 
+  options: { type: Array, required: true },
+  optionLabel: { type: String, default: 'full_name' },
   label: String,
-  placeholder: { type: String, default: 'Search...' }
+  placeholder: { type: String, default: 'Select an option' }
 });
 
 const emit = defineEmits(['update:modelValue']);
@@ -99,43 +103,51 @@ const emit = defineEmits(['update:modelValue']);
 const isOpen = ref(false);
 const query = ref('');
 const container = ref(null);
+const inputRef = ref(null);
+const selectedOption = computed(() => {
+  if (!props.modelValue) return null;
+  return typeof props.modelValue === 'object' 
+    ? props.modelValue 
+    : props.options.find(opt => opt._id === props.modelValue);
+});
 
 const IMAGE_URL = import.meta.env.VITE_IMAGE_URL || '';
-const getImageUrl = (path,name) => path ? `${IMAGE_URL}${path}` : `https://ui-avatars.com/api/?name=${name}`;
+const getImageUrl = (path, name) => path ? `${IMAGE_URL}${path}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}`;
 
 const filteredOptions = computed(() => {
-  if (!query.value) return props.options;
-  const s = query.value.toLowerCase();
+  const s = query.value.toLowerCase().trim();
+  if (!s) return props.options;
   return props.options.filter(opt => 
-    opt.full_name.toLowerCase().includes(s) || 
+    opt[props.optionLabel]?.toLowerCase().includes(s) || 
     opt.department?.toLowerCase().includes(s) || 
     opt.designation?.toLowerCase().includes(s)
   );
 });
 
-const selectOption = (item) => {
-  emit('update:modelValue', item);
+const toggleDropdown = () => {
+  isOpen.value = !isOpen.value;
+  if (isOpen.value) nextTick(() => inputRef.value?.focus());
+};
+
+const selectOption = (option) => {
+  emit('update:modelValue', option._id);
   query.value = '';
   isOpen.value = false;
 };
 
-// Logic to clear the selection
-const clearSelection = () => {
+const handleClear = () => {
   emit('update:modelValue', null);
   query.value = '';
+  isOpen.value = false;
 };
 
 const handleClickOutside = (event) => {
   if (container.value && !container.value.contains(event.target)) {
     isOpen.value = false;
+    query.value = '';
   }
 };
 
 onMounted(() => document.addEventListener('click', handleClickOutside));
 onUnmounted(() => document.removeEventListener('click', handleClickOutside));
 </script>
-
-<style scoped>
-.custom-scrollbar::-webkit-scrollbar { width: 6px; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 10px; }
-</style>

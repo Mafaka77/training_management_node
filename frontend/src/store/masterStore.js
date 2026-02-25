@@ -18,19 +18,11 @@ export const useMasterStore = defineStore('master', {
         async submitRoom(data) {
             try {
                 const response = await api.post('/submit-training-room', data);
-                console.log(response.data);
-                if (response.status === 200) {
-                    if (response.data.status === 400) {
-                        return {success: false, message: response.data.message}
-                    } else if (response.data.status === 409) {
-                        return {success: false, message: response.data.message}
-                    } else if (response.data.status === 201) {
-                        return {success: true, message: response.data.message}
-                    } else {
-                        console.log(response.data)
-                        return {success: false, message: "Unexpected response from server"}
-                    }
+                const statusCode=response.status===200 && response.data.status===201;
+                if (!statusCode) {
+                    return {success: false, message: response.data.message}
                 }
+                return {success: true, message: response.data.message}
             } catch (err) {
                 return {success: false, message: err.message}
             }
@@ -47,13 +39,10 @@ export const useMasterStore = defineStore('master', {
                 this.loading = false;
             }
         },
-        // In masterStore.js actions:
 
         async getRoomById(id) {
             try {
                 const response = await api.get(`/room/${id}`);
-                console.log(response.data);
-                // Adjust based on your API response structure
                 return response.data.room;
             } catch (err) {
                 throw err;
@@ -92,18 +81,11 @@ export const useMasterStore = defineStore('master', {
         async submitCategory(data) {
             try {
                 const response = await api.post('/submit-training-category', data);
-                if (response.status === 200) {
-                    if (response.data.status === 400) {
-                        return {success: false, message: response.data.message}
-                    } else if (response.data.status === 409) {
-                        return {success: false, message: response.data.message}
-                    } else if (response.data.status === 201) {
-                        return {success: true, message: response.data.message}
-                    } else {
-                        console.log(response.data)
-                        return {success: false, message: "Unexpected response from server"}
-                    }
+                const statusCode=response.status===200 && response.data.status===201;
+                if(!statusCode){
+                    return {success: false, message: response.data.message}
                 }
+                return {success: true, message: response.data.message}
             } catch (err) {
                 return {success: false, message: err.message}
             }
@@ -131,18 +113,11 @@ export const useMasterStore = defineStore('master', {
         async submitDocument(data) {
             try {
                 const response=await api.post('/documents',data);
-                if (response.status === 200) {
-                    if (response.data.status === 400) {
-                        return {success: false, message: response.data.message}
-                    } else if (response.data.status === 409) {
-                        return {success: false, message: response.data.message}
-                    } else if (response.data.status === 201) {
-                        return {success: true, message: response.data.message}
-                    } else {
-                        console.log(response.data)
-                        return {success: false, message: "Unexpected response from server"}
-                    }
+                const statusCode=response.status===200 && response.data.status===201;
+                if(!statusCode){
+                    return {success: false, message: response.data.message}
                 }
+                return {success: true, message: response.data.message}
             }catch (err) {
                     return {success: false, message: err.message}
             }
@@ -169,18 +144,11 @@ export const useMasterStore = defineStore('master', {
         async submitFAQ(data) {
             try {
                 const response=await api.post('/faqs',data);
-                if (response.status === 200) {
-                    if (response.data.status === 400) {
-                        return {success: false, message: response.data.message}
-                    } else if (response.data.status === 409) {
-                        return {success: false, message: response.data.message}
-                    } else if (response.data.status === 201) {
-                        return {success: true, message: response.data.message}
-                    } else {
-                        console.log(response.data)
-                        return {success: false, message: "Unexpected response from server"}
-                    }
+                const statusCode=response.status===200 && response.data.status===201;
+                if(!statusCode){
+                    return {success: false, message: response.data.message}
                 }
+                    return {success: true, message: response.data.message}
             }catch (err) {
                     return {success: false, message: err.message}
             }
@@ -195,11 +163,32 @@ export const useMasterStore = defineStore('master', {
         },
         async fetchBanners(){
             try{
-                const response=await api.post('/banners');
+                const response=await api.get('/banners');
+                console.log(response.data.banners)
                 this.banners = response.data.banners;
             }catch(err){
 
             }
-        }
+        },
+        async submitBanner(data) {
+            try {
+                const response = await api.post('/banner', data);
+                const statusCode=response.status===200 && response.data.status===201;
+                if (statusCode) {
+                    return {success: true, message: response.data.message}
+                }
+                return {success: false, message: "Unexpected response from server"}
+            } catch (err) {
+                return {success: false, message: err.message}
+            }
+        },
+        async deleteBanner(id) {
+            try {
+                const response = await api.delete(`/banner/${id}`);
+                return {success: true, message: response.data.message};
+            } catch (err) {
+                return {success: false, message: err.response?.data?.message || "Deletion failed"};
+            }
+        },
     },
 });

@@ -1,6 +1,6 @@
 <template>
   <div class="group flex items-start gap-3 p-3 rounded-xl transition-all duration-300 hover:bg-zinc-100 dark:hover:bg-white/[0.04]">
-    <div class="mt-0.5 h-8 w-8 rounded-lg bg-zinc-100 dark:bg-white/5 flex items-center justify-center text-zinc-400 group-hover:text-blue-500 group-hover:scale-110 transition-all duration-300 flex-shrink-0">
+    <div class="mt-0.5 h-8 w-8 rounded-lg bg-zinc-100 dark:bg-white/5 flex items-center justify-center text-zinc-400 group-hover:text-blue-500 group-hover:scale-110 transition-all duration-300 shrink-0">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path v-if="icon === 'OfficeBuilding'" stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
         <path v-else-if="icon === 'BadgeCheck'" stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-1.947 3.42 3.42 0 014.438 0c.83.83 1.947 1.247 1.946 1.947a3.42 3.42 0 010 4.438c-.83.83-1.247 1.947-1.946 1.946a3.42 3.42 0 01-4.438 0 3.42 3.42 0 01-1.946-1.946 3.42 3.42 0 010-4.438z" />

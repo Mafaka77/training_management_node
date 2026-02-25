@@ -114,7 +114,6 @@ const submitForm = async () => {
       alert.error(response.message);
     } else {
       alert.success(response.message || "Room created successfully!");
-      // Reset form
       Object.assign(form, {
         room_name: '',
         capacity: 0,
@@ -124,7 +123,7 @@ const submitForm = async () => {
       });
     }
   } catch (error) {
-    alert.error("An unexpected error occurred.");
+    alert.error(error.message);
   } finally {
     isLoading.value = false;
   }

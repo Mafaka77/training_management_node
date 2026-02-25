@@ -50,16 +50,31 @@
               label="Designation"
               placeholder="e.g. Senior Instructor"
           />
-
-          <div class="md:col-span-1">
-            <SingleSelect
+          <SingleSelect
                 :options="districts"
                 v-model="form.district"
                 track-by="_id"
                 label="Assigned District"
                 placeholder="Select District"
             />
-          </div>
+          <div class="md:col-span-2 flex items-center h-full gap-2">
+    <label class="inline-flex items-center cursor-pointer space-x-3">
+        <input 
+            type="checkbox" 
+            v-model="form.trainer" 
+            class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+        />
+        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Trainer</span>
+    </label>
+    <label class="inline-flex items-center cursor-pointer space-x-3">
+        <input 
+            type="checkbox" 
+            v-model="form.director" 
+            class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+        />
+        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Director</span>
+    </label>
+</div>
         </div>
 
         <div class="flex items-center justify-end gap-4 mt-8 pt-6 border-t border-zinc-100 dark:border-white/5">
@@ -114,10 +129,10 @@ const form = reactive({
   district: '',
   designation: '',
   department: '',
+  trainer: false,
+  director:false
 });
 
-// Breadcrumb definition
-// Note: Removed 'to' from the last item so it renders as text, not a link
 const breadcrumbs = [
   { label: "Employee", to: "/admin/employee" },
   { label: "Create Employee" }
@@ -127,7 +142,6 @@ const submitForm = async () => {
   isLoading.value = true;
   try {
     const response = await store.submitEmployee(form);
-
     if (response.success === false) {
       alert.error(response.message);
     } else {
@@ -142,10 +156,10 @@ const submitForm = async () => {
         district: '',
         designation: '',
         department: '',
+        trainer: false,
+        director:false
       });
 
-      // Optional: Redirect back after success
-      // router.push('/admin/trainer');
     }
   } catch (error) {
     alert.error('An error occurred while saving the trainer.');

@@ -3,6 +3,7 @@ import { ref } from "vue"
 import { useRouter } from "vue-router"
 import { useAuthStore } from "../store/authStore.js"
 import {useAlertStore} from "../store/alertStore.js";
+import { storeToRefs } from "pinia";
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -10,9 +11,8 @@ const alert=useAlertStore();
 const email = ref("")
 const password = ref("")
 const showPassword = ref(false)
-const loading = ref(false)
 const errorMessage = ref("")
-
+const {loading} = storeToRefs(authStore)
 async function login() {
   errorMessage.value = ""
   loading.value = true
@@ -20,7 +20,12 @@ async function login() {
   const response = await authStore.login(email.value, password.value)
   if(response.success){
     alert.success('Welcome back!')
-    router.push("/admin/dashboard")
+    const roles = authStore.roles;
+    if (Array.isArray(roles) ? roles.includes('Admin') : roles === 'Admin') {
+        router.push({ name: 'admin.dashboard' });
+    } else {
+        router.push({ name: 'admin.trainer.dashboard' });
+    }
   } else {
     alert.error(response.message)
   }

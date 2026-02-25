@@ -19,7 +19,7 @@
 
     <section class="relative overflow-hidden rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 shadow-sm">
       <div class="flex flex-col md:flex-row items-center gap-6 p-6">
-        <div class="relative w-full md:w-48 h-32 flex-shrink-0">
+        <div class="relative w-full md:w-48 h-32 shrink-0">
           <img :src="getImageUrl(form.t_banner)" class="w-full h-full object-cover rounded-2xl border border-zinc-100 dark:border-white/5 shadow-inner" />
         </div>
 
@@ -278,14 +278,14 @@ const sessionStore = useSessionStore();
 const alert = useAlertStore();
 
 // State
-const activeTab = ref('schedule');
+
 const showModal = ref(false);
 const isSubmitting = ref(false);
 const editingId=ref(null)
 const loading = ref(false);
 const showDeleteModal=ref(false);
 const isDeleting=ref(false);
-const { sessions, trainers ,expandedDates} = storeToRefs(sessionStore);
+const { sessions, trainers ,expandedDates,activeTab} = storeToRefs(sessionStore);
 const IMAGE_URL = import.meta.env.VITE_IMAGE_URL;
 
 const tabs = [

@@ -1,9 +1,10 @@
 const Attendance=require('../../models/attendance_model');
-const Trainer=require('../../models/user_model');
+const User=require('../../models/user_model');
 const Enrollment=require('../../models/enrollment_model');
 const Session=require('../../models/training_course_model');
 const TrainingCourse = require("../../models/training_course_model");
 const STATUS = require("../../utils/httpStatus");
+const TrainingProgram = require("../../models/training_program_model");
 const dayjs = require("dayjs");
 const mongoose=require("mongoose");
 
@@ -116,3 +117,89 @@ exports.getFullAttendance = async (req, res) => {
         });
     }
 };
+
+exports.getTraineeAttendanceDetails = async (req, res) => {
+    const { traineeId } = req.params;
+    const { trainingId } = req.query;
+
+    if (!mongoose.Types.ObjectId.isValid(traineeId) || !mongoose.Types.ObjectId.isValid(trainingId)) {
+        return res.status(STATUS.OK).json({
+            status: STATUS.BAD_REQUEST,
+            message: "Invalid Trainee ID or Training ID format"
+        });
+    }
+
+    try {
+        const [program, sessions,traineeName] = await Promise.all([
+            TrainingProgram.findById(trainingId).select('t_name').lean(),
+            Session.find({ t_program: trainingId }).sort({ tc_date: 1 }).lean(),
+            User.findById(traineeId).select('full_name').lean(),
+        ]);
+
+        if (!program) {
+            return res.status(STATUS.OK).json({
+                status: STATUS.NOT_FOUND,
+                message: "Program not found"
+            });
+        }
+
+        const attendanceRecords = await Attendance.find({
+            user: traineeId,
+            trainingId: trainingId
+        }).lean();
+        const attendanceMap = new Map(
+            attendanceRecords.map(rec => [rec.sessionId.toString(), rec])
+        );
+
+        const totalSessions = sessions.length;
+        let presentCount = 0;
+
+        const sessionDetails = sessions.map(session => {
+            const record = attendanceMap.get(session._id.toString());
+            const isPresent = record && record.status === 'Present';
+
+            if (isPresent) presentCount++;
+
+            return {
+                sessionId: session._id,
+                sessionTopic: session.tc_topic,
+                sessionDate: session.tc_date,
+                startTime: session.tc_start_time,
+                endTime: session.tc_end_time,
+                // Logic: If no record in Attendance collection, they are "Absent"
+                status: record ? record.status : "Absent",
+                signInTime: record ? record.createdAt : null,
+                remarks: record ? record.remarks : ""
+            };
+        });
+
+        // 4. Detailed Analytics
+        const attendancePercentage = totalSessions > 0
+            ? parseFloat(((presentCount / totalSessions) * 100).toFixed(2))
+            : 0;
+
+        return res.status(STATUS.OK).json({
+            status: STATUS.OK,
+            data: {
+                traineeId,
+                traineeName,
+                programName: program.t_name,
+                stats: {
+                    totalSessions,
+                    presentCount,
+                    absentCount: totalSessions - presentCount,
+                    attendancePercentage: attendancePercentage, // Returning as number for easier UI logic
+                    isEligible: attendancePercentage >= 75
+                },
+                records: sessionDetails
+            }
+        });
+
+    } catch (ex) {
+        console.error("Trainee Attendance Details Error:", ex);
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            status: STATUS.INTERNAL_SERVER_ERROR,
+            message: ex.message
+        });
+    }
+}

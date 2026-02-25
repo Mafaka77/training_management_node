@@ -33,7 +33,6 @@ exports.submitTrainingRoom = async (req, res) => {
             details,
             location: {
                 type: "Point",
-                // IMPORTANT: MongoDB GeoJSON uses [longitude, latitude]
                 coordinates: [parseFloat(longitude), parseFloat(latitude)],
             },
         });

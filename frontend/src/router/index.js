@@ -55,28 +55,21 @@ const routes = [
             middleware: ["guest"],
         },
     },
+    //Trainer and Directore Routes
     {
         path:"/trainer",
-        component: () => import("../layout/TrainerLayout.vue"),
+        component: () => import("../layout/AdminLayout.vue"),
         meta: {
             middleware: ["auth"]
         },
         children: [
-            {
-                path: '/trainer/dashboard',
-                name:'trainer.dashboard',
-                component: () => import("../pages/trainer/TrainerDashboard.vue"),
-                meta: {
-                    middleware: ["auth", "role"],
-                    roles: ["Trainer"],
-                },
-            },
+            
             {
                 path: '/trainer/trainings',
                 component: () => import("../pages/trainer/TrainingsParent.vue"),
                 meta: {
                     middleware: ["auth", "role"],
-                    roles: ["Trainer"],
+                    roles: ["Trainer","Director"],
                 },
                 children: [
                     {
@@ -96,8 +89,40 @@ const routes = [
                     }
                 ]
             },
+            {
+                path: '/trainer/programs',
+                component: () => import("../pages/trainer/program/programParent.vue"),
+                meta: {
+                    middleware: ["auth", "role"],
+                    roles: ["Trainer","Director"],
+                },
+                children: [
+                    {
+                        path: "/trainer/programs",
+                        name: "trainer.programs",
+                        component: () => import("../pages/trainer/program/Index.vue"),
+                    },
+                    {
+                        path: "edit/:id",
+                        name: "trainer.programs.edit",
+                        component: () => import("../pages/trainer/program/Edit.vue"),
+                    },
+                    {
+                        path: "/trainer/programs/enrollment/:id/:programId",
+                        name: "trainer.programs.enrollment",
+                        component: () => import("../pages/trainer/program/Enrollment.vue"),
+                    },
+                    {
+                        path: ":id/session/:sessionId/attendance",
+                        name: "trainer.programs.attendance",
+                        component: () => import("../pages/trainer/program/Attendance.vue"),
+                    }
+                ]
+            },
         ]
     },
+
+    //ADMIN ROUTES
 
     {
         path: "/admin",
@@ -115,6 +140,15 @@ const routes = [
                 meta: {
                     middleware: ["auth", "role"],
                     roles: ["Admin"],
+                },
+            },
+            {
+                path: '/admin/trainer/dashboard',
+                name:'admin.trainer.dashboard',
+                component: () => import("../pages/trainer/TrainerDashboard.vue"),
+                meta: {
+                    middleware: ["auth", "role"],
+                    roles: ["Trainer","Director"],
                 },
             },
             {
@@ -156,12 +190,15 @@ const routes = [
                         component: () => import("../pages/training/program/session/Index.vue"),
                     },
                     {
-                        // REMOVED leading slash.
-                        // Changed :id to :sessionId to distinguish from Program ID
                         path: ':id/session/:sessionId/attendance',
                         name: 'training.session.attendance',
                         component: () => import("../pages/training/program/session/attendance/Index.vue"),
                     },
+                    {
+                        path: ':id/trainee/:traineeId/attendance',
+                        name: 'training.trainee.attendance',
+                        component:()=>import('../pages/training/program/attendance/Index.vue')
+                    }
                 ]
             },
             {
@@ -406,20 +443,53 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
     console.log(`Navigating from: ${from.path} to: ${to.path}`);
-    const roleRedirects={
-        'Admin': 'admin.dashboard',
-        'Trainer': 'trainer.dashboard',
+
+    const getRoleBasedDashboard = (roles) => {
+    if (!roles) return { name: 'login' };
+    
+    const roleList = Array.isArray(roles) ? roles : [roles];
+
+    // Priority 1: Admin
+    if (roleList.includes('Admin')) {
+        return { name: 'admin.dashboard' };
     }
+
+    // Priority 2: Trainer or Director
+    const isTrainerOrDirector = roleList.some(role => 
+        ['Trainer', 'Director'].includes(role)
+    );
+
+    if (isTrainerOrDirector) {
+        return { name: 'trainer.dashboard' };
+    }
+
+    // Default fallback
+    return { name: 'home' }; 
+};
+
+    // 2. Middleware Pipeline Execution
+    // If no middleware is defined, proceed normally
     if (!to.meta.middleware || to.meta.middleware.length === 0) {
         return next();
     }
 
-    // 2. Map middleware names to functions
+    // Map middleware names from the route meta to actual functions
     const middleware = to.meta.middleware.map(name => middlewareMap[name]);
 
-    const context = { to, from, next, router };
+    // Create the context object to pass through the pipeline
+    const context = { 
+        to, 
+        from, 
+        next, 
+        router,
+        // We can pass the role helper inside context if middleware needs it
+        getRoleBasedDashboard 
+    };
 
-    // 3. Start the pipeline and RETURN it to prevent fall-through
+    
+
+    // 3. Trigger the first middleware in the chain
+    // We return the result to ensure the pipeline finishes correctly
     return middleware[0]({
         ...context,
         next: middlewarePipeline(context, middleware, 1),

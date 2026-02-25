@@ -30,7 +30,8 @@ export const useEnrollmentStore = defineStore('enrollment', {
             } catch (error) {
                 console.error("Fetch Error", error);
             }
-        }, async fetchEnrollmentsByProgram(id,params) {
+        }, 
+        async fetchEnrollmentsByProgram(id,params) {
             try {
                 const response = await api.get(`/enrollments/${id}`, { params });
                 if (response.data.status === 200) {

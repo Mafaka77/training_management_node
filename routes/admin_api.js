@@ -1,24 +1,24 @@
-const express=require('express');
-const router=express.Router();
+const express = require('express');
+const router = express.Router();
 const multer = require("multer");
 const upload = multer();
-const fileUpload=require('../middlewares/file_upload_middleware')
-const {authenticate, authorizeRoles} = require("../middlewares/auth_middleware");
-const authController=require('../controllers/admin/admin_auth_controller');
-const trainingController=require('../controllers/admin/admin_training_controller');
-const userController=require('../controllers/admin/admin_user_controller');
-const trainingCourseController= require('../controllers/admin/admin_training_course_controller');
-const trainingRoomController= require('../controllers/admin/admin_training_room_controller');
+const fileUpload = require('../middlewares/file_upload_middleware')
+const { authenticate, authorizeRoles } = require("../middlewares/auth_middleware");
+const authController = require('../controllers/admin/admin_auth_controller');
+const trainingController = require('../controllers/admin/admin_training_controller');
+const userController = require('../controllers/admin/admin_user_controller');
+const trainingCourseController = require('../controllers/admin/admin_training_course_controller');
+const trainingRoomController = require('../controllers/admin/admin_training_room_controller');
 const trainingCategoryController = require('../controllers/admin/admin_training_category_controller');
-const trainerController= require('../controllers/admin/admin_trainer_controller');
-const traineeController= require('../controllers/admin/admin_trainee_controller');
-const trainerProfileController= require('../controllers/trainer/trainer_profile_controller');
-const trainerTrainingController= require('../controllers/trainer/trainer_training_controller');
-const TrainingEnrollmentController= require('../controllers/admin/admin_training_enrollment_controller');
+const trainerController = require('../controllers/admin/admin_trainer_controller');
+const traineeController = require('../controllers/admin/admin_trainee_controller');
+const trainerProfileController = require('../controllers/trainer/trainer_profile_controller');
+const trainerTrainingController = require('../controllers/trainer/trainer_training_controller');
+const TrainingEnrollmentController = require('../controllers/admin/admin_training_enrollment_controller');
 //AUTH
-router.post('/login',upload.none(), authController.login);
-router.get('/me',authenticate, upload.none(), authController.me);
-router.post('/logout',authenticate, upload.none(), authController.logout);
+router.post('/login', upload.none(), authController.login);
+router.get('/me', authenticate, upload.none(), authController.me);
+router.post('/logout', authenticate, upload.none(), authController.logout);
 
 //ADMIN ROLE.  ----------------------------------------------
 //USER CONTROLLER
@@ -32,44 +32,45 @@ router.post('/department', authenticate, authorizeRoles('Admin'), upload.none(),
 router.get('/departments', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_department_controller').getAllDepartments);
 router.delete('/department/:departmentId', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_department_controller').deleteDepartment);
 //TRAINING ROOM
-router.post('/submit-training-room', authenticate, authorizeRoles('Admin'),upload.none(), trainingRoomController.submitTrainingRoom);
-router.get('/get-training-room', authenticate, authorizeRoles('Admin'),upload.none(), trainingRoomController.getTrainingRoom);
-router.delete('/room/:id', authenticate, authorizeRoles('Admin'),upload.none(), trainingRoomController.deleteTrainingRoom);
-router.put('/room/:id', authenticate, authorizeRoles('Admin'),upload.none(), trainingRoomController.updateTrainingRoom);
-router.get('/room/:id', authenticate, authorizeRoles('Admin'),upload.none(), trainingRoomController.getTrainingRoomById);
+router.post('/submit-training-room', authenticate, authorizeRoles('Admin'), upload.none(), trainingRoomController.submitTrainingRoom);
+router.get('/get-training-room', authenticate, authorizeRoles('Admin'), upload.none(), trainingRoomController.getTrainingRoom);
+router.delete('/room/:id', authenticate, authorizeRoles('Admin'), upload.none(), trainingRoomController.deleteTrainingRoom);
+router.put('/room/:id', authenticate, authorizeRoles('Admin'), upload.none(), trainingRoomController.updateTrainingRoom);
+router.get('/room/:id', authenticate, authorizeRoles('Admin'), upload.none(), trainingRoomController.getTrainingRoomById);
 
 //TRAINING CATEGORY
-router.get('/get-training-category', authenticate, authorizeRoles('Admin'),upload.none(), trainingCategoryController.getTrainingCategory);
+router.get('/get-training-category', authenticate, authorizeRoles('Admin'), upload.none(), trainingCategoryController.getTrainingCategory);
 router.post('/submit-training-category', authenticate, authorizeRoles('Admin'), upload.none(), trainingCategoryController.createTrainingCategory);
 
 //TRAINING PROGRAM
-router.post('/submit-training-program',authenticate,authorizeRoles('Admin'),fileUpload.single('t_banner'), trainingController.submitTrainingProgram);
-router.get('/get-all-training-program', authenticate, authorizeRoles('Admin'),upload.none(), trainingController.getTraining);
-router.get('/program/:programId',authenticate,authorizeRoles('Admin'), upload.none(), trainingController.getTrainingById);
+router.post('/submit-training-program', authenticate, authorizeRoles('Admin'), fileUpload.single('t_banner'), trainingController.submitTrainingProgram);
+router.put('/program/:programId', authenticate, authorizeRoles('Admin', 'Director'), fileUpload.single('t_banner'), trainingController.updateTrainingProgram);
+router.get('/get-all-training-program', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingController.getTraining);
+router.get('/program/:programId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingController.getTrainingById);
 router.delete('/program/:programId', authenticate, authorizeRoles('Admin'), upload.none(), trainingController.deleteTrainingProgram);
-router.get('/get-all-groups',authenticate, authorizeRoles('Admin'), upload.none(), trainingController.getGroups);
-router.get('/directors',authenticate,authorizeRoles('Admin'),upload.none(),trainingController.getTrainingDirectors)
-router.put('/program/:programId/status',authenticate, authorizeRoles('Admin'), upload.none(), trainingController.updateStatus);
-router.get('/enrollments/:programId', authenticate, authorizeRoles('Admin'), upload.none(), trainingController.getEnrollmentsByProgram);
+router.get('/get-all-groups', authenticate, authorizeRoles('Admin'), upload.none(), trainingController.getGroups);
+router.get('/directors', authenticate, authorizeRoles('Admin'), upload.none(), trainingController.getTrainingDirectors)
+router.put('/program/:programId/status', authenticate, authorizeRoles('Admin'), upload.none(), trainingController.updateStatus);
+router.get('/enrollments/:programId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingController.getEnrollmentsByProgram);
 //TRAINING COURSE
-router.post('/submit-training-course', authenticate, authorizeRoles('Admin'), upload.none(), trainingCourseController.submitTrainingCourse);
+router.post('/submit-training-course', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingCourseController.submitTrainingCourse);
 router.get('/get-trainer', authenticate, authorizeRoles('Admin'), upload.none(), trainingCourseController.getTrainer);
 router.get('/get-all-training-course', authenticate, authorizeRoles('Admin'), upload.none(), trainingCourseController.getAllTrainingCourse);
 router.get(
     '/programs/:programId/courses',
     authenticate,
-    authorizeRoles('Admin'),
+    authorizeRoles('Admin', 'Director'),
     trainingCourseController.getCoursesByProgramId
 );
 router.delete('/course/:courseId', authenticate, authorizeRoles('Admin'), upload.none(), trainingCourseController.deleteTrainingCourse);
-router.get('/course/:courseId',authenticate, authorizeRoles('Admin'), upload.none(), trainingCourseController.getCourseById);
-router.put('/course/:courseId',authenticate,authorizeRoles('Admin'),upload.none(),trainingCourseController.updateCourse);
+router.get('/course/:courseId', authenticate, authorizeRoles('Admin'), upload.none(), trainingCourseController.getCourseById);
+router.put('/course/:courseId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingCourseController.updateCourse);
 
 
 //TRAINER
 router.post('/trainer', authenticate, authorizeRoles('Admin'), upload.none(), trainerController.createTrainer);
-router.get('/trainers', authenticate, authorizeRoles('Admin'), upload.none(), trainerController.getAllTrainers);
-router.get('/trainer/:trainerId', authenticate, authorizeRoles('Admin'), upload.none(), trainerController.getTrainerById);
+router.get('/trainers', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainerController.getAllTrainers);
+router.get('/trainer/:trainerId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainerController.getTrainerById);
 router.delete('/trainer/:trainerId', authenticate, authorizeRoles('Admin'), upload.none(), trainerController.deleteTrainer);
 router.get('/districts', authenticate, authorizeRoles('Admin'), upload.none(), trainerController.getDistricts);
 
@@ -77,25 +78,25 @@ router.get('/districts', authenticate, authorizeRoles('Admin'), upload.none(), t
 router.get('/trainees', authenticate, authorizeRoles('Admin'), upload.none(), traineeController.getAllTrainee);
 router.post('/trainee', authenticate, authorizeRoles('Admin'), upload.none(), traineeController.createTrainee);
 
-router.post('/employee',authenticate,authorizeRoles('Admin'),upload.none(),require('../controllers/admin/admin_employee_controller').submitEmployee);
-router.get('/employees',authenticate,authorizeRoles('Admin'),upload.none(),require('../controllers/admin/admin_employee_controller').getEmployees)
+router.post('/employee', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_employee_controller').submitEmployee);
+router.get('/employees', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_employee_controller').getEmployees)
 
 //ENROLLMENT
-router.get('/enrollments', authenticate, authorizeRoles('Admin'), upload.none(), TrainingEnrollmentController.getAllEnrollment);
-router.get('/enrollment/:enrollmentId', authenticate, authorizeRoles('Admin'), upload.none(), TrainingEnrollmentController.getEnrollmentById);
-router.patch('/enrollment/:enrollmentId', authenticate, authorizeRoles('Admin'), upload.none(), TrainingEnrollmentController.updateEnrollmentStatus);
+router.get('/enrollments', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), TrainingEnrollmentController.getAllEnrollment);
+router.get('/enrollment/:enrollmentId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), TrainingEnrollmentController.getEnrollmentById);
+router.patch('/enrollment/:enrollmentId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), TrainingEnrollmentController.updateEnrollmentStatus);
 
 //DOCUMENTS
-router.post('/documents', authenticate, authorizeRoles('Admin'), fileUpload.array('documents',1), require('../controllers/admin/admin_document_controller').submitDocument);
+router.post('/documents', authenticate, authorizeRoles('Admin'), fileUpload.array('documents', 1), require('../controllers/admin/admin_document_controller').submitDocument);
 router.delete('/document/:id', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_document_controller').deleteDocument);
 router.get('/documents', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_document_controller').getAllDocuments);
 router.get('/document/:id', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_document_controller').getDocumentById);
 
 //TICKET
-router.get('/tickets',authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_ticket_controller').getAllTickets);
-router.get('/tickets/:ticketId',authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_ticket_controller').getTicketById);
-router.post('/tickets/:ticketId/replies',authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_ticket_controller').replyTicket);
-router.patch('/tickets/:ticketId/status',authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_ticket_controller').changeStatus);
+router.get('/tickets', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_ticket_controller').getAllTickets);
+router.get('/tickets/:ticketId', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_ticket_controller').getTicketById);
+router.post('/tickets/:ticketId/replies', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_ticket_controller').replyTicket);
+router.patch('/tickets/:ticketId/status', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_ticket_controller').changeStatus);
 
 //FAQ
 router.post('/faqs', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_faq_controller').submitFaq);
@@ -105,25 +106,29 @@ router.put('/faqs/:faqId', authenticate, authorizeRoles('Admin'), upload.none(),
 router.delete('/faqs/:faqId', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_faq_controller').deleteFaq);
 
 //MATERIALS
-router.get('/materials/:programId',authenticate,authorizeRoles('Admin','Trainer'),upload.none(),require('../controllers/admin/admin_material_controller').getMaterials);
-router.post('/material',authenticate,authorizeRoles('Admin','Trainer'),fileUpload.array('materials',1),require('../controllers/admin/admin_material_controller').submitMaterial)
-router.delete('/material/:id',authenticate,authorizeRoles('Admin','Trainer'),upload.none(),require('../controllers/admin/admin_material_controller').deleteMaterial)
+router.get('/materials/:programId', authenticate, authorizeRoles('Admin', 'Trainer', 'Director'), upload.none(), require('../controllers/admin/admin_material_controller').getMaterials);
+router.post('/material', authenticate, authorizeRoles('Admin', 'Trainer', 'Director'), fileUpload.array('materials', 1), require('../controllers/admin/admin_material_controller').submitMaterial)
+router.delete('/material/:id', authenticate, authorizeRoles('Admin', 'Trainer', 'Director'), upload.none(), require('../controllers/admin/admin_material_controller').deleteMaterial)
 
 //ATTENDANCE
-router.get('/session/:sessionId/attendance',authenticate,authorizeRoles('Admin'),upload.none(),require('../controllers/admin/admin_attendance_controller').getSessionAttendance)
-router.get('/training/:programId/attendance',authenticate,authorizeRoles('Admin'),upload.none(),require('../controllers/admin/admin_attendance_controller').getFullAttendance)
+router.get('/session/:sessionId/attendance', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_attendance_controller').getSessionAttendance)
+router.get('/training/:programId/attendance', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_attendance_controller').getFullAttendance)
+router.get('/trainee/:traineeId/attendance', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_attendance_controller').getTraineeAttendanceDetails)
 
 //-----------------------------------
 //TRAINER ROLE
 router.get('/trainer/me', authenticate, authorizeRoles('Trainer'), upload.none(), trainerProfileController.me);
-router.put('/trainer/proficiency', authenticate, authorizeRoles('Trainer'),fileUpload.single('profile_picture'), trainerProfileController.updateProficiency);
+router.put('/trainer/proficiency', authenticate, authorizeRoles('Trainer'), fileUpload.single('profile_picture'), trainerProfileController.updateProficiency);
 router.get('/trainer/training/program', authenticate, authorizeRoles('Trainer'), upload.none(), trainerTrainingController.getMyTraining);
-router.get('/trainer/session/:sessionId/trainees',authenticate,authorizeRoles('Trainer'),upload.none(),trainerTrainingController.getSessionTrainees)
-router.post('/trainer/attendance/trainee/:sessionId',authenticate,authorizeRoles('Trainer'),upload.none(),trainerTrainingController.markAttendance);
+router.get('/trainer/session/:sessionId/trainees', authenticate, authorizeRoles('Trainer'), upload.none(), trainerTrainingController.getSessionTrainees)
+router.post('/trainer/attendance/trainee/:sessionId', authenticate, authorizeRoles('Trainer'), upload.none(), trainerTrainingController.markAttendance);
 // router.post('/trainer/training/:programId/material', authenticate, authorizeRoles('Trainer'), fileUpload.array('materials',1), trainerTrainingController.uploadMaterial);
-router.get('/trainer/training/:programId/materials',authenticate,authorizeRoles('Trainer'),upload.none(),trainerTrainingController.getMyMaterials);
+router.get('/trainer/training/:programId/materials', authenticate, authorizeRoles('Trainer'), upload.none(), trainerTrainingController.getMyMaterials);
 router.get('/trainer/training/:courseId', authenticate, authorizeRoles('Trainer'), upload.none(), trainerTrainingController.getTrainingById);
-router.post('/trainer/document', authenticate, authorizeRoles('Trainer'), fileUpload.array('documents',1), require('../controllers/trainer/trainer_document_controller').submitDocument);
+router.post('/trainer/document', authenticate, authorizeRoles('Trainer'), fileUpload.array('documents', 1), require('../controllers/trainer/trainer_document_controller').submitDocument);
+
+//DIRECTOR
+router.get('/director/program', authenticate, authorizeRoles('Director'), upload.none(), require('../controllers/trainer/director_controller').getPrograms);
 
 
 //BANNER
@@ -132,7 +137,7 @@ router.get('/banners', authenticate, authorizeRoles('Admin'), upload.none(), req
 router.delete('/banner/:id', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_banner_controller').deleteBanner);
 
 //DASHBOARD
-router.get('/stats',authenticate,authorizeRoles('Admin','Trainer'),upload.none(),require('../controllers/admin/admin_dashboard_controller').getStats);
+router.get('/stats', authenticate, authorizeRoles('Admin', 'Trainer'), upload.none(), require('../controllers/admin/admin_dashboard_controller').getStats);
 
 //NOTIFICATION
 
@@ -141,12 +146,12 @@ router.get('/stats',authenticate,authorizeRoles('Admin','Trainer'),upload.none()
 // router.post("/unregister-token", authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/token_controller').deleteToken);
 // router.get("/tokens/:userId", authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/token_controller').listTokens);
 router.post("/fcm/send-notification", authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/notification_controller').sendToUser);
-router.post('/fcm/notify/all-users',authenticate,authorizeRoles('Admin'),upload.none(),require('../controllers/broadcast_controller').sendToAllUsers);
+router.post('/fcm/notify/all-users', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/broadcast_controller').sendToAllUsers);
 
 //DASHBOARD
-router.get('/notifications',authenticate,authorizeRoles('Admin'),upload.none(),require('../controllers/admin/admin_dashboard_controller').fetchNotification)
-router.patch('/notification/:id/read',authenticate,authorizeRoles('Admin'),upload.none(),require('../controllers/admin/admin_dashboard_controller').readNotification)
-module.exports=router;
+router.get('/notifications', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_dashboard_controller').fetchNotification)
+router.patch('/notification/:id/read', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_dashboard_controller').readNotification)
+module.exports = router;
 
 
 

@@ -73,7 +73,7 @@
                hover:shadow-2xl hover:shadow-blue-500/10
                hover:border-blue-500/50 dark:hover:border-blue-500/40"
       >
-        <div class="flex-shrink-0 w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-500
+        <div class="shrink-0 w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-500
                     bg-blue-50 dark:bg-blue-500/10
                     text-blue-600 dark:text-blue-400
                     group-hover:rotate-6 group-hover:scale-110"

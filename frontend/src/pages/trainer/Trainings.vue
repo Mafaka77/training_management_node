@@ -17,11 +17,11 @@
               :key="status"
               @click="store.setStatus(status)"
               :class="[
-        'px-4 py-1.5 text-xs font-bold rounded-lg transition-all duration-200',
-        store.status === status
-          ? 'bg-white dark:bg-white/10 shadow-sm text-blue-600 dark:text-white'
-          : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
-      ]"
+                'px-4 py-1.5 text-xs font-bold rounded-lg transition-all duration-200',
+                store.status === status
+                  ? 'bg-white dark:bg-white/10 shadow-sm text-blue-600 dark:text-white'
+                  : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
+              ]"
           >
             {{ status }}
           </button>
@@ -30,82 +30,120 @@
     </header>
 
     <div class="grid grid-cols-1 gap-6">
-      <div v-for="session in trainings" :key="session._id"
-           class="group relative bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/[0.05] rounded-[2rem] overflow-hidden transition-all hover:border-blue-500/30 shadow-sm dark:shadow-none">
-
-        <div class="p-6 md:p-8 flex flex-col md:flex-row gap-8 items-start md:items-center">
-
-          <div class="flex flex-row md:flex-col items-center justify-center min-w-[100px] gap-4 md:gap-1 p-4 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-zinc-100 dark:border-white/5">
-            <span class="text-2xl font-black text-blue-600 dark:text-blue-400">{{ formatDate(session.tc_date, 'DD') }}</span>
-            <span class="text-[10px] font-black uppercase tracking-widest text-zinc-400">{{ formatDate(session.tc_date, 'MMM YYYY') }}</span>
-            <div class="hidden md:block w-full h-px bg-zinc-200 dark:bg-white/10 my-2"></div>
-            <span class="text-[11px] font-bold text-zinc-500 dark:text-zinc-300 whitespace-nowrap">
-              {{ session.tc_start_time }} - {{ session.tc_end_time }}
-            </span>
-          </div>
-
-          <div class="flex-1 space-y-4">
-            <div class="space-y-1">
-              <div class="flex items-center gap-2">
-                <span class="px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-tighter">
-                  Session:  {{ session.tc_session }}
-                </span>
-                <span class="text-zinc-300 dark:text-zinc-700 text-xs">•</span>
-                <span class="text-xs font-medium text-zinc-500 dark:text-zinc-400">{{ session.t_program.t_organizer }}</span>
-              </div>
-              <h2 class="text-xl font-normal text-zinc-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                {{ session.tc_topic }}
-              </h2>
-              <p class="text-sm text-zinc-500 dark:text-zinc-400 ">
-                Part of: {{ session.t_program.t_name }}
-              </p>
-            </div>
-
-            <div class="flex flex-wrap gap-4 text-[12px]">
-              <div class="flex items-center gap-1.5 text-zinc-500">
-                <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                Status: {{ session.t_program.t_status }}
-              </div>
-              <div class="flex items-center gap-1.5 text-zinc-500">
-                <MapPinIcon class="w-3.5 h-3.5" />
-                Room ID: {{ session.t_program.t_room.room_name }}
-              </div>
-            </div>
-          </div>
-
-          <div class="flex flex-col w-full md:w-auto gap-2">
-            <router-link :to="{ name: 'trainer.trainings.attendance', params: { id: session._id }}" v-if="session.t_program.t_status==='Ongoing'" class="w-full md:w-44 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-lg shadow-blue-500/20 active:scale-95 flex items-center justify-center gap-2">
-              <QrCodeIcon class="w-4 h-4" />
-              Mark Attendance
-            </router-link>
-            <router-link :to="{name:'trainer.trainings.material',params:{id:session.t_program._id,name:session.t_program.t_name}}" class="w-full md:w-44 px-6 py-3 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-white/5 text-zinc-600 dark:text-zinc-300 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all flex items-center justify-center gap-2">
-              <FileTextIcon class="w-4 h-4" />
-              Manage Materials
-            </router-link>
-          </div>
-
-        </div>
+      
+      <div v-if="loading" class="space-y-6">
+        <div v-for="i in 3" :key="i" class="h-40 w-full animate-pulse bg-zinc-100 dark:bg-zinc-800/50 rounded-[2rem]"></div>
       </div>
+
+      <div v-else-if="!trainings || trainings.length === 0" 
+           class="flex flex-col items-center justify-center py-20 px-4 text-center bg-zinc-50/50 dark:bg-zinc-900/20 border-2 border-dashed border-zinc-200 dark:border-white/5 rounded-[3rem]">
+        <div class="p-4 bg-zinc-100 dark:bg-zinc-800 rounded-full mb-4">
+          <CalendarXIcon class="w-8 h-8 text-zinc-400" />
+        </div>
+        <h3 class="text-lg font-medium text-zinc-900 dark:text-white">No {{ store.status }} Trainings</h3>
+        <p class="text-sm text-zinc-500 max-w-[280px] mt-1">
+          You don't have any sessions scheduled under this category at the moment.
+        </p>
+        <button @click="store.fetchTrainings" class="mt-6 text-xs font-bold text-blue-600 hover:underline">
+          Refresh Schedule
+        </button>
+      </div>
+
+      <template v-else>
+        <div v-for="session in trainings" :key="session._id"
+             class="group relative bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/[0.05] rounded-[2rem] overflow-hidden transition-all hover:border-blue-500/30 shadow-sm hover:shadow-xl hover:shadow-blue-500/5">
+          
+          <div class="p-6 md:p-8 flex flex-col md:flex-row gap-8 items-start md:items-center">
+            
+            <div class="flex flex-row md:flex-col items-center justify-center min-w-[100px] gap-4 md:gap-1 p-4 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-zinc-100 dark:border-white/5">
+              <span class="text-2xl font-black text-blue-600 dark:text-blue-400">{{ formatDate(session.tc_date, 'DD') }}</span>
+              <span class="text-[10px] font-black uppercase tracking-widest text-zinc-400">{{ formatDate(session.tc_date, 'MMM YYYY') }}</span>
+              <div class="hidden md:block w-full h-px bg-zinc-200 dark:bg-white/10 my-2"></div>
+              <span class="text-[11px] font-bold text-zinc-500 dark:text-zinc-300 whitespace-nowrap">
+                {{ session.tc_start_time }} - {{ session.tc_end_time }}
+              </span>
+            </div>
+
+            <div class="flex-1 space-y-4">
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-tighter">
+                    Session: {{ session.tc_session }}
+                  </span>
+                  <span class="text-zinc-300 dark:text-zinc-700 text-xs">•</span>
+                  <span class="text-xs font-medium text-zinc-500 dark:text-zinc-400">{{ session.t_program?.t_organizer }}</span>
+                </div>
+                <h2 class="text-xl font-normal text-zinc-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                  {{ session.tc_topic }}
+                </h2>
+                <p class="text-sm text-zinc-500 dark:text-zinc-400">
+                  Part of: {{ session.t_program?.t_name }}
+                </p>
+              </div>
+
+              <div class="flex flex-wrap gap-4 text-[12px]">
+                <div class="flex items-center gap-1.5 text-zinc-500">
+                  <div :class="['w-1.5 h-1.5 rounded-full', session.t_program?.t_status === 'Ongoing' ? 'bg-emerald-500' : 'bg-amber-500']"></div>
+                  Status: {{ session.t_program?.t_status }}
+                </div>
+                <div class="flex items-center gap-1.5 text-zinc-500">
+                  <MapPinIcon class="w-3.5 h-3.5" />
+                  Room: {{ session.t_program?.t_room?.room_name || 'N/A' }}
+                </div>
+              </div>
+            </div>
+
+            <div class="flex flex-col w-full md:w-auto gap-2">
+              <router-link 
+                v-if="session.t_program?.t_status === 'Ongoing'"
+                :to="{ name: 'trainer.trainings.attendance', params: { id: session._id }}" 
+                class="w-full md:w-44 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-lg shadow-blue-500/20 active:scale-95 flex items-center justify-center gap-2"
+              >
+                <QrCodeIcon class="w-4 h-4" />
+                Mark Attendance
+              </router-link>
+              
+              <router-link 
+                :to="{ name: 'trainer.trainings.material', params: { id: session.t_program?._id, name: session.t_program?.t_name }}" 
+                class="w-full md:w-44 px-6 py-3 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-white/5 text-zinc-600 dark:text-zinc-300 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all flex items-center justify-center gap-2"
+              >
+                <FileTextIcon class="w-4 h-4" />
+                Manage Materials
+              </router-link>
+            </div>
+
+          </div>
+        </div>
+      </template>
     </div>
   </div>
 </template>
 
 <script setup>
-import {onMounted, ref} from 'vue';
-import dayjs from 'dayjs'; // Recommended for date formatting
-import {
-  MapPinIcon,
-  QrCodeIcon,
-  FileTextIcon
+import { onMounted, watch } from 'vue';
+import dayjs from 'dayjs';
+import { 
+  MapPinIcon, 
+  QrCodeIcon, 
+  FileTextIcon, 
+  CalendarXIcon 
 } from 'lucide-vue-next';
-import {useTrainerStore} from "../../store/trainerStore.js";
-import {storeToRefs} from "pinia";
-const store=useTrainerStore();
-const{trainings,loading}=storeToRefs(store)
+import { useTrainerStore } from "../../store/trainerStore.js";
+import { storeToRefs } from "pinia";
+
+const store = useTrainerStore();
+const { trainings, loading } = storeToRefs(store);
+
 const formatDate = (date, format) => {
-  return dayjs(date).format(format);
+  return date ? dayjs(date).format(format) : 'N/A';
 };
-onMounted(()=>{
+
+// Re-fetch when the status filter changes
+watch(() => store.status, () => {
   store.fetchTrainings();
-})
+});
+
+onMounted(() => {
+  store.fetchTrainings();
+});
 </script>

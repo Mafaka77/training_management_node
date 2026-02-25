@@ -75,7 +75,7 @@
             </td>
             <td class="px-6 py-4 text-right">
               <div class="flex items-center justify-end gap-2">
-                <router-link :to="{name:'admin.enrollment.detail', params:{id:item._id}}" class="p-2 hover:text-blue-500 transition-colors">
+                <router-link :to="{name:detailRouteName, params:{id:item._id, programId:item.training_program._id}}" class="p-2 hover:text-blue-500 transition-colors">
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -125,11 +125,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted,computed } from 'vue';
 import { useEnrollmentStore } from '../../store/enrollmentStore';
 import { useAlertStore } from '../../store/alertStore';
 import { storeToRefs } from 'pinia';
-
+import { useAuthStore } from '../../store/authStore';
+const authStore=useAuthStore();
 const store = useEnrollmentStore();
 const alert = useAlertStore();
 const { enrollments, pagination } = storeToRefs(store);
@@ -180,12 +181,23 @@ const updateStatus = async (id, status) => {
   const res = await store.updateEnrollmentStatus(id, status);
   if (res.success) {
     alert.success(res.message);
-    // Refresh current page to update list (or handle locally in store)
     fetchData(pagination.value.page);
   } else {
     alert.error(res.message);
   }
 };
-
+const detailRouteName = computed(() => {
+  const roles = Array.isArray(authStore.roles) ? authStore.roles : [authStore.roles];
+  
+  if (roles.includes('Admin')) {
+    return 'admin.enrollment.detail';
+  }
+  if (roles.some(r => ['Director'].includes(r))) {
+    // return 'trainer.programs.enrollment';
+     return 'admin.enrollment.detail';
+  }
+  
+  return 'trainer.dashboard';
+});
 onMounted(() => fetchData());
 </script>

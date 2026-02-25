@@ -3,7 +3,9 @@ const STATUS=require('../../utils/httpStatus');
 const fs = require('fs');
 const path = require('path');
 exports.uploadBanner=async (req,res)=>{
-    const {title,imageUrl}=req.body;
+    
+    const {title}=req.body;
+    console.log(req.file);
     try{
         if(!req.file){
             return res.status(STATUS.OK).json({message:'No file uploaded',status:STATUS.BAD_REQUEST});

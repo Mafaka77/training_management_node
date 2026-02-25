@@ -5,9 +5,25 @@ const bcrypt = require("bcryptjs");
 
 exports.submitEmployee=async function(req, res){
     try {
-        const trainerRole = await Role.findOne({ name: "Director" });
-        const { full_name, email, mobile,password,district,department,designation } = req.body;
+       
+        const { full_name, email, mobile,password,district,department,designation ,trainer,director} = req.body;
+        
+        const rolesToAssign = [];
+        const baseRole = await Role.findOne({ name: "Employee" });
+        if (baseRole) rolesToAssign.push(baseRole._id);
 
+        if (trainer === true || trainer === 'true') {
+            const trainerRole = await Role.findOne({ name: "Trainer" });
+            if (trainerRole) {
+                rolesToAssign.push(trainerRole._id);
+            }
+        }
+        if(director === true || director === 'true'){
+            const directorRole = await Role.findOne({ name: "Director" });
+            if (directorRole) {
+                rolesToAssign.push(directorRole._id);
+            }
+        }
         if (!full_name || !email || !mobile) {
             return res.status(STATUS.OK).json({ message: "All fields are required", status: STATUS.BAD_REQUEST });
         }
@@ -17,7 +33,6 @@ exports.submitEmployee=async function(req, res){
             return res.status(STATUS.OK).json({ message: "Trainer already exists", status: STATUS.CONFLICT });
         }
 
-        // 🔑 Hash the password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
         const newTrainer = new User({
@@ -28,7 +43,7 @@ exports.submitEmployee=async function(req, res){
             district,
             designation,
             department,
-            roles: trainerRole._id
+            roles: rolesToAssign
         });
 
         await newTrainer.save();
@@ -51,11 +66,11 @@ exports.getEmployees=async function(req, res){
         const search = req.query.search || "";
 
         // get trainer role
-        const trainerRole = await Role.findOne({ name: "Director" });
+        const trainerRole = await Role.findOne({ name: "Employee" });
 
         if (!trainerRole) {
             return res.status(STATUS.OK).json({
-                message: "Director role not found",
+                message: "Employee role not found",
                 status: STATUS.NOT_FOUND,
             });
         }
@@ -73,10 +88,10 @@ exports.getEmployees=async function(req, res){
         const trainers = await User.find(query)
             .select("-password -roles -__v")
             .populate("district", "name")
+            .populate("roles", "name")
             .skip(skip)
             .limit(limit);
 
-        // count total
         const total = await User.countDocuments(query);
 
         if (!trainers || trainers.length === 0) {
@@ -87,7 +102,7 @@ exports.getEmployees=async function(req, res){
         }
 
         return res.status(STATUS.OK).json({
-            trainers,
+            employees:trainers,
             pagination: {
                 total,
                 page,

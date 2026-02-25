@@ -383,13 +383,8 @@ exports.getCourseByProgram=async (req,res)=>{
 exports.getMaterials=async (req,res)=>{
     const {trainingId}=req.params;
     try{
-        const course=await TrainingCourse.find({t_program:trainingId}).select('_id').lean();
-        const courseId=course.map(c=>c._id);
-
-        const materials=await Material.find({course:{$in:courseId}})
-            .lean();
-        return res.json({status:STATUS.OK,materials});
-
+        const materials=await Material.find({program:trainingId}).lean();
+        return res.status(STATUS.OK).json({status:STATUS.OK,materials:materials});
     }catch (e) {
         return  res.status(STATUS.INTERNAL_SERVER_ERROR).json({status:STATUS.INTERNAL_SERVER_ERROR,message:e.message})
     }

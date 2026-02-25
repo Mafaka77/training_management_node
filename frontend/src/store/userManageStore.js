@@ -120,6 +120,7 @@ export const useUserManageStore=defineStore('userManageStore',{
             try{}catch (e) {}
         },
         async submitEmployee(data){
+           
             try{
                 const response=await api.post('/employee',data);
                 const statusCode=response.status===200 && response.data.status===201;
@@ -135,8 +136,8 @@ export const useUserManageStore=defineStore('userManageStore',{
             try{
                 this.isLoading=true;
                 const response=await api.get('/employees');
-                this.employees=response.data.trainers;
-                console.log(response.data);
+                this.employees=response.data.employees;
+                console.log(response.data.employees);
                 this.isLoading=false;
             }catch (e) {
                 this.isLoading=false;

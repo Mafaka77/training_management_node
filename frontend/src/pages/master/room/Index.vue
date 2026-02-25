@@ -48,7 +48,7 @@
                hover:shadow-xl hover:shadow-zinc-200/50 dark:hover:shadow-none
                hover:border-blue-500/50 dark:hover:border-blue-500/50"
       >
-        <div class="flex-shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300
+        <div class="shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300
                     bg-blue-50 dark:bg-blue-600/10
                     text-blue-600 dark:text-blue-400
                     group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white"
@@ -85,7 +85,7 @@
               <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
               </svg>
-              <span>{{ room.latitude }}, {{ room.longitude }}</span>
+              <span>{{ room.location.coordinates[1] }}, {{ room.location.coordinates[0] }}</span>
             </div>
           </div>
         </div>

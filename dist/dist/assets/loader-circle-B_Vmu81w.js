@@ -1,0 +1,1 @@
+import{c as e}from"./createLucideIcon-DSn0xGkL.js";const c=e("chevron-left",[["path",{d:"m15 18-6-6 6-6",key:"1wnfg3"}]]);const o=e("loader-circle",[["path",{d:"M21 12a9 9 0 1 1-6.219-8.56",key:"13zald"}]]);export{c as C,o as L};

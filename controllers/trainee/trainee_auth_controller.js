@@ -40,6 +40,15 @@ exports.login = async (req, res) => {
         if (!isMatch) {
             return res.status(STATUS.OK).json({ message: "Incorrect password", status: STATUS.BAD_REQUEST });
         }
+
+                const roleNames = user.roles.map(role => role.name);
+                const restrictedRoles = ["Trainer", "Admin","Employee","Director"];
+                if (roleNames.some(role=>restrictedRoles.includes(role))) {
+                    return res.status(STATUS.OK).json({
+                        message: "Access Denied: Not Permitted.",
+                        status: STATUS.UNAUTHORIZED 
+                    });
+                }
         const payload = {
             user: {
                 id: user.id,
@@ -71,7 +80,7 @@ exports.login = async (req, res) => {
 }
 exports.register = async (req, res) => {
     const roles = await Role.findOne({ name: 'Trainee' });
-    const { full_name, email, password, mobile, district, department, gender, designation } = req.body;
+    const { full_name, email, password, mobile, district, department, gender, designation ,group} = req.body;
     try {
         if (!full_name || !email || !password || !mobile || !designation) {
             return res.status(STATUS.OK).json({
@@ -99,6 +108,7 @@ exports.register = async (req, res) => {
             department,
             gender,
             designation,
+            group,
             roles: [roles._id],
         });
 
@@ -217,7 +227,7 @@ const generateOTP = (phone) => {
 exports.getMyProfile = async (req, res) => {
     try {
         const userId = req.user.user.id;
-        const user = await User.findById(userId).select('-password').populate('district').populate('department');
+        const user = await User.findById(userId).select('-password').populate('district').populate('group');
         return res.status(STATUS.OK).json({ status: STATUS.OK, user });
     } catch (e) {
         return res.status(STATUS.INTERNAL_SERVER_ERROR).json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR })
@@ -238,8 +248,6 @@ exports.updateProfile = async (req, res) => {
         if (!userId) {
             return res.status(STATUS.UNAUTHORIZED).json({ message: 'Unauthorized', status: STATUS.UNAUTHORIZED });
         }
-
-        // pick up fields from request body (only update if provided)
         const {
             full_name,
             email,

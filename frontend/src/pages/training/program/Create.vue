@@ -133,8 +133,6 @@ const breadcrumbs=[
   {label:"Create Program",to:"/admin/training/program/create"}
 ]
 function handleBanner(file) {
-  // If your ImagePicker emits the file directly, use 'file'
-  // If it emits the event, use 'file.target.files[0]'
   form.t_banner = file;
 }
 

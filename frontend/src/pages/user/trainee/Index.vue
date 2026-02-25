@@ -72,7 +72,7 @@
                border-zinc-200 dark:border-white/10
                hover:shadow-xl hover:border-blue-500/50 dark:hover:border-blue-500/40"
       >
-        <div class="flex-shrink-0 w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-500
+        <div class="shrink-0 w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-500
                     bg-zinc-100 dark:bg-white/5 text-zinc-600 dark:text-zinc-400
                     group-hover:bg-blue-600 group-hover:text-white group-hover:scale-110"
         >

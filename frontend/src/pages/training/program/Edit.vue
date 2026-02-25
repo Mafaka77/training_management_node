@@ -60,9 +60,14 @@
           <h2 class="text-lg font-bold tracking-tight">Training Logistics</h2>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
           <div class="space-y-6">
             <BaseInput v-model="form.t_organizer" label="Organizer / Department" placeholder="e.g. HR Department" type="text" />
+            <SearchSelect  v-model="form.t_director"
+                             :options="directors"
+                             label="Training Director"
+                             placeholder="Full Name"
+                             type="text" />
             <MultiSelect 
               v-model="form.t_eligibility" 
               :options="groups" 
@@ -75,6 +80,7 @@
           <div class="space-y-6">
             <div class="grid grid-cols-2 gap-4">
               <BaseInput v-model="form.t_capacity" label="Seat Capacity" placeholder="50" type="number" />
+              
               <SingleSelect 
                 v-model="form.t_category" 
                 :options="categories" 
@@ -84,6 +90,14 @@
                 placeholder="Select Type" 
               />
             </div>
+            <SingleSelect 
+                v-model="form.t_status" 
+                :options="status" 
+                track-by="name" 
+                option-label="value" 
+                label="Status" 
+                placeholder="Select Status" 
+              />
             <SingleSelect 
               v-model="form.t_room" 
               :options="rooms" 
@@ -154,6 +168,7 @@ import { storeToRefs } from "pinia";
 import { useTrainingStore } from "../../../store/trainingStore.js";
 import MultiSelect from "../../../components/ui/MultiSelect.vue";
 import BaseInput from "../../../components/ui/BaseInput.vue";
+import SearchSelect from "../../../components/ui/SearchSelect.vue";
 import SingleSelect from "../../../components/ui/SingleSelect.vue";
 import ImagePicker from "../../../components/ui/ImagePicker.vue";
 import { useAlertStore } from "../../../store/alertStore.js";
@@ -162,12 +177,18 @@ import Breadcrumbs from "../../../components/ui/Breadcrumbs.vue";
 const route = useRoute();
 const alert=useAlertStore();
 const store = useTrainingStore();
-const { categories, rooms, groups } = storeToRefs(store);
+const { categories, rooms, groups ,directors} = storeToRefs(store);
 const isLoading=ref(false);
 const isUpdating = ref(false);
 const loading=ref(false);
 const showStatusModal = ref(false);
 const isSubmitting=ref(false);
+const status=[
+  {name:"Draft",value:"Draft"},
+  {name:"Upcoming",value:"Upcoming"},
+  {name:"Ongoing",value:"Ongoing"},
+  {name:"Completed",value:"Completed"},
+]
 const form = reactive({
   t_name: "",
   t_description: "",
@@ -180,15 +201,14 @@ const form = reactive({
   t_capacity: 0,
   t_category: "",
   t_room: "",
-  t_status:""
+  t_status:"",
+  t_director:"",
 })
 const breadcrumbs=[
   {label:"Training",to:"/admin/training/program"},
   {label:"Edit Program",to:"/admin/training/program/edit/"+route.params.id}
 ];
 function handleBanner(file) {
-  // If your ImagePicker emits the file directly, use 'file'
-  // If it emits the event, use 'file.target.files[0]'
   form.t_banner = file;
 }
 
@@ -200,16 +220,19 @@ const submitForm = async () => {
 
   isLoading.value = true;
   const formData = new FormData();
-
-  // Logic to build FormData... (Same as your previous code)
   Object.keys(form).forEach((key) => {
-    // ... (Your existing logic)
+      if (form[key] instanceof File) {
+      formData.append(key, form[key]);
+    } else if (Array.isArray(form[key])) {
+      formData.append(key, JSON.stringify(form[key]));
+    } else {
+      formData.append(key, form[key]);
+    }
   });
 
   try {
     let response;
     if (isUpdating.value) {
-      // Pass the ID separately or append to formData depending on your API
       response = await store.updateTraining(route.params.id, formData);
     } else {
       response = await store.submitTraining(formData);
@@ -217,12 +240,12 @@ const submitForm = async () => {
     
     if (response.success) {
       alert.success(isUpdating.value ? "Updated successfully!" : "Created successfully!");
-      router.push("/admin/training/program");
+      // router.push("/admin/training/program");
     } else {
       alert.error(response.message || "Action failed");
     }
   } catch (error) {
-    alert.error("An unexpected error occurred.");
+    alert.error(error.message);
   } finally {
     isLoading.value = false;
   }
@@ -235,19 +258,16 @@ async function fetchTraining(id) {
   loading.value = true;
   try {
     const data = await store.fetchTraining(id);
-    
-    // 1. Format Dates for HTML5 Input
     if (data.t_start_date) data.t_start_date = data.t_start_date.split('T')[0];
     if (data.t_end_date) data.t_end_date = data.t_end_date.split('T')[0];
     const formattedData = {
       ...data,
       t_category: data.t_category?._id || data.t_category,
       t_room: data.t_room?._id || data.t_room,
-      t_eligibility: data.t_eligibility || []
+      t_eligibility: data.t_eligibility || [],
+      t_director: data.t_director._id|| data.t_director._id,
     };
-
     Object.assign(form, formattedData);
-    console.log(form);
   } catch (err) {
     alert.error("Could not fetch training details");
     console.error(err);
@@ -282,7 +302,8 @@ onMounted(async () => {
   await Promise.all([
     store.fetchCategories(),
     store.fetchRooms(),
-    store.fetchGroups()
+    store.fetchGroups(),
+    store.fetchDirectors()
   ]);
 
   // Only fetch training data if an ID exists in the route

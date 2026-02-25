@@ -8,6 +8,7 @@ export const useAttendanceStore=defineStore('attendance',{
         sessionTopic:'',
         attendanceData:[],
         totalSessions:0,
+        traineeAttendance:{}
 
 
     }),
@@ -34,7 +35,20 @@ export const useAttendanceStore=defineStore('attendance',{
             }catch (e) {}finally {
 
             }
-        }
+        },
+        async fetchTraineeAttendance(id,trainingId){
+            try{
+                const response=await api.get(`/trainee/${id}/attendance`,{
+                    params:{
+                        trainingId:trainingId
+                    }
+                });
+                this.traineeAttendance=response.data.data;
+                console.log(response.data.data);
+            }catch (e) {}finally {
 
+            }
+        }
+ 
     }
 })

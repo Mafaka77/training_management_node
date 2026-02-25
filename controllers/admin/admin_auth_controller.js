@@ -29,7 +29,7 @@ exports.login = async (req, res) => {
         // 2. Extract Role Names
         const roleNames = user.roles.map(role => role.name);
 
-        const restrictedRoles = ["Trainee", "Guest", "Director"];
+        const restrictedRoles = ["Trainee", "Guest"];
         if (roleNames.some(role=>restrictedRoles.includes(role))) {
             return res.status(STATUS.OK).json({
                 message: "Access Denied: Not Permitted.",

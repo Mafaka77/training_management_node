@@ -27,7 +27,7 @@ router.get('/enrollments',upload.none(),authenticate,authorizeRoles('Trainee'), 
 router.get('/enrollment/:enrollmentId',upload.none(),authenticate,authorizeRoles('Trainee'), TraineeTrainingController.myEnrollmentDetails);
 router.get('/enrollment/:enrollmentId/status',upload.none(),authenticate,authorizeRoles('Trainee'),TraineeTrainingController.checkStatus);
 router.get('/enrollment/:trainingId/course',upload.none(),authenticate,authorizeRoles('Trainee'),TraineeTrainingController.getCourseByProgram);
-router.get('/enrollment/:trainingId/material',upload.none(),authenticate,authorizeRoles('Trainee'),TraineeTrainingController.getMaterials);
+router.get('/enrollment/:trainingId/materials',upload.none(),authenticate,authorizeRoles('Trainee'),TraineeTrainingController.getMaterials);
 router.get('/enrollment/:trainingId/attendance',upload.none(),authenticate,authorizeRoles('Trainee'),require('../controllers/trainee/trainee_attendance_controller').getAttendance);
 router.post('/attendance',upload.none(),authenticate,authorizeRoles('Trainee'),require('../controllers/trainee/trainee_attendance_controller').markAttendance);
 router.post(
