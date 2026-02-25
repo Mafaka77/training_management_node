@@ -1,26 +1,26 @@
-const Banner=require('../../models/banner_model');
-const STATUS=require('../../utils/httpStatus');
+const Banner = require('../../models/banner_model');
+const STATUS = require('../../utils/httpStatus');
 const fs = require('fs');
 const path = require('path');
-exports.uploadBanner=async (req,res)=>{
-    
-    const {title}=req.body;
+exports.uploadBanner = async (req, res) => {
+
+    const { title } = req.body;
     console.log(req.file);
-    try{
-        if(!req.file){
-            return res.status(STATUS.OK).json({message:'No file uploaded',status:STATUS.BAD_REQUEST});
+    try {
+        if (!req.file) {
+            return res.status(STATUS.OK).json({ message: 'No file uploaded', status: STATUS.BAD_REQUEST });
         }
-        const banner=new Banner({
+        const banner = new Banner({
             // imageUrl:`/uploads/${req.file.filename}`,
-            image_url:`/uploads/${req.file.filename}`,
-            title:title || '',
-            uploadedAt:new Date()
+            image_url: `/uploads/${req.file.filename}`,
+            title: title || '',
+            uploadedAt: new Date()
         });
         await banner.save();
-        res.status(STATUS.OK).json({message:'Banner uploaded successfully',banner,status:STATUS.CREATED});
-    }catch(error){
-        console.error('Error uploading banner:',error);
-        res.status(STATUS.INTERNAL_SERVER_ERROR).json({message:'Server error',status:STATUS.INTERNAL_SERVER_ERROR});
+        res.status(STATUS.OK).json({ message: 'Banner uploaded successfully', banner, status: STATUS.CREATED });
+    } catch (error) {
+        console.error('Error uploading banner:', error);
+        res.status(STATUS.INTERNAL_SERVER_ERROR).json({ message: 'Server error', status: STATUS.INTERNAL_SERVER_ERROR });
     }
 }
 exports.deleteBanner = async (req, res) => {
@@ -49,13 +49,13 @@ exports.deleteBanner = async (req, res) => {
     }
 }
 
-exports.getAllBanners=async (req,res)=>{
-    try{
-        const banners=await Banner.find().sort({uploadedAt:-1});
-        res.status(STATUS.OK).json({banners,status:STATUS.OK});
-    }catch(error){
-        console.error('Error fetching banners:',error);
-        res.status(STATUS.INTERNAL_SERVER_ERROR).json({message:'Server error',status:STATUS.INTERNAL_SERVER_ERROR});
+exports.getAllBanners = async (req, res) => {
+    try {
+        const banners = await Banner.find().sort({ uploadedAt: -1 });
+        res.status(STATUS.OK).json({ banners, status: STATUS.OK });
+    } catch (error) {
+        console.error('Error fetching banners:', error);
+        res.status(STATUS.INTERNAL_SERVER_ERROR).json({ message: 'Server error', status: STATUS.INTERNAL_SERVER_ERROR });
     }
 }
 
