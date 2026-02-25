@@ -9,7 +9,7 @@ const sidebarOpen = ref(false);
 const trainingOpen = ref(false);
 const masterOpen = ref(false);
 const authStore = useAuthStore();
-const { user, isLoading } = storeToRefs(authStore); // Ensure isLoading is in your store
+const { user, loading } = storeToRefs(authStore); // Ensure isLoading is in your store
 
 const THEME_KEY = "ati.theme";
 const isDark = ref(false);
@@ -42,7 +42,7 @@ onMounted(() => {
 
     <AdminHeader :isDark="isDark" :user="user" @toggleTheme="toggleTheme" @toggleSidebar="sidebarOpen = true" />
 
-    <div v-if="isLoading" class="flex-1 flex items-center justify-center">
+    <div v-if="loading" class="flex-1 flex items-center justify-center">
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
     </div>
 
