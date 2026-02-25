@@ -6,7 +6,7 @@
         <div class="h-px flex-1 bg-gradient-to-r from-zinc-500/20 to-transparent"></div>
       </div>
       <nav class="space-y-1">
-        <SidebarItem v-if="userRole?.some(role => ['Trainer', 'Director'].includes(role))" to="/admin/trainer/dashboard"
+        <SidebarItem v-if="userRole.some(role => ['Trainer', 'Director'].includes(role))" to="/admin/trainer/dashboard"
           :isDark="isDark" icon="M3 3h7v7H3z M14 3h7v7h-7z M14 14h7v7h-7z M3 14h7v7H3z">
           Dashboard
         </SidebarItem>
@@ -30,7 +30,7 @@
           My Trainings
         </SidebarItem>
 
-        <SidebarItem v-if="userRole?.some(role => ['Admin', 'Director'].includes(role))" to="/admin/training/program"
+        <SidebarItem v-if="userRole.some(role => ['Admin', 'Director'].includes(role))" to="/admin/training/program"
           :isDark="isDark" icon="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z M14 2v6h6">
           Programs
         </SidebarItem>
@@ -121,23 +121,6 @@
         </Transition>
       </nav>
     </section>
-
-    <section v-if="userRole.includes('Admin')">
-      <div class="flex items-center gap-2 mb-3">
-        <span class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Assistance</span>
-        <div class="h-px flex-1 bg-gradient-to-r from-zinc-500/20 to-transparent"></div>
-      </div>
-      <nav class="space-y-1">
-        <SidebarItem to="/admin/ticket" :isDark="isDark"
-          icon="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2">
-          <div class="flex items-center justify-between w-full group/ticket">
-            <span>Support Tickets</span>
-            <span
-              class="bg-blue-500/10 text-blue-500 text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter">Live</span>
-          </div>
-        </SidebarItem>
-      </nav>
-    </section>
   </div>
 </template>
 
@@ -145,6 +128,7 @@
 import { computed } from 'vue';
 import { useAuthStore } from "../store/authStore.js";
 import SidebarItem from './SidebarItem.vue';
+
 const store = useAuthStore();
 const props = defineProps({
   trainingOpen: { type: Boolean, default: false },
@@ -153,18 +137,14 @@ const props = defineProps({
 })
 
 defineEmits(['update:trainingOpen', 'update:masterOpen'])
+
 const userRole = computed(() => {
   const roles = store.roles;
-
-  // 1. If roles is null/undefined, return an empty array
   if (!roles) return [];
-
-  // 2. If roles is already an array, return it
   if (Array.isArray(roles)) return roles;
-
-  // 3. If roles is a single string (like "Admin"), wrap it in an array
-  return [roles];
+  return [roles]; // Wrap string roles in array so .some works
 });
+
 const buttonClasses = computed(() => [
   'flex w-full items-center justify-between py-2 px-3 text-left text-sm rounded-xl transition-all duration-300 group',
   props.isDark
@@ -172,22 +152,3 @@ const buttonClasses = computed(() => [
     : 'text-zinc-600 hover:bg-white hover:shadow-md hover:shadow-black/5 hover:text-blue-600'
 ])
 </script>
-
-<style scoped>
-.expand-enter-active {
-  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  max-height: 400px;
-}
-
-.expand-leave-active {
-  transition: all 0.3s ease-in;
-  max-height: 400px;
-}
-
-.expand-enter-from,
-.expand-leave-to {
-  max-height: 0;
-  opacity: 0;
-  transform: translateX(-10px);
-}
-</style>

@@ -1,17 +1,16 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
 import { storeToRefs } from "pinia";
-import { useAuthStore } from "../store/authStore.js";
+import { onMounted, ref } from "vue";
+import AdminHeader from "../components/AdminHeader.vue";
 import SidebarContent from "../components/SidebarContent.vue";
-import AdminHeader from "../components/AdminHeader.vue"; // [New Import]
+import { useAuthStore } from "../store/authStore.js";
 
 const sidebarOpen = ref(false);
-const trainingOpen = ref(false); // Changed to false by default as requested
+const trainingOpen = ref(false);
 const masterOpen = ref(false);
 const authStore = useAuthStore();
-const { user } = storeToRefs(authStore);
+const { user, isLoading } = storeToRefs(authStore); // Ensure isLoading is in your store
 
-/** THEME LOGIC remains same... **/
 const THEME_KEY = "ati.theme";
 const isDark = ref(false);
 
@@ -30,7 +29,6 @@ const toggleTheme = () => {
   localStorage.setItem(THEME_KEY, isDark.value ? "dark" : "light");
   applyTheme();
 };
-/** ... **/
 
 onMounted(() => {
   initTheme();
@@ -39,23 +37,18 @@ onMounted(() => {
 </script>
 
 <template>
-  <div
-    class="min-h-screen flex flex-col transition-colors duration-500 font-sansSelection"
-    :class="isDark ? 'bg-[#09090b] text-zinc-100' : 'bg-[#f4f4f5] text-zinc-900'"
-  >
-    <div v-if="isDark" class="fixed inset-0 pointer-events-none overflow-hidden z-0">
-      <div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full" />
+  <div class="min-h-screen flex flex-col transition-colors duration-500 font-sansSelection"
+    :class="isDark ? 'bg-[#09090b] text-zinc-100' : 'bg-[#f4f4f5] text-zinc-900'">
+
+    <AdminHeader :isDark="isDark" :user="user" @toggleTheme="toggleTheme" @toggleSidebar="sidebarOpen = true" />
+
+    <div v-if="isLoading" class="flex-1 flex items-center justify-center">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
     </div>
 
-    <AdminHeader 
-      :isDark="isDark" 
-      :user="user"
-      @toggleTheme="toggleTheme"
-      @toggleSidebar="sidebarOpen = true"
-    />
-
-    <div class="flex-1 grid grid-cols-1 md:grid-cols-[17rem_1fr] max-w-[90rem] mx-auto w-full relative z-10">
-      <aside class="hidden md:block border-r transition-colors" :class="isDark ? 'border-white/5 bg-black/10' : 'border-zinc-200 bg-zinc-50/30'">
+    <div v-else class="flex-1 grid grid-cols-1 md:grid-cols-[17rem_1fr] max-w-[90rem] mx-auto w-full relative z-10">
+      <aside class="hidden md:block border-r transition-colors"
+        :class="isDark ? 'border-white/5 bg-black/10' : 'border-zinc-200 bg-zinc-50/30'">
         <div class="p-6 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto custom-scrollbar">
           <SidebarContent v-model:trainingOpen="trainingOpen" v-model:masterOpen="masterOpen" :isDark="isDark" />
         </div>
@@ -71,18 +64,20 @@ onMounted(() => {
     </div>
 
     <teleport to="body">
-       <Transition name="fade">
+      <Transition name="fade">
         <div v-if="sidebarOpen" class="fixed inset-0 z-[60] flex">
           <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="sidebarOpen = false" />
           <Transition name="slide-right">
-            <aside v-if="sidebarOpen" class="relative w-[260px] h-full flex flex-col shadow-2xl transition-colors" :class="isDark ? 'bg-zinc-950 border-r border-white/10' : 'bg-white'">
-               <div class="p-4 flex justify-between items-center border-b dark:border-white/10">
-                 <span class="font-bold text-[10px] uppercase tracking-widest text-zinc-500">Menu</span>
-                 <button @click="sidebarOpen = false" class="p-1 rounded hover:bg-zinc-500/10 transition-colors">✕</button>
-               </div>
-               <div class="p-4 overflow-y-auto flex-1">
-                 <SidebarContent v-model:trainingOpen="trainingOpen" v-model:masterOpen="masterOpen" :isDark="isDark" />
-               </div>
+            <aside v-if="sidebarOpen" class="relative w-[260px] h-full flex flex-col shadow-2xl transition-colors"
+              :class="isDark ? 'bg-zinc-950 border-r border-white/10' : 'bg-white'">
+              <div class="p-4 flex justify-between items-center border-b dark:border-white/10">
+                <span class="font-bold text-[10px] uppercase tracking-widest text-zinc-500">Menu</span>
+                <button @click="sidebarOpen = false"
+                  class="p-1 rounded hover:bg-zinc-500/10 transition-colors">✕</button>
+              </div>
+              <div class="p-4 overflow-y-auto flex-1">
+                <SidebarContent v-model:trainingOpen="trainingOpen" v-model:masterOpen="masterOpen" :isDark="isDark" />
+              </div>
             </aside>
           </Transition>
         </div>
