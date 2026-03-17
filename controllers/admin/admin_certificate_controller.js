@@ -69,7 +69,8 @@ exports.downloadReleaseOrder = async (req, res) => {
         if (authHeader) {
             await page.setExtraHTTPHeaders({ 'Authorization': authHeader });
         }
-        const domain = "http://localhost:5173";
+        // const domain = "http://localhost:5173";
+        const domain = "https://staging2.egovmz.in";
         await page.goto(domain);
         if (token) {
             await page.evaluate((t) => {

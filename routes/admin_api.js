@@ -161,8 +161,8 @@ router.get('/notifications', authenticate, authorizeRoles('Admin'), upload.none(
 router.patch('/notification/:id/read', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_dashboard_controller').readNotification)
 
 //CERTIFICATE AND ORDERS
-router.get('/training/:trainingId/release-order/generate', authenticate, authorizeRoles('Admin'), upload.none(), CertificateController.generateReleaseOrder)
-router.get('/training/:trainingId/release-order/download', authenticate, authorizeRoles('Admin'), upload.none(), CertificateController.downloadReleaseOrder)
+router.get('/training/:trainingId/release-order/generate', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), CertificateController.generateReleaseOrder)
+router.get('/training/:trainingId/release-order/download', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), CertificateController.downloadReleaseOrder)
 module.exports = router;
 
 
