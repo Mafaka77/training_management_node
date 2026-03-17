@@ -1,14 +1,15 @@
-const TrainingCourse= require('../../models/training_course_model');
-const STATUS= require('../../utils/httpStatus');
-const User= require('../../models/user_model');
-const Role= require('../../models/role_model');
+const TrainingCourse = require('../../models/training_course_model');
+const TrainingProgram = require('../../models/training_program_model');
+const STATUS = require('../../utils/httpStatus');
+const User = require('../../models/user_model');
+const Role = require('../../models/role_model');
 
 
 //TRAIINING COURSE----------------------
-exports.getTrainer= async (req, res) => {
+exports.getTrainer = async (req, res) => {
     try {
         const trainerRole = await Role.findOne({ name: "Trainer" });
-        const trainers = await User.find({ roles: trainerRole._id})
+        const trainers = await User.find({ roles: trainerRole._id })
             .select("full_name email mobile roles")
             .populate("roles", "name"); // optional: show role name
         return res.status(STATUS.OK).json({ trainers, status: STATUS.OK });
@@ -20,52 +21,74 @@ exports.getTrainer= async (req, res) => {
 
 
 exports.submitTrainingCourse = async (req, res) => {
-    const { tc_topic, tc_description, tc_start_time, tc_end_time, tc_session, t_program, trainer, qrVersion,tc_date } = req.body;
-    function parseIsoToDate(value) {
+    const { tc_topic, tc_description, tc_start_time, tc_end_time, tc_session, t_program, trainer, qrVersion, tc_date } = req.body;
+
+    function normalizeToMidnight(value) {
         if (!value) return null;
-        const cleaned = value.toString().trim();
-        const d = new Date(cleaned);
-        return isNaN(d.getTime()) ? null : d;
+        const d = new Date(value);
+        if (isNaN(d.getTime())) return null;
+        const kolkataDate = d.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+        return new Date(`${kolkataDate}T00:00:00.000Z`);
     }
 
-    const date= parseIsoToDate(tc_date);
-    const start =   tc_start_time;
+    const date = normalizeToMidnight(tc_date);
+    const start = tc_start_time;
     const end = tc_end_time;
 
+    if (!date) {
+        return res.status(STATUS.OK).json({ status: STATUS.BAD_REQUEST, message: 'Invalid or missing date' });
+    }
+
     if (!start || !end) {
-        return res.status(STATUS.OK).json({ status: STATUS.BAD_REQUEST, message: 'Invalid start/end time'});
+        return res.status(STATUS.OK).json({ status: STATUS.BAD_REQUEST, message: 'Invalid start/end time' });
     }
 
     try {
-        if (!tc_topic || !tc_start_time || !tc_end_time || !t_program ) {
-            return res.status(STATUS.OK).json({ message: "Please fill all required fields" ,status:STATUS.BAD_REQUEST});
+        if (!tc_topic || !t_program) {
+            return res.status(STATUS.OK).json({ message: "Please fill all required fields", status: STATUS.BAD_REQUEST });
         }
 
-        // const existingCourse = await TrainingCourse.findOne({ tc_topic });
-        //
-        // if (existingCourse) {
-        //     return res.status(STATUS.OK).json({ message: "Session with same topic already exists" ,status:STATUS.CONFLICT});
-        // }
-        const conflictCourse = await TrainingCourse.findOne({
-            tc_date: date,
-            tc_start_time: { $lt: end },
-            tc_end_time: { $gt: start },
-            t_program:t_program,
+        const program = await TrainingProgram.findById(t_program);
+        if (!program) {
+            return res.status(STATUS.OK).json({ message: "Program not found", status: STATUS.NOT_FOUND });
+        }
 
+        const existingSession = await TrainingCourse.findOne({
+            t_program: t_program,
+            tc_date: date,
+            tc_session: tc_session
+        });
+
+        if (existingSession) {
+            return res.status(STATUS.OK).json({
+                message: `Session ${tc_session} is already scheduled for this day.`,
+                status: STATUS.BAD_REQUEST
+            });
+        }
+
+        const conflictCourse = await TrainingCourse.findOne({
+            t_program: t_program,
+            tc_date: date,
+            $or: [
+                {
+                    tc_start_time: { $lt: end },
+                    tc_end_time: { $gt: start }
+                }
+            ]
         });
 
         if (conflictCourse) {
             return res.status(STATUS.OK).json({
-                message: "Session already exists in this time slot",
+                message: "A session already exists within this time slot on this date.",
                 status: STATUS.CONFLICT
             });
         }
         const course = new TrainingCourse({
             tc_topic,
             tc_description,
-            tc_date:date,
-            tc_start_time:start,
-            tc_end_time:end,
+            tc_date: date,
+            tc_start_time: start,
+            tc_end_time: end,
             tc_session,
             t_program,
             trainer,
@@ -73,10 +96,10 @@ exports.submitTrainingCourse = async (req, res) => {
         });
 
         await course.save();
-        return res.status(STATUS.OK).json({ message: "Session created successfully" ,status:STATUS.CREATED});
+        return res.status(STATUS.OK).json({ message: "Session created successfully", status: STATUS.CREATED });
 
     } catch (e) {
-        return res.status(STATUS.OK).json({ message: e.message ,status:STATUS.INTERNAL_SERVER_ERROR});
+        return res.status(STATUS.OK).json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }
 }
 exports.getAllTrainingCourse = async (req, res) => {
@@ -131,14 +154,14 @@ exports.getAllTrainingCourse = async (req, res) => {
 exports.getCoursesByProgramId = async (req, res) => {
     const { programId } = req.params;
     try {
-        const courses = await TrainingCourse.find({t_program: programId})
+        const courses = await TrainingCourse.find({ t_program: programId })
             .populate("t_program")
             .populate("trainer", "full_name email mobile")
         return res.status(STATUS.OK).json({
             courses,
             status: STATUS.OK
         });
-    }catch (e) {
+    } catch (e) {
         return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
             message: e.message,
             status: STATUS.INTERNAL_SERVER_ERROR
@@ -173,74 +196,74 @@ exports.getCourseById = async (req, res) => {
     }
 },
 
-exports.updateCourse = async (req, res) => {
-    const { courseId } = req.params; // Assuming ID is passed in the URL
-    const { tc_topic, tc_description, tc_start_time, tc_end_time, tc_session, t_program, trainer, qrVersion, tc_date } = req.body;
-    function parseIsoToDate(value) {
-        if (!value) return null;
-        const cleaned = value.toString().trim();
-        const d = new Date(cleaned);
-        return isNaN(d.getTime()) ? null : d;
-    }
-
-    const date = parseIsoToDate(tc_date);
-    const start = tc_start_time;
-    const end = tc_end_time;
-
-    // 1. Basic Validation
-    if (!start || !end) {
-        return res.status(STATUS.OK).json({ status: STATUS.BAD_REQUEST, message: 'Invalid start/end time' });
-    }
-
-    if (!tc_topic || !tc_start_time || !tc_end_time || !t_program) {
-        return res.status(STATUS.OK).json({ message: "Please fill all required fields", status: STATUS.BAD_REQUEST });
-    }
-
-    try {
-        // // 2. Conflict Check (Overlap Logic)
-        // // We check for conflicts but EXCLUDE the current course ID ($ne: id)
-        // const conflictCourse = await TrainingCourse.findOne({
-        //     _id: { $ne: courseId }, // This is the crucial line for updates
-        //     tc_date: date,
-        //     tc_start_time: { $lt: end },
-        //     tc_end_time: { $gt: start }
-        // });
-        //
-        // if (conflictCourse) {
-        //     return res.status(STATUS.OK).json({
-        //         message: "Another session already exists in this time slot",
-        //         status: STATUS.CONFLICT
-        //     });
-        // }
-
-        // 3. Perform Update
-        const updatedCourse = await TrainingCourse.findByIdAndUpdate(
-            courseId,
-            {
-                tc_topic,
-                tc_description,
-                tc_date: date,
-                tc_start_time: start,
-                tc_end_time: end,
-                tc_session,
-                t_program,
-                trainer,
-                qrVersion
-            },
-            { new: true } // Returns the updated document
-        );
-
-        if (!updatedCourse) {
-            return res.status(STATUS.OK).json({ message: "Course not found", status: STATUS.NOT_FOUND });
+    exports.updateCourse = async (req, res) => {
+        const { courseId } = req.params; // Assuming ID is passed in the URL
+        const { tc_topic, tc_description, tc_start_time, tc_end_time, tc_session, t_program, trainer, qrVersion, tc_date } = req.body;
+        function parseIsoToDate(value) {
+            if (!value) return null;
+            const cleaned = value.toString().trim();
+            const d = new Date(cleaned);
+            return isNaN(d.getTime()) ? null : d;
         }
 
-        return res.status(STATUS.OK).json({ 
-            message: "Session updated successfully", 
-            status: STATUS.OK, // Or STATUS.OK depending on your preference
-            data: updatedCourse 
-        });
+        const date = parseIsoToDate(tc_date);
+        const start = tc_start_time;
+        const end = tc_end_time;
 
-    } catch (e) {
-        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+        // 1. Basic Validation
+        if (!start || !end) {
+            return res.status(STATUS.OK).json({ status: STATUS.BAD_REQUEST, message: 'Invalid start/end time' });
+        }
+
+        if (!tc_topic || !tc_start_time || !tc_end_time || !t_program) {
+            return res.status(STATUS.OK).json({ message: "Please fill all required fields", status: STATUS.BAD_REQUEST });
+        }
+
+        try {
+            // // 2. Conflict Check (Overlap Logic)
+            // // We check for conflicts but EXCLUDE the current course ID ($ne: id)
+            // const conflictCourse = await TrainingCourse.findOne({
+            //     _id: { $ne: courseId }, // This is the crucial line for updates
+            //     tc_date: date,
+            //     tc_start_time: { $lt: end },
+            //     tc_end_time: { $gt: start }
+            // });
+            //
+            // if (conflictCourse) {
+            //     return res.status(STATUS.OK).json({
+            //         message: "Another session already exists in this time slot",
+            //         status: STATUS.CONFLICT
+            //     });
+            // }
+
+            // 3. Perform Update
+            const updatedCourse = await TrainingCourse.findByIdAndUpdate(
+                courseId,
+                {
+                    tc_topic,
+                    tc_description,
+                    tc_date: date,
+                    tc_start_time: start,
+                    tc_end_time: end,
+                    tc_session,
+                    t_program,
+                    trainer,
+                    qrVersion
+                },
+                { new: true } // Returns the updated document
+            );
+
+            if (!updatedCourse) {
+                return res.status(STATUS.OK).json({ message: "Course not found", status: STATUS.NOT_FOUND });
+            }
+
+            return res.status(STATUS.OK).json({
+                message: "Session updated successfully",
+                status: STATUS.OK, // Or STATUS.OK depending on your preference
+                data: updatedCourse
+            });
+
+        } catch (e) {
+            return res.status(STATUS.INTERNAL_SERVER_ERROR).json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+        }
     }
-}

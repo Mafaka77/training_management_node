@@ -1,14 +1,14 @@
-const mongoose=require('mongoose');
-const TrainingProgram=require('../../models/training_program_model');
-const TrainingCourse=require('../../models/training_course_model');
-const User=require('../../models/user_model');
-const STATUS=require('../../utils/httpStatus');
-const Enrollment=require('../../models/enrollment_model');
-const TrainingRatings=require('../../models/training_program_rating_model');
-const Material=require('../../models/materials_model');
-const Notification=require('../../models/notification_model')
-const {populate} = require("dotenv");
-const {sendPushToUser}=require('../../services/push_service');
+const mongoose = require('mongoose');
+const TrainingProgram = require('../../models/training_program_model');
+const TrainingCourse = require('../../models/training_course_model');
+const User = require('../../models/user_model');
+const STATUS = require('../../utils/httpStatus');
+const Enrollment = require('../../models/enrollment_model');
+const TrainingRatings = require('../../models/training_program_rating_model');
+const Material = require('../../models/materials_model');
+const Notification = require('../../models/notification_model')
+const { populate } = require("dotenv");
+const { sendPushToUser } = require('../../services/push_service');
 //TRAINING PROGRAM-----------------------------------------------------------------------------------
 exports.getTraining = async (req, res) => {
     try {
@@ -62,110 +62,116 @@ exports.getTraining = async (req, res) => {
     }
 
 };
-exports.getTrainingById=async (req,res)=>{
-    const {trainingId}=req.params;
-    if(!mongoose.Types.ObjectId.isValid(trainingId)){
-        return res.status(STATUS.OK).json({message:"Invalid training ID",status:STATUS.BAD_REQUEST});
+exports.getTrainingById = async (req, res) => {
+    const { trainingId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(trainingId)) {
+        return res.status(STATUS.OK).json({ message: "Invalid training ID", status: STATUS.BAD_REQUEST });
     }
-    try{
-        const training=await TrainingProgram.findById(trainingId)
-            .populate('trainingCourse',['-t_program'])
+    try {
+        const training = await TrainingProgram.findById(trainingId)
+            .populate('trainingCourse', ['-t_program'])
             .populate('t_category')
             .populate('t_eligibility')
             .populate('t_room');
 
-        if(!training){
-            return res.status(STATUS.OK).json({message:"Training not found",status:STATUS.NOT_FOUND});
+        if (!training) {
+            return res.status(STATUS.OK).json({ message: "Training not found", status: STATUS.NOT_FOUND });
         }
-        return res.status(STATUS.OK).json({training,status:STATUS.OK});
-    }catch(e){
+        return res.status(STATUS.OK).json({ training, status: STATUS.OK });
+    } catch (e) {
         return res
             .status(STATUS.INTERNAL_SERVER_ERROR)
             .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }
 }
-    exports.enrollInTraining=async (req,res)=>{
-        const {trainingId}=req.params;
-        if(!mongoose.Types.ObjectId.isValid(trainingId)){
-            return res.status(STATUS.OK).json({message:"Invalid training ID",status:STATUS.BAD_REQUEST});
+exports.enrollInTraining = async (req, res) => {
+    const { trainingId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(trainingId)) {
+        return res.status(STATUS.OK).json({ message: "Invalid training ID", status: STATUS.BAD_REQUEST });
+    }
+    try {
+        const user = await User.findById(req.user.user.id);
+        if (!user) {
+            return res.status(STATUS.OK).json({ message: "User not found", status: STATUS.NOT_FOUND });
         }
-        try{
-            const user=await User.findById(req.user.user.id);
-         console.log(user);
+        if (user.is_blacklisted) {
+            const now = new Date();
+            const isCurrentlyBlocked = (!user.blacklist_details.end_date || now <= user.blacklist_details.end_date) &&
+                (!user.blacklist_details.start_date || now >= user.blacklist_details.start_date);
 
-            // Check if training exists
-            const training=await TrainingProgram.findById(trainingId);
-            if(!training){
-                return res.status(STATUS.OK).json({message:"Training not found",status:STATUS.NOT_FOUND});
+            if (isCurrentlyBlocked) {
+                return res.status(STATUS.OK).json({
+                    message: `You are blacklisted until ${user.blacklist_details.end_date?.toLocaleDateString()}. Reason: ${user.blacklist_details.reason}`,
+                    status: STATUS.FORBIDDEN
+                });
             }
-            if (training.t_eligibility && training.t_eligibility.length > 0) {
+        }
+        const training = await TrainingProgram.findById(trainingId);
+        if (!training) {
+            return res.status(STATUS.OK).json({ message: "Training not found", status: STATUS.NOT_FOUND });
+        }
+        if (training.t_eligibility && training.t_eligibility.length > 0) {
 
-                // Check if user even has a group assigned
-                if (!user.group) {
-                    return res.status(STATUS.OK).json({
-                        message: "This training is restricted to specific groups. Please update your profile.",
-                        status: STATUS.FORBIDDEN
-                    });
-                }
-
-                // Check if user's group ID exists in the t_eligibility array
-                const isEligible = training.t_eligibility.some(groupId =>
-                    groupId.equals(user.group)
-                );
-
-                if (!isEligible) {
-                    return res.status(STATUS.OK).json({
-                        message: "You are not eligible for this training based on your group.",
-                        status: STATUS.FORBIDDEN
-                    });
-                }
-            }
-            if(training.t_status!=='Upcoming'){
-                return res.status(STATUS.OK).json({message:"Enrollment is only allowed for upcoming trainings",status:STATUS.FORBIDDEN});
-            }
-            // Check if capacity is reached
-
-            const currentEnrollments=await Enrollment.countDocuments({training_program:trainingId,status:'Approved'});
-            if(currentEnrollments>=training.t_capacity){
-                return res.status(STATUS.OK).json({message:"Training capacity reached",status:STATUS.BAD_REQUEST});
+            if (!user.group) {
+                return res.status(STATUS.OK).json({
+                    message: "This training is restricted to specific groups. Please update your profile.",
+                    status: STATUS.FORBIDDEN
+                });
             }
 
-            // Check if user already enrolled
-            const existingEnrollment=await Enrollment.findOne({training_program:trainingId,user:req.user.user.id});
-            if(existingEnrollment){
-                return res.status(STATUS.OK).json({message:"You are already enrolled in this training",status:STATUS.CONFLICT});
-            }
+            const isEligible = training.t_eligibility.some(groupId =>
+                groupId.equals(user.group)
+            );
 
-            // Create enrollment
-            const newEnrollment=new Enrollment({
-                training_program:trainingId,
-                user:req.user.user.id,
-                status:'Pending'
-            });
-            await newEnrollment.save();
-            const adminNotification = new Notification({
+            if (!isEligible) {
+                return res.status(STATUS.OK).json({
+                    message: "You are not eligible for this training based on your group.",
+                    status: STATUS.FORBIDDEN
+                });
+            }
+        }
+        if (training.t_status !== 'Upcoming') {
+            return res.status(STATUS.OK).json({ message: "Enrollment is only allowed for upcoming trainings", status: STATUS.FORBIDDEN });
+        }
+        const currentEnrollments = await Enrollment.countDocuments({ training_program: trainingId, status: 'Approved' });
+        if (currentEnrollments >= training.t_capacity) {
+            return res.status(STATUS.OK).json({ message: "Training capacity reached", status: STATUS.BAD_REQUEST });
+        }
+
+        const existingEnrollment = await Enrollment.findOne({ training_program: trainingId, user: req.user.user.id });
+        if (existingEnrollment) {
+            return res.status(STATUS.OK).json({ message: "You are already enrolled in this training", status: STATUS.CONFLICT });
+        }
+
+        const newEnrollment = new Enrollment({
+            training_program: trainingId,
+            user: req.user.user.id,
+            status: 'Pending'
+        });
+        await newEnrollment.save();
+        const adminNotification = new Notification({
             sender_id: req.user.user.id,
             type: "Training",
             title: "New Enrollment Request",
             message: `${user.full_name} applied for ${training.t_name}`,
-            // Attach the ID here:
+
             target_url: `/admin/training/enrollment/${newEnrollment._id}`,
             is_read: false
-            });
-            await adminNotification.save();
-            sendPushToUser(req.user.user.id, {
+        });
+        await adminNotification.save();
+        sendPushToUser(req.user.user.id, {
             title: "Enrollment",
             body: `Your request is under review. You'll be notified once approved.`,
-             });
+        });
 
-            return res.status(STATUS.OK).json({message:"Enrollment request submitted",enrollment:newEnrollment,status:STATUS.CREATED});
+        return res.status(STATUS.OK).json({ message: "Enrollment request submitted", enrollment: newEnrollment, status: STATUS.CREATED });
 
-        }catch(e){
-            return res
-                .status(STATUS.INTERNAL_SERVER_ERROR)
-                .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
-        }
+    } catch (e) {
+        return res
+            .status(STATUS.INTERNAL_SERVER_ERROR)
+            .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }
+}
 exports.myEnrollments = async (req, res) => {
     try {
         const offset = parseInt(req.query.offset) || 0;
@@ -236,12 +242,12 @@ exports.myEnrollments = async (req, res) => {
         });
     }
 };
-exports.checkStatus=async (req,res)=>{
-    const {enrollmentId}=req.params;
-    if(!mongoose.Types.ObjectId.isValid(enrollmentId)){
-        return res.status(STATUS.OK).json({message:"Invalid enrollment ID",status:STATUS.BAD_REQUEST});
+exports.checkStatus = async (req, res) => {
+    const { enrollmentId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(enrollmentId)) {
+        return res.status(STATUS.OK).json({ message: "Invalid enrollment ID", status: STATUS.BAD_REQUEST });
     }
-    try{
+    try {
         const data = await Enrollment.findById(enrollmentId);
 
         if (!data) {
@@ -269,15 +275,15 @@ exports.checkStatus=async (req,res)=>{
                 message: "Your enrollment is waitlisted",
             });
         }
-        return res.status(STATUS.OK).json({status:STATUS.OK})
-    }catch (ex){}
+        return res.status(STATUS.OK).json({ status: STATUS.OK })
+    } catch (ex) { }
 }
-exports.myEnrollmentDetails=async (req,res)=>{
-    const {enrollmentId}=req.params;
-    if(!mongoose.Types.ObjectId.isValid(enrollmentId)){
-        return res.status(STATUS.OK).json({message:"Invalid enrollment ID",status:STATUS.BAD_REQUEST});
+exports.myEnrollmentDetails = async (req, res) => {
+    const { enrollmentId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(enrollmentId)) {
+        return res.status(STATUS.OK).json({ message: "Invalid enrollment ID", status: STATUS.BAD_REQUEST });
     }
-    try{
+    try {
 
 
         const enrollment = await Enrollment.findById(enrollmentId)
@@ -286,7 +292,7 @@ exports.myEnrollmentDetails=async (req,res)=>{
                 populate: [
                     { path: 't_category' },          // replace with actual field name
                     { path: 't_room' },
-                    { path:'t_eligibility' },// replace with actual field name
+                    { path: 't_eligibility' },// replace with actual field name
                     {
                         path: 'trainingCourse',              // replace with actual field name
                         populate: [
@@ -297,15 +303,15 @@ exports.myEnrollmentDetails=async (req,res)=>{
             })
             .select('-__v');
 
-        if(!enrollment){
-            return res.status(STATUS.OK).json({error:"Enrollment not found",status:STATUS.NOT_FOUND});
+        if (!enrollment) {
+            return res.status(STATUS.OK).json({ error: "Enrollment not found", status: STATUS.NOT_FOUND });
         }
         // Ensure the enrollment belongs to the requesting user
-        if(enrollment.user._id.toString()!==req.user.user.id){
-            return res.status(STATUS.OK).json({error:"Access denied",status:STATUS.FORBIDDEN});
+        if (enrollment.user._id.toString() !== req.user.user.id) {
+            return res.status(STATUS.OK).json({ error: "Access denied", status: STATUS.FORBIDDEN });
         }
-        return res.status(STATUS.OK).json({enrollment,status:STATUS.OK});
-    }catch (e) {
+        return res.status(STATUS.OK).json({ enrollment, status: STATUS.OK });
+    } catch (e) {
         return res
             .status(STATUS.INTERNAL_SERVER_ERROR)
             .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
@@ -318,11 +324,11 @@ exports.upsertMyRating = async (req, res) => {
         const traineeId = req.user.user.id;
         // Optional rule: only approved attendees can rate
         const ok = await Enrollment.exists({ user: traineeId, training_program: trainingId, status: "Approved" });
-        if (!ok) return res.status(STATUS.OK).json({ message: "You can rate only after approval/attendance" ,status:STATUS.BAD_REQUEST});
+        if (!ok) return res.status(STATUS.OK).json({ message: "You can rate only after approval/attendance", status: STATUS.BAD_REQUEST });
 
         const doc = await TrainingRatings.findOneAndUpdate(
             { training: trainingId, trainee: traineeId },
-            { $set: { rating, review } , $setOnInsert: { training: trainingId, trainee: traineeId } },
+            { $set: { rating, review }, $setOnInsert: { training: trainingId, trainee: traineeId } },
             { new: true, upsert: true, runValidators: true }
         );
 
@@ -346,7 +352,7 @@ exports.getUpcomingTrainings = async (req, res) => {
         const trainings = await TrainingProgram.find({ t_status: "Upcoming" })
             .populate("t_category", "name")
             .populate("t_room", "room_name")
-            .populate("t_eligibility","group_name")
+            .populate("t_eligibility", "group_name")
             .sort({ createdAt: -1 }) // earliest first
             .skip(offset)              // skip N docs
             .limit(limit);             // limit results
@@ -369,24 +375,24 @@ exports.getUpcomingTrainings = async (req, res) => {
     }
 };
 
-exports.getCourseByProgram=async (req,res)=>{
-    const {trainingId}=req.params;
-    try{
-        const data=await TrainingCourse.find({t_program:trainingId}).populate('t_program',['t_status']) .sort({ tc_start_time: 1, tc_session: 1 });
+exports.getCourseByProgram = async (req, res) => {
+    const { trainingId } = req.params;
+    try {
+        const data = await TrainingCourse.find({ t_program: trainingId }).populate('t_program', ['t_status']).sort({ tc_start_time: 1, tc_session: 1 });
         console.log(data);
-        return res.status(STATUS.OK).json({status:STATUS.OK,data});
-    }catch (ex) {
-        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({status:STATUS.INTERNAL_SERVER_ERROR,message:ex.message});
+        return res.status(STATUS.OK).json({ status: STATUS.OK, data });
+    } catch (ex) {
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({ status: STATUS.INTERNAL_SERVER_ERROR, message: ex.message });
     }
 }
 
-exports.getMaterials=async (req,res)=>{
-    const {trainingId}=req.params;
-    try{
-        const materials=await Material.find({program:trainingId}).lean();
-        return res.status(STATUS.OK).json({status:STATUS.OK,materials:materials});
-    }catch (e) {
-        return  res.status(STATUS.INTERNAL_SERVER_ERROR).json({status:STATUS.INTERNAL_SERVER_ERROR,message:e.message})
+exports.getMaterials = async (req, res) => {
+    const { trainingId } = req.params;
+    try {
+        const materials = await Material.find({ program: trainingId }).lean();
+        return res.status(STATUS.OK).json({ status: STATUS.OK, materials: materials });
+    } catch (e) {
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({ status: STATUS.INTERNAL_SERVER_ERROR, message: e.message })
     }
 }
 

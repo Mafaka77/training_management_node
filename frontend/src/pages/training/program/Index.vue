@@ -10,7 +10,7 @@
             Monitor and manage educational sessions and eligibility.
           </p>
         </div>
-        <div v-if="userRole.includes('Admin')">
+        <div>
           <router-link to="/admin/training/program/create"
             class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-blue-500/20 active:scale-95">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
@@ -149,8 +149,7 @@
             </div>
           </div>
 
-          <div v-if="userRole.includes('Admin')"
-            class="flex md:flex-col gap-2 pt-4 md:pt-0 border-t md:border-t-0 border-zinc-100 dark:border-white/5">
+          <div class="flex md:flex-col gap-2 pt-4 md:pt-0 border-t md:border-t-0 border-zinc-100 dark:border-white/5">
             <router-link :to="{ name: 'training.program.edit', params: { id: program._id } }"
               class="flex-1 p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-blue-600 hover:text-white transition-all shadow-sm">
               <svg class="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -5,9 +5,14 @@ export const useTicketStore = defineStore('ticket', {
     state: () => ({
         tickets: [],
         isTicketLoading: false,
-        ticketPage: 1,
-        ticketTotalPages: 1,
-        ticketTotal: 0,
+        pagination: {
+            totalPages: 1,
+            limit: 10,
+            total: 0,
+            page: 1,
+        },
+        ticket: {},
+
     }),
     actions: {
         async fetchTickets(page = 1, search = '') {
@@ -19,6 +24,9 @@ export const useTicketStore = defineStore('ticket', {
                         search: search,
                     }
                 });
+                console.log(response.data);
+                this.tickets = response.data.tickets;
+                this.pagination = response.data.pagination;
             }
             catch (error) {
                 console.error('Error fetching tickets:', error);
@@ -28,31 +36,46 @@ export const useTicketStore = defineStore('ticket', {
             }
         },
         async fetchTicket(id) {
+            this.isTicketLoading = true;
             try {
-                const response = await api.get(`/tickets/${id}`);
+                const response = await api.get(`/ticket/${id}`);
                 this.ticket = response.data.ticket;
             }
             catch (error) {
                 console.error('Error fetching ticket:', error);
             }
-        },
-        async fetchTicketMessages(id) {
-            try {
-                const response = await api.get(`/tickets/${id}/messages`);
-                this.ticketMessages = response.data.messages;
-            }
-            catch (error) {
-                console.error('Error fetching ticket messages:', error);
+            finally {
+                this.isTicketLoading = false;
             }
         },
-        async fetchTicketMessages(id) {
+        async replyTicket(id, message) {
             try {
-                const response = await api.get(`/tickets/${id}/messages`);
-                this.ticketMessages = response.data.messages;
+                const response = await api.post(`/ticket/${id}/replies`, message);
+                if (response.status === 200 && response.data.status === 200) {
+                    return { success: true, message: response.data.message }
+                }
+                return { success: false, message: response.data.message }
             }
             catch (error) {
-                console.error('Error fetching ticket messages:', error);
+                console.error('Error replying to ticket:', error);
+                return { success: false, message: error.message }
             }
-        }
+        },
+        async updateTicketStatus(id, status) {
+            try {
+                const response = await api.put(`/ticket/${id}/status`, {
+                    status: status
+                });
+                if (response.status === 200 && response.data.status === 200) {
+                    return { success: true, message: response.data.message }
+                }
+                return { success: false, message: response.data.message }
+            }
+            catch (error) {
+                console.error('Error updating ticket:', error);
+                return { success: false, message: error.message }
+            }
+        },
+
     }
 });

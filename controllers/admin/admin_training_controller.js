@@ -1,10 +1,13 @@
 const TrainingProgram = require('../../models/training_program_model');
 const TrainingCourse = require('../../models/training_course_model');
 const TrainingCategory = require('../../models/training_category_model');
+const Enrollment = require('../../models/enrollment_model');
 const User = require('../../models/user_model');
 const Role = require('../../models/role_model');
 const STATUS = require('../../utils/httpStatus');
 const Group = require('../../models/group_model');
+const Notification = require('../../models/notification_model');
+const { sendPushToUser } = require('../../services/push_service');
 const { parse, startOfDay } = require('date-fns');
 const mongoose = require("mongoose");
 function parseDateFlexible(val) {
@@ -70,7 +73,7 @@ exports.getTraining = async (req, res) => {
 };
 exports.submitTrainingProgram = async (req, res) => {
     const { t_name, t_description, t_start_date, t_end_date, t_duration, t_eligibility, t_category, t_capacity, t_organizer, t_room, t_banner, t_director } = req.body;
-
+    const userId = req.user.user.id;
     try {
         if (t_start_date === undefined || t_end_date === undefined || t_start_date === '' || t_end_date === '') {
             return res.status(STATUS.OK).json({ error: 't_start_date and t_end_date are required', status: STATUS.BAD_REQUEST });
@@ -104,7 +107,7 @@ exports.submitTrainingProgram = async (req, res) => {
             t_capacity,
             t_category,
             t_room,
-            t_director,
+            t_director: t_director || userId,
             t_banner: `/uploads/${req.file.filename}`
         });
 
@@ -167,7 +170,6 @@ exports.getTrainingById = async (req, res) => {
 
     try {
         const { programId } = req.params;
-        console.log(programId);
         const trainingProgram = await TrainingProgram.findById(programId)
             .populate("t_room")
             .populate("trainingCourse")
@@ -242,6 +244,13 @@ exports.updateStatus = async (req, res) => {
 exports.getEnrollmentsByProgram = async (req, res) => {
     try {
         let { programId } = req.params;
+        const category = await TrainingCategory.find({ name: 'Foundation' }).lean();
+        const foundationCategoryId = category[0]._id;
+        let isFoundation = false;
+        const training = await TrainingProgram.findById(programId);
+        if (training.t_category.toString() === foundationCategoryId.toString()) {
+            isFoundation = true;
+        }
         let {
             page = 1,
             limit = 10,
@@ -252,7 +261,6 @@ exports.getEnrollmentsByProgram = async (req, res) => {
 
         page = Math.max(1, parseInt(page));
         limit = parseInt(limit);
-        console.log(req.query);
         const pipeline = [
             {
                 $match: {
@@ -304,6 +312,7 @@ exports.getEnrollmentsByProgram = async (req, res) => {
 
         res.status(STATUS.OK).json({
             status: STATUS.OK,
+            isFoundation,
             enrollments,
             pagination: {
                 total,
@@ -319,6 +328,154 @@ exports.getEnrollmentsByProgram = async (req, res) => {
             status: STATUS.INTERNAL_SERVER_ERROR,
             message: "Error fetching paginated enrollments"
         });
+    }
+}
+
+exports.getFoundationUsers = async (req, res) => {
+    try {
+        const { search } = req.query;
+
+        const traineeRole = await Role.findOne({ name: "Trainee" });
+
+        if (!traineeRole) {
+            return res.status(STATUS.NOT_FOUND).json({
+                message: "Trainee role not found in database",
+                status: STATUS.NOT_FOUND
+            });
+        }
+
+        let query = {
+            mandatory_completion: false,
+            roles: traineeRole._id
+        };
+        if (search) {
+
+            query.$and = [
+                {
+                    $or: [
+                        { full_name: { $regex: search, $options: "i" } },
+                        { mobile: { $regex: search, $options: "i" } }
+                    ]
+                }
+            ];
+        }
+
+        const users = await User.find(query)
+            .select("full_name email roles department mobile")
+            .limit(10)
+            .populate("roles", "name")
+            .lean();
+
+        return res.status(STATUS.OK).json({
+            status: STATUS.OK,
+            count: users.length,
+            users
+        });
+
+    } catch (error) {
+        console.error("Foundation User Search Error:", error);
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            status: STATUS.INTERNAL_SERVER_ERROR,
+            message: "Failed to fetch foundation users",
+            error: error.message
+        });
+    }
+};
+exports.enrollInTraining = async (req, res) => {
+    const { trainingId } = req.params;
+    const { userId } = req.body;
+    if (!mongoose.Types.ObjectId.isValid(trainingId) || !mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(STATUS.OK).json({ message: "Invalid ID provided", status: STATUS.BAD_REQUEST });
+    }
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(STATUS.OK).json({ message: "User not found", status: STATUS.NOT_FOUND });
+        }
+        if (user.is_blacklisted) {
+            const now = new Date();
+            const isCurrentlyBlocked = (!user.blacklist_details.end_date || now <= user.blacklist_details.end_date) &&
+                (!user.blacklist_details.start_date || now >= user.blacklist_details.start_date);
+
+            if (isCurrentlyBlocked) {
+                return res.status(STATUS.OK).json({
+                    message: `Trainee is blacklisted until ${user.blacklist_details.end_date?.toLocaleDateString()}. Reason: ${user.blacklist_details.reason}`,
+                    status: STATUS.FORBIDDEN
+                });
+            }
+        }
+
+        // Check if training exists
+        const training = await TrainingProgram.findById(trainingId);
+        if (!training) {
+            return res.status(STATUS.OK).json({ message: "Training not found", status: STATUS.NOT_FOUND });
+        }
+        if (training.t_eligibility && training.t_eligibility.length > 0) {
+
+            // Check if user even has a group assigned
+            if (!user.group) {
+                return res.status(STATUS.OK).json({
+                    message: "This training is restricted to specific groups. Please update your profile.",
+                    status: STATUS.FORBIDDEN
+                });
+            }
+
+            // Check if user's group ID exists in the t_eligibility array
+            const isEligible = training.t_eligibility.some(groupId =>
+                groupId.equals(user.group)
+            );
+
+            if (!isEligible) {
+                return res.status(STATUS.OK).json({
+                    message: "You are not eligible for this training based on your group.",
+                    status: STATUS.FORBIDDEN
+                });
+            }
+        }
+        if (training.t_status !== 'Upcoming') {
+            return res.status(STATUS.OK).json({ message: "Enrollment is only allowed for upcoming trainings", status: STATUS.FORBIDDEN });
+        }
+        // Check if capacity is reached
+
+        const currentEnrollments = await Enrollment.countDocuments({ training_program: trainingId, status: 'Approved' });
+        if (currentEnrollments >= training.t_capacity) {
+            return res.status(STATUS.OK).json({ message: "Training capacity reached", status: STATUS.BAD_REQUEST });
+        }
+
+        // Check if user already enrolled
+        const existingEnrollment = await Enrollment.findOne({ training_program: trainingId, user: userId });
+        if (existingEnrollment) {
+            return res.status(STATUS.OK).json({ message: "You are already enrolled in this training", status: STATUS.CONFLICT });
+        }
+
+        // Create enrollment
+        const newEnrollment = new Enrollment({
+            training_program: trainingId,
+            user: userId,
+            status: 'Approved'
+        });
+        await newEnrollment.save();
+        const adminNotification = new Notification({
+            sender_id: req.user.user.id,
+            type: "Training",
+            title: "New Enrollment Request",
+            message: `${user.full_name} applied for ${training.t_name}`,
+            // Attach the ID here:
+            target_url: `/admin/training/enrollment/${newEnrollment._id}`,
+            is_read: false
+        });
+        await adminNotification.save();
+        sendPushToUser(userId, {
+            title: "Enrollment",
+            body: `You have been enrolled in ${training.t_name}`,
+        });
+
+        return res.status(STATUS.OK).json({ message: "Enrolled successfully", enrollment: newEnrollment, status: STATUS.CREATED });
+
+    } catch (e) {
+        return res
+            .status(STATUS.INTERNAL_SERVER_ERROR)
+            .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }
 }
 

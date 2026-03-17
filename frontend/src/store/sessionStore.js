@@ -9,15 +9,19 @@ export const useSessionStore = defineStore('session', {
         trainers: [],
         materials: [],
         isMaterialLoading: false,
-        expandedDates:new Set(),
-        activeTab:'schedule'
+        expandedDates: new Set(),
+        activeTab: 'schedule'
     }),
     actions: {
         async fetchSession(id) {
+            this.isSessionLoading = true;
             try {
                 const response = await api.get(`/programs/${id}/courses`);
                 this.sessions = response.data.courses;
             } catch (ex) { }
+            finally {
+                this.isSessionLoading = false;
+            }
         },
         async getTrainers() {
             try {

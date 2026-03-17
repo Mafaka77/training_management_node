@@ -1,20 +1,20 @@
-const User= require('../../models/user_model');
-const STATUS= require('../../utils/httpStatus');
+const User = require('../../models/user_model');
+const STATUS = require('../../utils/httpStatus');
 const bcrypt = require("bcryptjs");
-const Role= require("../../models/role_model");
-const TrainerProfile= require("../../models/trainer_profile_model");
-const District= require("../../models/district_model");
+const Role = require("../../models/role_model");
+const TrainerProfile = require("../../models/trainer_profile_model");
+const District = require("../../models/district_model");
 
-exports.createTrainer= async (req, res) => {
+exports.createTrainer = async (req, res) => {
     try {
         const trainerRole = await Role.findOne({ name: "Trainer" });
-        const { full_name, email, mobile,password,district,department,designation } = req.body;
-      
+        const { full_name, email, mobile, password, district, department, designation } = req.body;
+
         if (!full_name || !email || !mobile) {
             return res.status(STATUS.OK).json({ message: "All fields are required", status: STATUS.BAD_REQUEST });
         }
 
-        const existingTrainer = await User.findOne({ mobile,email });
+        const existingTrainer = await User.findOne({ mobile, email });
         if (existingTrainer) {
             return res.status(STATUS.OK).json({ message: "Trainer already exists", status: STATUS.CONFLICT });
         }
@@ -26,13 +26,13 @@ exports.createTrainer= async (req, res) => {
             full_name,
             email,
             mobile,
-            password:hashedPassword,
+            password: hashedPassword,
             district,
             designation,
             department,
             roles: trainerRole._id
         });
-          
+
         await newTrainer.save();
 
         return res.status(STATUS.OK).json({ message: "Trainer created successfully", trainer: newTrainer, status: STATUS.CREATED });
@@ -140,22 +140,22 @@ exports.getTrainerById = async (req, res) => {
 
         // Check if user exists
         const user = await User.findById(trainerId);
-       if (!user) {
-           return res.status(STATUS.OK).json({
-               message: "Trainer not found",
-               status: STATUS.NOT_FOUND,
-           });
-       }
+        if (!user) {
+            return res.status(STATUS.OK).json({
+                message: "Trainer not found",
+                status: STATUS.NOT_FOUND,
+            });
+        }
 
-       return res.status(STATUS.OK).json({
-           user,
-           status: STATUS.OK,
-       });
-   } catch (e) {
-       return res
-           .status(STATUS.INTERNAL_SERVER_ERROR)
-           .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
-   }
+        return res.status(STATUS.OK).json({
+            trainer: user,
+            status: STATUS.OK,
+        });
+    } catch (e) {
+        return res
+            .status(STATUS.INTERNAL_SERVER_ERROR)
+            .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+    }
 };
 exports.getDistricts = async (req, res) => {
     try {
@@ -170,3 +170,66 @@ exports.getDistricts = async (req, res) => {
             .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }
 };
+exports.toggleTrainerStatus = async (req, res) => {
+    try {
+        const { trainerId } = req.params;
+
+        // Check if user exists
+        const user = await User.findById(trainerId);
+        if (!user) {
+            return res.status(STATUS.OK).json({
+                message: "Trainer not found",
+                status: STATUS.NOT_FOUND,
+            });
+        }
+
+        // Deactivate trainer
+        user.is_active = !user.is_active;
+        await user.save();
+
+        return res.status(STATUS.OK).json({
+            message: "Trainer " + (user.is_active ? "activated" : "deactivated") + " successfully",
+            status: STATUS.OK,
+        });
+    } catch (e) {
+        return res
+            .status(STATUS.INTERNAL_SERVER_ERROR)
+            .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+    }
+};
+exports.updateTrainer = async (req, res) => {
+    try {
+        const { trainerId } = req.params;
+        const { full_name, email, mobile, district, designation, department, is_active } = req.body;
+
+        // Check if user exists
+        const user = await User.findById(trainerId);
+        if (!user) {
+            return res.status(STATUS.OK).json({
+                message: "Trainer not found",
+                status: STATUS.NOT_FOUND,
+            });
+        }
+
+        // Update trainer
+        user.full_name = full_name;
+        user.email = email;
+        user.mobile = mobile;
+        user.district = district;
+        user.designation = designation;
+        user.department = department;
+        user.is_active = is_active;
+        await user.save();
+
+        return res.status(STATUS.OK).json({
+            message: "Trainer updated successfully",
+            status: STATUS.OK,
+        });
+    } catch (e) {
+        return res
+            .status(STATUS.INTERNAL_SERVER_ERROR)
+            .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+    }
+};
+
+

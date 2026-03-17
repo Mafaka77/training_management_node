@@ -1,8 +1,8 @@
 import { createRouter, createWebHistory } from "vue-router"
 
-import middlewarePipeline from "./middleware/middlewarePipeline"
 import auth from "./middleware/auth"
 import guest from "./middleware/guest"
+import middlewarePipeline from "./middleware/middlewarePipeline"
 import role from "./middleware/role"
 
 const middlewareMap = {
@@ -57,19 +57,19 @@ const routes = [
     },
     //Trainer and Directore Routes
     {
-        path:"/trainer",
+        path: "/trainer",
         component: () => import("../layout/AdminLayout.vue"),
         meta: {
             middleware: ["auth"]
         },
         children: [
-            
+
             {
                 path: '/trainer/trainings',
                 component: () => import("../pages/trainer/TrainingsParent.vue"),
                 meta: {
                     middleware: ["auth", "role"],
-                    roles: ["Trainer","Director"],
+                    roles: ["Trainer", "Director"],
                 },
                 children: [
                     {
@@ -78,13 +78,13 @@ const routes = [
                         component: () => import("../pages/trainer/Trainings.vue"),
                     },
                     {
-                        path:"trainee/:id",
+                        path: "trainee/:id",
                         name: "trainer.trainings.attendance",
                         component: () => import("../pages/trainer/Attendance.vue"),
                     },
                     {
-                        path:':id/:name/materials',
-                        name:'trainer.trainings.material',
+                        path: ':id/:name/materials',
+                        name: 'trainer.trainings.material',
                         component: () => import("../pages/trainer/Materials.vue"),
                     }
                 ]
@@ -94,7 +94,7 @@ const routes = [
                 component: () => import("../pages/trainer/program/programParent.vue"),
                 meta: {
                     middleware: ["auth", "role"],
-                    roles: ["Trainer","Director"],
+                    roles: ["Trainer", "Director"],
                 },
                 children: [
                     {
@@ -144,11 +144,11 @@ const routes = [
             },
             {
                 path: '/admin/trainer/dashboard',
-                name:'admin.trainer.dashboard',
+                name: 'admin.trainer.dashboard',
                 component: () => import("../pages/trainer/TrainerDashboard.vue"),
                 meta: {
                     middleware: ["auth", "role"],
-                    roles: ["Trainer","Director"],
+                    roles: ["Trainer", "Director"],
                 },
             },
             {
@@ -197,7 +197,12 @@ const routes = [
                     {
                         path: ':id/trainee/:traineeId/attendance',
                         name: 'training.trainee.attendance',
-                        component:()=>import('../pages/training/program/attendance/Index.vue')
+                        component: () => import('../pages/training/program/attendance/Index.vue')
+                    },
+                    {
+                        path: ':id/release-order',
+                        name: 'training.release-order',
+                        component: () => import('../components/certificate/ReleaseOrder.vue')
                     }
                 ]
             },
@@ -331,7 +336,7 @@ const routes = [
                 },
                 children: [
                     {
-                        path:"",
+                        path: "",
                         name: "banner",
                         component: () => import("../pages/master/banner/Index.vue"),
                     }
@@ -421,9 +426,29 @@ const routes = [
                         name: "ticket",
                         component: () => import("../pages/ticket/Index.vue"),
                     },
+                    {
+                        path: 'edit/:id',
+                        name: 'ticket.edit',
+                        component: () => import("../pages/ticket/Edit.vue"),
+                    }
                 ]
             },
+            {
+                path: "/admin/notification",
+                component: () => import("../pages/notification/notiParent.vue"),
+                meta: {
+                    middleware: ["auth", "role"],
+                    roles: ["Admin"],
+                },
+                children: [
+                    {
+                        path: "",
+                        name: "notification",
+                        component: () => import("../pages/notification/Index.vue"),
+                    },
 
+                ]
+            },
 
         ],
     },
@@ -445,27 +470,27 @@ router.beforeEach((to, from, next) => {
     console.log(`Navigating from: ${from.path} to: ${to.path}`);
 
     const getRoleBasedDashboard = (roles) => {
-    if (!roles) return { name: 'login' };
-    
-    const roleList = Array.isArray(roles) ? roles : [roles];
+        if (!roles) return { name: 'login' };
 
-    // Priority 1: Admin
-    if (roleList.includes('Admin')) {
-        return { name: 'admin.dashboard' };
-    }
+        const roleList = Array.isArray(roles) ? roles : [roles];
 
-    // Priority 2: Trainer or Director
-    const isTrainerOrDirector = roleList.some(role => 
-        ['Trainer', 'Director'].includes(role)
-    );
+        // Priority 1: Admin
+        if (roleList.includes('Admin')) {
+            return { name: 'admin.dashboard' };
+        }
 
-    if (isTrainerOrDirector) {
-        return { name: 'trainer.dashboard' };
-    }
+        // Priority 2: Trainer or Director
+        const isTrainerOrDirector = roleList.some(role =>
+            ['Trainer', 'Director'].includes(role)
+        );
 
-    // Default fallback
-    return { name: 'home' }; 
-};
+        if (isTrainerOrDirector) {
+            return { name: 'trainer.dashboard' };
+        }
+
+        // Default fallback
+        return { name: 'home' };
+    };
 
     // 2. Middleware Pipeline Execution
     // If no middleware is defined, proceed normally
@@ -477,16 +502,16 @@ router.beforeEach((to, from, next) => {
     const middleware = to.meta.middleware.map(name => middlewareMap[name]);
 
     // Create the context object to pass through the pipeline
-    const context = { 
-        to, 
-        from, 
-        next, 
+    const context = {
+        to,
+        from,
+        next,
         router,
         // We can pass the role helper inside context if middleware needs it
-        getRoleBasedDashboard 
+        getRoleBasedDashboard
     };
 
-    
+
 
     // 3. Trigger the first middleware in the chain
     // We return the result to ensure the pipeline finishes correctly

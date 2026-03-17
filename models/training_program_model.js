@@ -4,7 +4,6 @@ const trainingProgramSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true,
-
     },
     t_banner: {
         type: String,
@@ -24,7 +23,7 @@ const trainingProgramSchema = new mongoose.Schema({
         required: true,
     },
     t_duration: {
-        type: Number, // Duration in days
+        type: Number,
         required: false
     },
     t_eligibility: [{
@@ -40,7 +39,7 @@ const trainingProgramSchema = new mongoose.Schema({
     t_capacity: {
         type: Number,
         required: true,
-        default: 0 // Default capacity if not specified
+        default: 0
     },
 
     t_category: {
@@ -50,18 +49,22 @@ const trainingProgramSchema = new mongoose.Schema({
     },
     t_status: {
         type: String,
-        enum: ["Draft", "Upcoming", "Ongoing", "Completed"], // allowed values
-        default: "Draft" // optional default
+        enum: ["Draft", "Upcoming", "Ongoing", "Completed"],
+        default: "Draft"
     },
     t_room: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'TrainingRoom',
         required: true
     },
-    t_director:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'User',
-        required:false,
+    t_director: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: false,
+    },
+    release_order: {
+        type: Boolean,
+        default: false,
     },
     averageRating: { type: Number, default: 0 },
     ratingsCount: { type: Number, default: 0 },
@@ -76,7 +79,12 @@ trainingProgramSchema.virtual('trainingCourse', {
     ref: 'TrainingCourse',
     localField: '_id',
     foreignField: 't_program',
-})
+});
+trainingProgramSchema.virtual('feedbacks', {
+    ref: 'Feedback',
+    localField: '_id',
+    foreignField: 't_program',
+});
 trainingProgramSchema.set('toObject', { virtuals: true });
 trainingProgramSchema.set('toJSON', { virtuals: true });
 

@@ -15,6 +15,7 @@ const traineeController = require('../controllers/admin/admin_trainee_controller
 const trainerProfileController = require('../controllers/trainer/trainer_profile_controller');
 const trainerTrainingController = require('../controllers/trainer/trainer_training_controller');
 const TrainingEnrollmentController = require('../controllers/admin/admin_training_enrollment_controller');
+const CertificateController = require('../controllers/admin/admin_certificate_controller');
 //AUTH
 router.post('/login', upload.none(), authController.login);
 router.get('/me', authenticate, upload.none(), authController.me);
@@ -33,37 +34,39 @@ router.get('/departments', authenticate, authorizeRoles('Admin'), upload.none(),
 router.delete('/department/:departmentId', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_department_controller').deleteDepartment);
 //TRAINING ROOM
 router.post('/submit-training-room', authenticate, authorizeRoles('Admin'), upload.none(), trainingRoomController.submitTrainingRoom);
-router.get('/get-training-room', authenticate, authorizeRoles('Admin'), upload.none(), trainingRoomController.getTrainingRoom);
+router.get('/get-training-room', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingRoomController.getTrainingRoom);
 router.delete('/room/:id', authenticate, authorizeRoles('Admin'), upload.none(), trainingRoomController.deleteTrainingRoom);
 router.put('/room/:id', authenticate, authorizeRoles('Admin'), upload.none(), trainingRoomController.updateTrainingRoom);
 router.get('/room/:id', authenticate, authorizeRoles('Admin'), upload.none(), trainingRoomController.getTrainingRoomById);
 
 //TRAINING CATEGORY
-router.get('/get-training-category', authenticate, authorizeRoles('Admin'), upload.none(), trainingCategoryController.getTrainingCategory);
+router.get('/get-training-category', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingCategoryController.getTrainingCategory);
 router.post('/submit-training-category', authenticate, authorizeRoles('Admin'), upload.none(), trainingCategoryController.createTrainingCategory);
 
 //TRAINING PROGRAM
-router.post('/submit-training-program', authenticate, authorizeRoles('Admin'), fileUpload.single('t_banner'), trainingController.submitTrainingProgram);
+router.post('/submit-training-program', authenticate, authorizeRoles('Admin', 'Director'), fileUpload.single('t_banner'), trainingController.submitTrainingProgram);
 router.put('/program/:programId', authenticate, authorizeRoles('Admin', 'Director'), fileUpload.single('t_banner'), trainingController.updateTrainingProgram);
 router.get('/get-all-training-program', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingController.getTraining);
 router.get('/program/:programId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingController.getTrainingById);
-router.delete('/program/:programId', authenticate, authorizeRoles('Admin'), upload.none(), trainingController.deleteTrainingProgram);
-router.get('/get-all-groups', authenticate, authorizeRoles('Admin'), upload.none(), trainingController.getGroups);
+router.delete('/program/:programId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingController.deleteTrainingProgram);
+router.get('/get-all-groups', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingController.getGroups);
 router.get('/directors', authenticate, authorizeRoles('Admin'), upload.none(), trainingController.getTrainingDirectors)
-router.put('/program/:programId/status', authenticate, authorizeRoles('Admin'), upload.none(), trainingController.updateStatus);
+router.put('/program/:programId/status', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingController.updateStatus);
 router.get('/enrollments/:programId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingController.getEnrollmentsByProgram);
+router.get('/enrollment/foundation-users', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingController.getFoundationUsers);
+router.post('/enrollment/:trainingId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingController.enrollInTraining);
 //TRAINING COURSE
 router.post('/submit-training-course', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingCourseController.submitTrainingCourse);
-router.get('/get-trainer', authenticate, authorizeRoles('Admin'), upload.none(), trainingCourseController.getTrainer);
-router.get('/get-all-training-course', authenticate, authorizeRoles('Admin'), upload.none(), trainingCourseController.getAllTrainingCourse);
+router.get('/get-trainer', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingCourseController.getTrainer);
+router.get('/get-all-training-course', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingCourseController.getAllTrainingCourse);
 router.get(
     '/programs/:programId/courses',
     authenticate,
     authorizeRoles('Admin', 'Director'),
     trainingCourseController.getCoursesByProgramId
 );
-router.delete('/course/:courseId', authenticate, authorizeRoles('Admin'), upload.none(), trainingCourseController.deleteTrainingCourse);
-router.get('/course/:courseId', authenticate, authorizeRoles('Admin'), upload.none(), trainingCourseController.getCourseById);
+router.delete('/course/:courseId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingCourseController.deleteTrainingCourse);
+router.get('/course/:courseId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingCourseController.getCourseById);
 router.put('/course/:courseId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingCourseController.updateCourse);
 
 
@@ -73,10 +76,15 @@ router.get('/trainers', authenticate, authorizeRoles('Admin', 'Director'), uploa
 router.get('/trainer/:trainerId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainerController.getTrainerById);
 router.delete('/trainer/:trainerId', authenticate, authorizeRoles('Admin'), upload.none(), trainerController.deleteTrainer);
 router.get('/districts', authenticate, authorizeRoles('Admin'), upload.none(), trainerController.getDistricts);
+router.put('/trainer/:trainerId/toggle-status', authenticate, authorizeRoles('Admin'), upload.none(), trainerController.toggleTrainerStatus);
+router.put('/trainer/:trainerId', authenticate, authorizeRoles('Admin'), upload.none(), trainerController.updateTrainer);
 
 //TRAINEE
 router.get('/trainees', authenticate, authorizeRoles('Admin'), upload.none(), traineeController.getAllTrainee);
 router.post('/trainee', authenticate, authorizeRoles('Admin'), upload.none(), traineeController.createTrainee);
+router.get('/trainee/:traineeId', authenticate, authorizeRoles('Admin'), upload.none(), traineeController.getTraineeById);
+router.put('/trainee/:traineeId/blacklist', authenticate, authorizeRoles('Admin'), upload.none(), traineeController.blacklistTrainee);
+router.put('/trainee/:traineeId', authenticate, authorizeRoles('Admin'), upload.none(), traineeController.updateTrainee);
 
 router.post('/employee', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_employee_controller').submitEmployee);
 router.get('/employees', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_employee_controller').getEmployees)
@@ -94,9 +102,9 @@ router.get('/document/:id', authenticate, authorizeRoles('Admin'), upload.none()
 
 //TICKET
 router.get('/tickets', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_ticket_controller').getAllTickets);
-router.get('/tickets/:ticketId', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_ticket_controller').getTicketById);
-router.post('/tickets/:ticketId/replies', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_ticket_controller').replyTicket);
-router.patch('/tickets/:ticketId/status', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_ticket_controller').changeStatus);
+router.get('/ticket/:ticketId', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_ticket_controller').getTicketById);
+router.post('/ticket/:ticketId/replies', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_ticket_controller').replyTicket);
+router.put('/ticket/:ticketId/status', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_ticket_controller').changeStatus);
 
 //FAQ
 router.post('/faqs', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_faq_controller').submitFaq);
@@ -151,6 +159,10 @@ router.post('/fcm/notify/all-users', authenticate, authorizeRoles('Admin'), uplo
 //DASHBOARD
 router.get('/notifications', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_dashboard_controller').fetchNotification)
 router.patch('/notification/:id/read', authenticate, authorizeRoles('Admin'), upload.none(), require('../controllers/admin/admin_dashboard_controller').readNotification)
+
+//CERTIFICATE AND ORDERS
+router.get('/training/:trainingId/release-order/generate', authenticate, authorizeRoles('Admin'), upload.none(), CertificateController.generateReleaseOrder)
+router.get('/training/:trainingId/release-order/download', authenticate, authorizeRoles('Admin'), upload.none(), CertificateController.downloadReleaseOrder)
 module.exports = router;
 
 

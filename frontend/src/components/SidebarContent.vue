@@ -27,7 +27,7 @@
       <nav class="space-y-1">
         <SidebarItem v-if="userRole.includes('Trainer')" to="/trainer/trainings" :isDark="isDark"
           icon="M19 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z M3 10h18 M9 22V10">
-          My Trainings
+          My Sessions
         </SidebarItem>
 
         <SidebarItem v-if="userRole.some(role => ['Admin', 'Director'].includes(role))" to="/admin/training/program"
@@ -74,7 +74,8 @@
               icon="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z">Trainees
             </SidebarItem>
             <SidebarItem to="/admin/employee" :isDark="isDark"
-              icon="M17 21v-2a4 4 0 0 0-3-3.87 M9 21v-2a4 4 0 0 0-3-3.87 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z">Employees
+              icon="M17 21v-2a4 4 0 0 0-3-3.87 M9 21v-2a4 4 0 0 0-3-3.87 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z">ATI
+              Faculty
             </SidebarItem>
           </div>
         </Transition>
@@ -119,6 +120,23 @@
               icon="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z">Banners</SidebarItem>
           </div>
         </Transition>
+      </nav>
+    </section>
+    <section>
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">SUPPORT</span>
+        <div class="h-px flex-1 bg-gradient-to-r from-zinc-500/20 to-transparent"></div>
+      </div>
+
+      <nav class="space-y-1">
+        <SidebarItem v-if="userRole.includes('Admin')" to="/admin/ticket" :isDark="isDark"
+          icon="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4">
+          Tickets
+        </SidebarItem>
+        <SidebarItem v-if="userRole.includes('Admin')" to="/admin/notification" :isDark="isDark"
+          icon="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4">
+          Notification
+        </SidebarItem>
       </nav>
     </section>
   </div>

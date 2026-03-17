@@ -41,13 +41,15 @@ export const useTrainingStore = defineStore('training', {
             }
         },
         async fetchTraining(id) {
-
+            this.isLoading = true;
             try {
                 const response = await api.get(`/program/${id}`);
                 console.log(response.data.training);
                 return response.data.training;
             } catch (error) {
                 console.error('Error fetching training:', error);
+            } finally {
+                this.isLoading = false;
             }
         },
         async fetchCategories() {

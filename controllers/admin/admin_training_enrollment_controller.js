@@ -1,8 +1,9 @@
-const User=require('../../models/user_model');
-const Enrollment=require('../../models/enrollment_model');
-const TrainingProgram=require('../../models/training_program_model');
-const STATUS=require('../../utils/httpStatus');
-const mongoose=require('mongoose');
+const User = require('../../models/user_model');
+const Enrollment = require('../../models/enrollment_model');
+const TrainingProgram = require('../../models/training_program_model');
+const Category = require('../../models/training_category_model')
+const STATUS = require('../../utils/httpStatus');
+const mongoose = require('mongoose');
 exports.getAllEnrollment = async (req, res) => {
     try {
         let {
@@ -19,7 +20,7 @@ exports.getAllEnrollment = async (req, res) => {
         const pipeline = [
             {
                 $lookup: {
-                    from: 'users', 
+                    from: 'users',
                     localField: 'user',
                     foreignField: '_id',
                     as: 'user'
@@ -28,7 +29,7 @@ exports.getAllEnrollment = async (req, res) => {
             { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
             {
                 $lookup: {
-                    from: 'trainingprograms', 
+                    from: 'trainingprograms',
                     localField: 'training_program',
                     foreignField: '_id',
                     as: 'training_program'
@@ -48,7 +49,7 @@ exports.getAllEnrollment = async (req, res) => {
             }
         ];
         const countResult = await mongoose.model('Enrollment').aggregate([
-            ...pipeline, 
+            ...pipeline,
             { $count: "total" }
         ]);
         const total = countResult.length > 0 ? countResult[0].total : 0;
@@ -79,17 +80,16 @@ exports.getAllEnrollment = async (req, res) => {
         });
     }
 };
-exports.getEnrollmentById= async (req, res) => {
+exports.getEnrollmentById = async (req, res) => {
     try {
         const { enrollmentId } = req.params;
-
         const enrollment = await Enrollment.findById(enrollmentId)
             .populate({
-                path:'user',
-                select:'full_name email department designation mobile',
-                populate:{
-                    path:'group',
-                    select:'group_name'
+                path: 'user',
+                select: 'full_name email department designation mobile',
+                populate: {
+                    path: 'group',
+                    select: 'group_name'
                 }
             })
             .populate("training_program");
@@ -100,10 +100,15 @@ exports.getEnrollmentById= async (req, res) => {
                 message: "Enrollment not found"
             });
         }
-
+        const userHistory = await Enrollment.find({
+            user: new mongoose.Types.ObjectId(enrollment.user._id),
+            status: 'Approved'
+        }).populate("training_program");
+        console.log(userHistory);
         res.status(STATUS.OK).json({
             status: STATUS.OK,
-            enrollment
+            enrollment,
+            userHistory
         });
     } catch (error) {
         res.status(STATUS.INTERNAL_SERVER_ERROR).json({
@@ -116,7 +121,7 @@ exports.updateEnrollmentStatus = async (req, res) => {
     try {
         const { enrollmentId } = req.params;
         // Destructure 'status' directly from req.body
-        const { status } = req.body; 
+        const { status } = req.body;
         console.log(status);
         // 1. Validation: Ensure status exists and is valid
         const validStatuses = ["Pending", "Approved", "Rejected", "Waitlisted"];
@@ -139,13 +144,13 @@ exports.updateEnrollmentStatus = async (req, res) => {
         // 3. Capacity Logic (Only if the admin is trying to Approve)
         if (status === "Approved") {
             const training = enrollment.training_program;
-            
+
             // Count currently approved users, excluding THIS user 
             // (in case they were already approved, we don't want to double count)
             const approvedCount = await Enrollment.countDocuments({
                 training_program: training._id,
                 status: 'Approved',
-                _id: { $ne: enrollmentId } 
+                _id: { $ne: enrollmentId }
             });
 
             if (approvedCount >= training.t_capacity) {

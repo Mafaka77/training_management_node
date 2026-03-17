@@ -1,13 +1,13 @@
-const mongoose= require("mongoose");
+const mongoose = require("mongoose");
 require('./trainer_profile_model');
-const userSchema= new mongoose.Schema({
+const userSchema = new mongoose.Schema({
     full_name: {
         type: String,
         required: true,
     },
-    profile_picture:{
-        type:String,
-        required:false,
+    profile_picture: {
+        type: String,
+        required: false,
     },
     email: {
         type: String,
@@ -27,7 +27,7 @@ const userSchema= new mongoose.Schema({
         ref: 'District'
     },
     department: {
-        type:String,
+        type: String,
         required: false,
     },
     group: {
@@ -35,27 +35,44 @@ const userSchema= new mongoose.Schema({
         ref: 'Group',
         required: false
     },
-   gender:{
-        type:String,
-        enums:["Male","Female"],
+    gender: {
+        type: String,
+        enums: ["Male", "Female"],
         required: false,
-   },
-    designation:{
-        type:String,
+    },
+    designation: {
+        type: String,
         required: false
     },
-    
+    mandatory_completion: {
+        type: Boolean,
+        required: true,
+        default: false
+    },
+    is_blacklisted: {
+        type: Boolean,
+        default: false
+    },
+    blacklist_details: {
+        reason: String,
+        start_date: Date,
+        end_date: Date,
+    },
+    is_active: {
+        type: Boolean,
+        default: true
+    },
     roles: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Role',
     }]
 });
 userSchema.virtual('trainerProfile', {
-    ref:'TrainerProfile',
-    localField:'_id',
-    foreignField:'user_id',
+    ref: 'TrainerProfile',
+    localField: '_id',
+    foreignField: 'user_id',
     justOne: true
 })
 userSchema.set('toObject', { virtuals: true });
-userSchema.set('toJSON', { virtuals: true});
+userSchema.set('toJSON', { virtuals: true });
 module.exports = mongoose.model('User', userSchema);

@@ -1,5 +1,5 @@
-const User=require('../../models/user_model');
-const STATUS=require('../../utils/httpStatus');
+const User = require('../../models/user_model');
+const STATUS = require('../../utils/httpStatus');
 const Role = require("../../models/role_model");
 const bcrypt = require("bcryptjs");
 
@@ -28,7 +28,7 @@ exports.getAllTrainee = async (req, res) => {
                 .populate('district', 'name')
                 .populate('group', 'group_name')
                 .select("-password -__v")
-                .sort({ _id: -1 }) 
+                .sort({ _id: -1 })
                 .skip((page - 1) * limit)
                 .limit(limit)
         ]);
@@ -58,7 +58,7 @@ exports.getAllTrainee = async (req, res) => {
 exports.createTrainee = async (req, res) => {
     try {
         // 1. Destructure groups from req.body
-        const { full_name, email, mobile, password, department, district, group, gender } = req.body;
+        const { full_name, email, mobile, password, department, district, group, gender, mandatory_completion } = req.body;
 
         // Basic validation
         if (!full_name || !email || !mobile || !password) {
@@ -96,6 +96,7 @@ exports.createTrainee = async (req, res) => {
             mobile,
             department,
             district,
+            mandatory_completion: mandatory_completion || false,
             password: hashedPassword,
             roles: [role._id], // Roles is usually an array in your model
             group: group || null, // Assign the Group ID
@@ -113,4 +114,97 @@ exports.createTrainee = async (req, res) => {
         });
     }
 }
+
+exports.getTraineeById = async (req, res) => {
+    try {
+        const trainee = await User.findById(req.params.traineeId).populate('district').populate('group');
+        if (!trainee) {
+            return res.status(STATUS.OK).json({
+                message: "Trainee not found",
+                status: STATUS.NOT_FOUND,
+            });
+        }
+        return res.status(STATUS.OK).json({
+            trainee,
+            status: STATUS.OK,
+        });
+    } catch (e) {
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            message: e.message,
+            status: STATUS.INTERNAL_SERVER_ERROR,
+        });
+    }
+}
+exports.blacklistTrainee = async (req, res) => {
+    try {
+        const trainee = await User.findById(req.params.traineeId);
+
+        if (!trainee) {
+            return res.status(STATUS.OK).json({
+                message: "Trainee not found",
+                status: STATUS.NOT_FOUND,
+            });
+        }
+        if (req.body.revoke === true) {
+            trainee.is_blacklisted = false;
+            trainee.blacklist_details = {
+                reason: null,
+                end_date: null
+            };
+            await trainee.save();
+            return res.status(STATUS.OK).json({
+                message: "Trainee restriction revoked successfully",
+                status: STATUS.OK,
+            });
+        }
+        trainee.is_blacklisted = true;
+        trainee.blacklist_details = {
+            reason: req.body.reason,
+            end_date: req.body.end_date,
+            created_at: new Date()
+        };
+        await trainee.save();
+        return res.status(STATUS.OK).json({
+            message: "Trainee blacklisted successfully",
+            status: STATUS.OK,
+        });
+    } catch (e) {
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            message: e.message,
+            status: STATUS.INTERNAL_SERVER_ERROR,
+        });
+    }
+}
+exports.updateTrainee = async (req, res) => {
+    try {
+        const trainee = await User.findById(req.params.traineeId);
+
+        if (!trainee) {
+            return res.status(STATUS.OK).json({
+                message: "Trainee not found",
+                status: STATUS.NOT_FOUND,
+            });
+        }
+        trainee.full_name = req.body.full_name;
+        trainee.email = req.body.email;
+        trainee.mobile = req.body.mobile;
+        trainee.department = req.body.department;
+        trainee.designation = req.body.designation;
+        trainee.district = req.body.district;
+        trainee.group = req.body.group;
+        trainee.gender = req.body.gender;
+        trainee.mandatory_completion = req.body.mandatory_completion;
+        await trainee.save();
+        return res.status(STATUS.OK).json({
+            message: "Trainee updated successfully",
+            status: STATUS.OK,
+        });
+    } catch (e) {
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            message: e.message,
+            status: STATUS.INTERNAL_SERVER_ERROR,
+        });
+    }
+}
+
 

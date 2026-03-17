@@ -4,12 +4,13 @@ const User = require('../../models/user_model');
 const Role = require('../../models/role_model');
 const Department = require('../../models/department_model');
 const District = require('../../models/district_model');
-const Group=require('../../models/group_model');
+const Group = require('../../models/group_model');
 const STATUS = require("../../utils/httpStatus");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const NodeCache = require("node-cache");
 const path = require('path');
+const { sendEmail } = require('../../services/mailer_services');
 // Initialize cache with a 5-minute expiration time
 const otpCache = new NodeCache({ stdTTL: 300 }); // 300 seconds = 5 minutes
 
@@ -41,14 +42,14 @@ exports.login = async (req, res) => {
             return res.status(STATUS.OK).json({ message: "Incorrect password", status: STATUS.BAD_REQUEST });
         }
 
-                const roleNames = user.roles.map(role => role.name);
-                const restrictedRoles = ["Trainer", "Admin","Employee","Director"];
-                if (roleNames.some(role=>restrictedRoles.includes(role))) {
-                    return res.status(STATUS.OK).json({
-                        message: "Access Denied: Not Permitted.",
-                        status: STATUS.UNAUTHORIZED 
-                    });
-                }
+        const roleNames = user.roles.map(role => role.name);
+        const restrictedRoles = ["Trainer", "Admin", "Employee", "Director"];
+        if (roleNames.some(role => restrictedRoles.includes(role))) {
+            return res.status(STATUS.OK).json({
+                message: "Access Denied: Not Permitted.",
+                status: STATUS.UNAUTHORIZED
+            });
+        }
         const payload = {
             user: {
                 id: user.id,
@@ -80,7 +81,7 @@ exports.login = async (req, res) => {
 }
 exports.register = async (req, res) => {
     const roles = await Role.findOne({ name: 'Trainee' });
-    const { full_name, email, password, mobile, district, department, gender, designation ,group} = req.body;
+    const { full_name, email, password, mobile, district, department, gender, designation, group, mandatory_completion } = req.body;
     try {
         if (!full_name || !email || !password || !mobile || !designation) {
             return res.status(STATUS.OK).json({
@@ -109,6 +110,7 @@ exports.register = async (req, res) => {
             gender,
             designation,
             group,
+            mandatory_completion,
             roles: [roles._id],
         });
 
@@ -135,7 +137,7 @@ exports.sendOtp = async (req, res) => {
     }
     const otp = generateOTP(mobile);
     const templateId = '1407173926279603243';
-    const message = `Please enter OTP ${otp} to submit your Ruangphur application.EGOVMZ`;
+    const message = `Please enter OTP ${otp} to register to ATI.EGOVMZ`;
     try {
         // const response = await axios.get("https://sms.msegs.in/api/send-sms", {
         //     headers: {
@@ -147,6 +149,7 @@ exports.sendOtp = async (req, res) => {
         //         recipient: mobile
         //     }
         // });
+        await sendEmail('zuala4@gmail.com', 'OTP', message);
         console.log(otp);
         return res.status(STATUS.OK).json({ message: 'OTP Sent', status: STATUS.OK, otp: otp })
     } catch (error) {
@@ -207,10 +210,10 @@ exports.getDistricts = async (req, res) => {
     }
 }
 exports.getGroups = async (req, res) => {
-    try{
-        const groups=await Group.find().select('-__v').lean();
+    try {
+        const groups = await Group.find().select('-__v').lean();
         return res.status(STATUS.OK).json({ groups, status: STATUS.OK });
-    }catch (e) {
+    } catch (e) {
         return res.status(STATUS.OK).json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }
 }
@@ -287,5 +290,53 @@ exports.updateProfile = async (req, res) => {
         return res.status(STATUS.INTERNAL_SERVER_ERROR).json({ message: err.message || 'Server error', status: STATUS.INTERNAL_SERVER_ERROR });
     }
 };
+
+exports.loginSendOtp = async (req, res) => {
+    try {
+        const { mobile } = req.body;
+        const user = await User.findOne({ mobile: mobile });
+        if (!user) {
+            return res.status(STATUS.OK).json({ message: 'User not found', status: STATUS.NOT_FOUND });
+        }
+        const otp = generateOTP(mobile);
+        const templateId = '1407173926279603243';
+        const message = `Please enter OTP ${otp} to login to ATI.EGOVMZ`;
+        try {
+            // const response = await axios.get("https://sms.msegs.in/api/send-sms", {
+            //     headers: {
+            //         'Authorization': `Bearer ${process.env.SMS_TOKEN}`
+            //     },
+            //     params: {
+            //         template_id: templateId,
+            //         message: message,
+            //         recipient: mobile
+            //     }
+            // });
+            await sendEmail('zuala4@gmail.com', 'OTP', message);
+            console.log(otp);
+            return res.status(STATUS.OK).json({ message: 'OTP Sent', status: STATUS.OK, otp: otp })
+        } catch (error) {
+
+            return res.status(STATUS.INTERNAL_SERVER_ERROR).json({ message: 'Failed to send OTP', status: 500 })
+
+        }
+
+    } catch (ex) { }
+}
+
+exports.verifyLoginOtp = async (req, res) => {
+    try {
+        const { mobile, otp } = req.body;
+        const storedOtp = otpCache.get(`otp_${mobile}`);
+        if (!storedOtp) {
+            return res.status(STATUS.OK).json({ message: 'OTP has expired or does not exist.', status: 400 });
+        }
+        if (String(storedOtp) !== String(otp)) {
+            return res.status(STATUS.OK).json({ message: 'Invalid OTP.', status: 400 });
+        }
+        otpCache.del(`otp_${mobile}`);
+        return res.status(STATUS.OK).json({ message: 'OTP is verified', status: STATUS.OK });
+    } catch (ex) { }
+}
 
 
