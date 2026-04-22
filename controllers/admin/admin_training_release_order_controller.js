@@ -291,7 +291,7 @@ exports.prepareForESign = async (req, res) => {
             "FileType": "PDF",
             "AuthToken": "c49046e1-c3de-4a1b-8024-679f0debadaa",
             "File": fileBase64,
-            "SignatureMode": "2",
+            "SignatureMode": "3",
             "SelectPage": "1",
             "SignaturePosition": "Bottom-Right",
             "PageNumber": "1",
