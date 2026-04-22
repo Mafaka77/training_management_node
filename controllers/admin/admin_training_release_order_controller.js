@@ -2,6 +2,7 @@ const Training = require("../../models/training_program_model");
 const httpStatus = require("../../utils/httpStatus");
 const Enrollment = require("../../models/enrollment_model");
 const ReleaseOrder = require('../../models/release_order_model');
+const User = require('../../models/user_model');
 const puppeteer = require('puppeteer');
 const { readFileSync } = require('fs');
 const crypto = require('crypto');
