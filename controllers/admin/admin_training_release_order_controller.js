@@ -280,7 +280,7 @@ exports.prepareForESign = async (req, res) => {
     try {
         const { trainingId } = req.params;
         const releaseOrder = await ReleaseOrder.findOne({ training_program: trainingId });
-        const user = await User.findById(req.user.id.id);
+        const user = await User.findById(req.user.user.id);
         const sessionKey = crypto.randomBytes(32);
         const fileName = releaseOrder.file_name;
         const pdfFilePath = releaseOrder.release_order_url;
