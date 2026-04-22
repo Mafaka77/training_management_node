@@ -7,10 +7,12 @@ export default {
     './node_modules/flowbite/**/*.{js,jsx,ts,tsx}',
   ],
   plugins: [require('flowbite/plugin')],
-  theme:{
+  theme: {
     extend: {
       fontFamily: {
         sans: ['SN Pro', 'sans-serif'],
+        satisfy: ['Satisfy', 'cursive'],
+        pinyon: ['Pinyon Script', 'cursive'],
       }
     }
   }

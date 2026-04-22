@@ -2,9 +2,11 @@ const mongoose = require("mongoose");
 const TrainingCategory = require('../models/training_category_model');
 // Define role data
 const category = [
-    { name: "Foundation" },
+    { name: "Mandatory" },
+    { name: "Optional" },
     { name: "In-Service" },
     { name: "Specialized" },
+
 ];
 const dataSeed = async () => {
     try {

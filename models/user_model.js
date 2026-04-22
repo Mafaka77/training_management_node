@@ -37,7 +37,7 @@ const userSchema = new mongoose.Schema({
     },
     gender: {
         type: String,
-        enums: ["Male", "Female"],
+        enums: ["Male", "Female", "Others"],
         required: false,
     },
     designation: {
@@ -62,10 +62,41 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: true
     },
+    dob: {
+        type: Date,
+        required: false,
+    },
+    is_govt_employee: {
+        type: Boolean,
+        default: true
+    },
+    date_of_entry: {
+        type: Date,
+        required: false,
+    },
+    date_of_superannuation: {
+        type: Date,
+        required: false,
+    },
+    recruitment: {
+        type: String,
+        enums: ["Direct", "Regularisation", "Absorption"],
+        required: false,
+    },
+    confirmation: {
+        type: String,
+        enums: ["Confirmed", "Not Confirmed"],
+        default: "Confirmed",
+    },
+    service_cadre: {
+        type: String,
+        required: false,
+    },
     roles: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Role',
-    }]
+    }],
+
 });
 userSchema.virtual('trainerProfile', {
     ref: 'TrainerProfile',

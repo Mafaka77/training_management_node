@@ -1,10 +1,11 @@
-const Training=require('../../models/training_program_model');
-const Session=require('../../models/training_course_model');
-const Enrollment=require('../../models/enrollment_model');
-const Attendance=require('../../models/attendance_model');
-const mongoose=require("mongoose");
-const STATUS=require('../../utils/httpStatus');
-const Room=require('../../models/training_room_model');
+const Training = require('../../models/training_program_model');
+const Session = require('../../models/training_course_model');
+const Enrollment = require('../../models/enrollment_model');
+const Attendance = require('../../models/attendance_model');
+const mongoose = require("mongoose");
+const STATUS = require('../../utils/httpStatus');
+const Room = require('../../models/training_room_model');
+const Location = require('../../models/location_model');
 const dayjs = require('dayjs');
 const isBetween = require('dayjs/plugin/isBetween');
 const customParseFormat = require('dayjs/plugin/customParseFormat');
@@ -96,17 +97,17 @@ exports.getAttendance = async (req, res) => {
     }
 };
 
-exports.markAttendance=async (req, res) => {
-    try{
+exports.markAttendance = async (req, res) => {
+    try {
         const RADIUS_LIMIT = 50;
-        const {sessionId,programId,lat,lng}=req.body;
+        const { sessionId, programId, lat, lng } = req.body;
         if (!mongoose.Types.ObjectId.isValid(programId)) {
             return res.status(STATUS.OK).json({ status: STATUS.BAD_REQUEST, message: "Invalid Training ID" });
         }
-        const program=await Training.findOne({_id:programId}).lean();
-        const session=await Session.findOne({_id:sessionId}).lean();
-        const userId=req.user.user.id;
-        const enrollment=await Enrollment.findOne({user:userId}).lean();
+        const program = await Training.findOne({ _id: programId }).lean();
+        const session = await Session.findOne({ _id: sessionId }).lean();
+        const userId = req.user.user.id;
+        const enrollment = await Enrollment.findOne({ user: userId }).lean();
         if (!session.tc_start_time || !session.tc_end_time) {
             return res.status(STATUS.OK).json({
                 status: STATUS.BAD_REQUEST,
@@ -131,28 +132,34 @@ exports.markAttendance=async (req, res) => {
                 });
             }
         }
-        const roomResults = await Room.aggregate([
+        const locationResults = await Location.aggregate([
             {
                 $geoNear: {
                     near: {
                         type: "Point",
-                        coordinates: [parseFloat(lng), parseFloat(lat)] // [Long, Lat]
+                        coordinates: [lng, lat] // User's Current GPS
                     },
-                    distanceField: "distInMeters", // New field added to response
-                    maxDistance: RADIUS_LIMIT,
-                    query: { _id: new mongoose.Types.ObjectId(program.t_room) },
+                    distanceField: "distInMeters", // Calculated distance from center
                     spherical: true
+                }
+            },
+            {
+                // Material UX Logic: Check if the user is within the allowed boundary
+                $addFields: {
+                    isWithinBoundary: { $lte: ["$distInMeters", "$radius"] }
                 }
             }
         ]);
+        const geoFence = locationResults[0];
+        if (!geoFence.isWithinBoundary) {
+            const gap = Math.ceil(geoFence.distInMeters - geoFence.radius);
 
-        if (roomResults.length === 0) {
             return res.status(STATUS.OK).json({
-                status:STATUS.FORBIDDEN,
-                message: "You are out of range"
+                status: STATUS.FORBIDDEN,
+                message: `You are outside the designated area. Please move ${gap}m closer to the center.`,
             });
         }
-        const roomWithDistance = roomResults[0];
+        const roomWithDistance = geoFence;
 
         //MARK ATTENDANCE
         const existingAttendance = await Attendance.findOne({
@@ -176,11 +183,11 @@ exports.markAttendance=async (req, res) => {
             notes: `Session ${session.tc_session} marked at ${now.format('HH:mm')}`
         });
         return res.status(STATUS.OK).json({
-            status:STATUS.OK,
+            status: STATUS.OK,
             message: "Attendance marked!",
             distanceFromRoom: `${roomWithDistance.distInMeters.toFixed(2)} meters`
         });
-    }catch(err){
+    } catch (err) {
         console.log(err);
     }
 }

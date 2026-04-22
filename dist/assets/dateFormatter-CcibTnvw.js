@@ -1,0 +1,1 @@
+const d=e=>{if(!e)return"";const t=new Date(e),a=t.getDate(),s=t.toLocaleDateString("en-GB",{month:"long"}),c=t.getFullYear();return`${(o=>{const n=["th","st","nd","rd"],r=o%100;return o+(n[(r-20)%10]||n[r]||n[0])})(a)} ${s}, ${c}`};export{d as f};

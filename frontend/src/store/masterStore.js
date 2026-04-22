@@ -1,30 +1,32 @@
-import {defineStore} from "pinia";
+import { defineStore } from "pinia";
 import api from "../api/axios.js";
 
 export const useMasterStore = defineStore('master', {
     state: () => ({
         rooms: [],
         loading: false,
-        categories:[],
-        isCatLoading:false,
+        categories: [],
+        isCatLoading: false,
         documents: [],
         isDocLoading: false,
         faqs: [],
         isFAQLoading: false,
-        isBannerLoading:false,
-        banners:[],
+        isBannerLoading: false,
+        banners: [],
+        locations: [],
+        isLocationLoading: false,
     }),
     actions: {
         async submitRoom(data) {
             try {
                 const response = await api.post('/submit-training-room', data);
-                const statusCode=response.status===200 && response.data.status===201;
+                const statusCode = response.status === 200 && response.data.status === 201;
                 if (!statusCode) {
-                    return {success: false, message: response.data.message}
+                    return { success: false, message: response.data.message }
                 }
-                return {success: true, message: response.data.message}
+                return { success: true, message: response.data.message }
             } catch (err) {
-                return {success: false, message: err.message}
+                return { success: false, message: err.message }
             }
         },
         async fetchRooms() {
@@ -52,9 +54,9 @@ export const useMasterStore = defineStore('master', {
         async updateRoom(id, data) {
             try {
                 const response = await api.put(`/room/${id}`, data);
-                return {success: true, message: response.data.message};
+                return { success: true, message: response.data.message };
             } catch (err) {
-                return {success: false, message: err.response?.data?.message || "Update failed"};
+                return { success: false, message: err.response?.data?.message || "Update failed" };
             }
         },
         async deleteRoom(id) {
@@ -62,9 +64,9 @@ export const useMasterStore = defineStore('master', {
             try {
                 const response = await api.delete(`/room/${id}`);
                 console.log(response)
-                return {success: true, message: response.data.message};
+                return { success: true, message: response.data.message };
             } catch (err) {
-                return {success: false, message: err.response?.data?.message || "Deletion failed"};
+                return { success: false, message: err.response?.data?.message || "Deletion failed" };
             }
         },
         async fetchCategories() {
@@ -81,22 +83,22 @@ export const useMasterStore = defineStore('master', {
         async submitCategory(data) {
             try {
                 const response = await api.post('/submit-training-category', data);
-                const statusCode=response.status===200 && response.data.status===201;
-                if(!statusCode){
-                    return {success: false, message: response.data.message}
+                const statusCode = response.status === 200 && response.data.status === 201;
+                if (!statusCode) {
+                    return { success: false, message: response.data.message }
                 }
-                return {success: true, message: response.data.message}
+                return { success: true, message: response.data.message }
             } catch (err) {
-                return {success: false, message: err.message}
+                return { success: false, message: err.message }
             }
         },
         async deleteCategory(id) {
             try {
                 const response = await api.delete(`/training-category/${id}`);
                 console.log(response)
-                return {success: true, message: response.data.message};
+                return { success: true, message: response.data.message };
             } catch (err) {
-                return {success: false, message: err.response?.data?.message || "Deletion failed"};
+                return { success: false, message: err.response?.data?.message || "Deletion failed" };
             }
         },
         async fetchDocuments() {
@@ -112,22 +114,22 @@ export const useMasterStore = defineStore('master', {
         },
         async submitDocument(data) {
             try {
-                const response=await api.post('/documents',data);
-                const statusCode=response.status===200 && response.data.status===201;
-                if(!statusCode){
-                    return {success: false, message: response.data.message}
+                const response = await api.post('/documents', data);
+                const statusCode = response.status === 200 && response.data.status === 201;
+                if (!statusCode) {
+                    return { success: false, message: response.data.message }
                 }
-                return {success: true, message: response.data.message}
-            }catch (err) {
-                    return {success: false, message: err.message}
+                return { success: true, message: response.data.message }
+            } catch (err) {
+                return { success: false, message: err.message }
             }
         },
         async deleteDocument(id) {
             try {
                 const response = await api.delete(`/document/${id}`);
-                return {success: true, message: response.data.message};
+                return { success: true, message: response.data.message };
             } catch (err) {
-                return {success: false, message: err.response?.data?.message || "Deletion failed"};
+                return { success: false, message: err.response?.data?.message || "Deletion failed" };
             }
         },
         async fetchFAQs() {
@@ -143,51 +145,82 @@ export const useMasterStore = defineStore('master', {
         },
         async submitFAQ(data) {
             try {
-                const response=await api.post('/faqs',data);
-                const statusCode=response.status===200 && response.data.status===201;
-                if(!statusCode){
-                    return {success: false, message: response.data.message}
+                const response = await api.post('/faqs', data);
+                const statusCode = response.status === 200 && response.data.status === 201;
+                if (!statusCode) {
+                    return { success: false, message: response.data.message }
                 }
-                    return {success: true, message: response.data.message}
-            }catch (err) {
-                    return {success: false, message: err.message}
+                return { success: true, message: response.data.message }
+            } catch (err) {
+                return { success: false, message: err.message }
             }
         },
         async deleteFAQ(id) {
             try {
                 const response = await api.delete(`/faqs/${id}`);
-                return {success: true, message: response.data.message};
+                return { success: true, message: response.data.message };
             } catch (err) {
-                return {success: false, message: err.response?.data?.message || "Deletion failed"};
+                return { success: false, message: err.response?.data?.message || "Deletion failed" };
             }
         },
-        async fetchBanners(){
-            try{
-                const response=await api.get('/banners');
+        async fetchBanners() {
+            try {
+                const response = await api.get('/banners');
                 console.log(response.data.banners)
                 this.banners = response.data.banners;
-            }catch(err){
+            } catch (err) {
 
             }
         },
         async submitBanner(data) {
             try {
                 const response = await api.post('/banner', data);
-                const statusCode=response.status===200 && response.data.status===201;
+                const statusCode = response.status === 200 && response.data.status === 201;
                 if (statusCode) {
-                    return {success: true, message: response.data.message}
+                    return { success: true, message: response.data.message }
                 }
-                return {success: false, message: "Unexpected response from server"}
+                return { success: false, message: "Unexpected response from server" }
             } catch (err) {
-                return {success: false, message: err.message}
+                return { success: false, message: err.message }
             }
         },
         async deleteBanner(id) {
             try {
                 const response = await api.delete(`/banner/${id}`);
-                return {success: true, message: response.data.message};
+                return { success: true, message: response.data.message };
             } catch (err) {
-                return {success: false, message: err.response?.data?.message || "Deletion failed"};
+                return { success: false, message: err.response?.data?.message || "Deletion failed" };
+            }
+        },
+        async fetchLocations() {
+            this.isLocationLoading = true;
+            try {
+                const response = await api.get('/locations');
+                this.locations = response.data.locations;
+            } catch (error) {
+                console.error("Error fetching locations:", error);
+            } finally {
+                this.isLocationLoading = false;
+            }
+        },
+        async submitLocation(data) {
+            try {
+                const response = await api.post('/location', data);
+                const statusCode = response.status === 200 && response.data.status === 201;
+                if (!statusCode) {
+                    return { success: false, message: response.data.message }
+                }
+                return { success: true, message: response.data.message }
+            } catch (err) {
+                return { success: false, message: err.message }
+            }
+        },
+        async deleteLocation(id) {
+            try {
+                const response = await api.delete(`/location/${id}`);
+                return { success: true, message: response.data.message };
+            } catch (err) {
+                return { success: false, message: err.response?.data?.message || "Deletion failed" };
             }
         },
     },

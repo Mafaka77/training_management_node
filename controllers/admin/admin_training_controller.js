@@ -244,7 +244,7 @@ exports.updateStatus = async (req, res) => {
 exports.getEnrollmentsByProgram = async (req, res) => {
     try {
         let { programId } = req.params;
-        const category = await TrainingCategory.find({ name: 'Foundation' }).lean();
+        const category = await TrainingCategory.find({ name: 'Mandatory' }).lean();
         const foundationCategoryId = category[0]._id;
         let isFoundation = false;
         const training = await TrainingProgram.findById(programId);

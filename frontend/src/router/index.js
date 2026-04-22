@@ -203,6 +203,21 @@ const routes = [
                         path: ':id/release-order',
                         name: 'training.release-order',
                         component: () => import('../components/certificate/ReleaseOrder.vue')
+                    },
+                    {
+                        path: ':id/signature-success',
+                        name: 'training.success',
+                        component: () => import('../components/certificate/ReleaseOrderSuccessPage.vue')
+                    },
+                    {
+                        path: ':id/signature-failure',
+                        name: 'training.failure',
+                        component: () => import('../components/certificate/ReleaseOrderFailurePage.vue')
+                    },
+                    {
+                        path: ':id/trainee/:traineeId/certificate',
+                        name: 'training.certificate',
+                        component: () => import('../components/certificate/CertificatePage.vue')
                     }
                 ]
             },
@@ -250,6 +265,46 @@ const routes = [
                         name: "master.room.edit",
                         component: () => import("../pages/master/room/Edit.vue"),
                     }
+                ]
+            },
+            {
+                path: "/admin/master/location",
+                component: () => import("../pages/master/location/locationParent.vue"),
+                meta: {
+                    middleware: ["auth", "role"],
+                    roles: ["Admin"],
+                },
+                children: [
+                    {
+                        path: "", // This matches "/admin/training/program"
+                        name: "master.location",
+                        component: () => import("../pages/master/location/Index.vue"),
+                    },
+                    {
+                        path: "create", // This matches "/admin/training/program/create"
+                        name: "master.location.create",
+                        component: () => import("../pages/master/location/Create.vue"),
+                    },
+                ]
+            }, {
+                path: "/admin/master/evaluation",
+                component: () => import("../pages/master/evaluation/evaluationParent.vue"),
+                meta: {
+                    middleware: ["auth", "role"],
+                    roles: ["Admin"],
+                },
+                children: [
+                    {
+                        path: "",
+                        name: "master.evaluation",
+                        component: () => import("../pages/master/evaluation/Index.vue"),
+                    },
+                    {
+                        path: "create",
+                        name: "master.evaluation.create",
+                        component: () => import("../pages/master/evaluation/Create.vue"),
+                    },
+
                 ]
             },
             {

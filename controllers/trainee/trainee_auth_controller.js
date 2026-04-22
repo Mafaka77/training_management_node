@@ -81,7 +81,10 @@ exports.login = async (req, res) => {
 }
 exports.register = async (req, res) => {
     const roles = await Role.findOne({ name: 'Trainee' });
-    const { full_name, email, password, mobile, district, department, gender, designation, group, mandatory_completion } = req.body;
+    const { full_name, email, password, mobile, district, department, gender,
+        designation, group, mandatory_completion, dob, recruitment, confirmation,
+        is_govt_employee, date_of_entry, date_of_superannuation, service_cadre,
+    } = req.body;
     try {
         if (!full_name || !email || !password || !mobile || !designation) {
             return res.status(STATUS.OK).json({
@@ -111,6 +114,13 @@ exports.register = async (req, res) => {
             designation,
             group,
             mandatory_completion,
+            dob,
+            recruitment,
+            confirmation,
+            is_govt_employee,
+            date_of_entry,
+            date_of_superannuation,
+            service_cadre,
             roles: [roles._id],
         });
 

@@ -1,7 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const path = require("path");   
+const path = require("path");
 const dotenv = require("dotenv");
 const admin = require('firebase-admin');
 const fs = require('fs');    // <-- added
@@ -16,7 +16,7 @@ const credPath = process.env.GOOGLE_APPLICATION_CREDENTIALS || "./serviceAccount
 const absCredPath = path.isAbsolute(credPath) ? credPath : path.join(process.cwd(), credPath);
 const serviceAccount = JSON.parse(fs.readFileSync(absCredPath, "utf8"));
 if (!admin.apps.length) {
-    
+
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
   });
@@ -34,9 +34,9 @@ app.set("trust proxy", 1);
 // app.use(cors(corsOptions));
 const corsOptions = {
   // Replace this with your actual frontend URL(s)
-  origin: ['http://localhost:5173', 'https://staging2.egovmz.in'], 
+  origin: ['http://localhost:5173', 'https://staging2.egovmz.in'],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS','PATCH'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization']
 };
 
@@ -50,14 +50,13 @@ app.use((req, res, next) => {
 });
 
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true })); // <-- for form-data
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' })); // <-- for form-data
 const uploadsPath = path.join(__dirname, 'uploads');
 console.log('[server] serving uploads from:', uploadsPath);
 app.use('/uploads', express.static(uploadsPath));
 app.use('/api', apiRoutes);
 app.use('/admin-api', adminApiRoutes);
-
 // Serve Vue 3 frontend
 const frontendPath = path.join(__dirname, "dist");
 app.use(express.static(frontendPath));
@@ -65,8 +64,8 @@ app.use(express.static(frontendPath));
 // app.get(/^(?!\/api|\/admin\/api).*/, (req, res) => {
 //   res.sendFile(path.join(frontendPath, "index.html"));
 // });
-app.get(/.*/,(req, res) => {
+app.get(/.*/, (req, res) => {
   res.sendFile(path.join(frontendPath, "index.html"));
-  });
+});
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, "0.0.0.0", () => console.log(`Server running on port ${PORT}`));

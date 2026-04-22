@@ -5,11 +5,12 @@ import AdminHeader from "../components/AdminHeader.vue";
 import SidebarContent from "../components/SidebarContent.vue";
 import { useAuthStore } from "../store/authStore.js";
 
-const sidebarOpen = ref(false);
+const sidebarOpen = ref(false); // Controls mobile off-canvas menu
+const isSidebarCollapsed = ref(true); // Controls desktop sidebar collapse
 const trainingOpen = ref(false);
 const masterOpen = ref(false);
 const authStore = useAuthStore();
-const { user, loading } = storeToRefs(authStore); // Ensure isLoading is in your store
+const { user, loading } = storeToRefs(authStore);
 
 const THEME_KEY = "ati.theme";
 const isDark = ref(false);
@@ -30,6 +31,17 @@ const toggleTheme = () => {
   applyTheme();
 };
 
+// Handle sidebar toggle for both desktop and mobile
+const handleSidebarToggle = () => {
+  if (window.innerWidth >= 768) {
+    // On desktop: collapse/expand the grid sidebar
+    isSidebarCollapsed.value = !isSidebarCollapsed.value;
+  } else {
+    // On mobile: open the modal overlay
+    sidebarOpen.value = true;
+  }
+};
+
 onMounted(() => {
   initTheme();
   window.addEventListener("keydown", (e) => e.key === "Escape" && (sidebarOpen.value = false));
@@ -40,14 +52,16 @@ onMounted(() => {
   <div class="min-h-screen flex flex-col transition-colors duration-500 font-sansSelection"
     :class="isDark ? 'bg-[#09090b] text-zinc-100' : 'bg-[#f4f4f5] text-zinc-900'">
 
-    <AdminHeader :isDark="isDark" :user="user" @toggleTheme="toggleTheme" @toggleSidebar="sidebarOpen = true" />
+    <AdminHeader :isDark="isDark" :user="user" @toggleTheme="toggleTheme" @toggleSidebar="handleSidebarToggle" />
 
     <div v-if="loading" class="flex-1 flex items-center justify-center">
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
     </div>
 
-    <div v-else class="flex-1 grid grid-cols-1 md:grid-cols-[17rem_1fr] max-w-[90rem] mx-auto w-full relative z-10">
-      <aside class="hidden md:block border-r transition-colors"
+    <div v-else class="flex-1 grid max-w-[90rem] mx-auto w-full relative z-10 transition-all duration-300"
+      :class="!isSidebarCollapsed ? 'grid-cols-1 md:grid-cols-[17rem_1fr]' : 'grid-cols-1'">
+
+      <aside v-show="!isSidebarCollapsed" class="hidden md:block border-r transition-colors"
         :class="isDark ? 'border-white/5 bg-black/10' : 'border-zinc-200 bg-zinc-50/30'">
         <div class="p-6 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto custom-scrollbar">
           <SidebarContent v-model:trainingOpen="trainingOpen" v-model:masterOpen="masterOpen" :isDark="isDark" />

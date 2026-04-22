@@ -39,7 +39,7 @@ const trainingProgramSchema = new mongoose.Schema({
     t_capacity: {
         type: Number,
         required: true,
-        default: 0
+        default: 0,
     },
 
     t_category: {
@@ -65,6 +65,10 @@ const trainingProgramSchema = new mongoose.Schema({
     release_order: {
         type: Boolean,
         default: false,
+    },
+    group_photo_url: {
+        type: String,
+        required: false,
     },
     averageRating: { type: Number, default: 0 },
     ratingsCount: { type: Number, default: 0 },

@@ -1,14 +1,14 @@
-const TrainingRoom= require("../../models/training_room_model");
-const STATUS= require("../../utils/httpStatus");
+const TrainingRoom = require("../../models/training_room_model");
+const STATUS = require("../../utils/httpStatus");
 
 //ROOMS-----------------------------------------------
 
 exports.submitTrainingRoom = async (req, res) => {
-    const { room_name, room_no, capacity, details, latitude, longitude } = req.body;
+    const { room_name, room_no, capacity, details } = req.body;
 
     try {
         // 1. Basic Validation
-        if (!room_name || latitude === undefined || longitude === undefined) {
+        if (!room_name) {
             return res.status(STATUS.OK).json({
                 message: "Please fill all required fields",
                 status: STATUS.BAD_REQUEST
@@ -31,10 +31,6 @@ exports.submitTrainingRoom = async (req, res) => {
             room_no,
             capacity,
             details,
-            location: {
-                type: "Point",
-                coordinates: [parseFloat(longitude), parseFloat(latitude)],
-            },
         });
 
         await room.save();
@@ -51,7 +47,7 @@ exports.submitTrainingRoom = async (req, res) => {
         });
     }
 };
-exports.getTrainingRoom= async (req, res) => {
+exports.getTrainingRoom = async (req, res) => {
     try {
         const rooms = await TrainingRoom.find();
         return res.status(STATUS.OK).json({ rooms, status: STATUS.OK });
@@ -87,8 +83,9 @@ exports.deleteTrainingRoom = async (req, res) => {
     }
 };
 exports.updateTrainingRoom = async (req, res) => {
-    try {        const { id } = req.params;
-        const { room_name, capacity, details ,latitude,longitude} = req.body;
+    try {
+        const { id } = req.params;
+        const { room_name, capacity, details, latitude, longitude } = req.body;
 
         const room = await TrainingRoom.findById(id);
 
@@ -122,7 +119,7 @@ exports.updateTrainingRoom = async (req, res) => {
 exports.getTrainingRoomById = async (req, res) => {
     try {
         const { id } = req.params;
-        
+
         const room = await TrainingRoom.findById(id);
 
         if (!room) {

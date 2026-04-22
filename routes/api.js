@@ -1,35 +1,35 @@
-const express=require('express');
-const router=express.Router();
+const express = require('express');
+const router = express.Router();
 const multer = require("multer");
 const upload = multer();
-const {authenticate, authorizeRoles} = require("../middlewares/auth_middleware");
-const TraineeAuthController=require('../controllers/trainee/trainee_auth_controller');
-const TraineeTrainingController=require('../controllers/trainee/trainee_training_controller');
-const {route} = require("express/lib/application");
-const fileUpload=require('../middlewares/file_upload_middleware')
+const { authenticate, authorizeRoles } = require("../middlewares/auth_middleware");
+const TraineeAuthController = require('../controllers/trainee/trainee_auth_controller');
+const TraineeTrainingController = require('../controllers/trainee/trainee_training_controller');
+const { route } = require("express/lib/application");
+const fileUpload = require('../middlewares/file_upload_middleware')
 //REGISTRATION
-router.post('/register',upload.none(), TraineeAuthController.register);
-router.post('/login',upload.none(), TraineeAuthController.login);
-router.post('/send-otp',upload.none(), TraineeAuthController.sendOtp);
-router.post('/verify-otp',upload.none(), TraineeAuthController.verifyOtp);
-router.get('/departments',upload.none(), TraineeAuthController.getDepartment);
-router.get('/districts',upload.none(), TraineeAuthController.getDistricts);
-router.get('/groups',upload.none(), TraineeAuthController.getGroups);
-router.get('/me',authenticate,authorizeRoles('Trainee'), TraineeAuthController.me);
-router.post('/logout',authenticate,authorizeRoles('Trainee'),TraineeAuthController.logout);
-router.get('/my-profile',authenticate,authorizeRoles('Trainee'),TraineeAuthController.getMyProfile);
-router.patch('/profile',authenticate,authorizeRoles('Trainee'),fileUpload.single('profile'),TraineeAuthController.updateProfile);
+router.post('/register', upload.none(), TraineeAuthController.register);
+router.post('/login', upload.none(), TraineeAuthController.login);
+router.post('/send-otp', upload.none(), TraineeAuthController.sendOtp);
+router.post('/verify-otp', upload.none(), TraineeAuthController.verifyOtp);
+router.get('/departments', upload.none(), TraineeAuthController.getDepartment);
+router.get('/districts', upload.none(), TraineeAuthController.getDistricts);
+router.get('/groups', upload.none(), TraineeAuthController.getGroups);
+router.get('/me', authenticate, authorizeRoles('Trainee'), TraineeAuthController.me);
+router.post('/logout', authenticate, authorizeRoles('Trainee'), TraineeAuthController.logout);
+router.get('/my-profile', authenticate, authorizeRoles('Trainee'), TraineeAuthController.getMyProfile);
+router.patch('/profile', authenticate, authorizeRoles('Trainee'), fileUpload.single('profile'), TraineeAuthController.updateProfile);
 //TRAINING
-router.get('/trainings',upload.none(),authenticate,authorizeRoles('Trainee'), TraineeTrainingController.getTraining);
-router.get('/training/:trainingId',upload.none(),authenticate,authorizeRoles('Trainee'), TraineeTrainingController.getTrainingById);
-router.post('/training/:trainingId/enrollments',upload.none(),authenticate,authorizeRoles('Trainee'), TraineeTrainingController.enrollInTraining);
-router.get('/enrollments',upload.none(),authenticate,authorizeRoles('Trainee'), TraineeTrainingController.myEnrollments);
-router.get('/enrollment/:enrollmentId',upload.none(),authenticate,authorizeRoles('Trainee'), TraineeTrainingController.myEnrollmentDetails);
-router.get('/enrollment/:enrollmentId/status',upload.none(),authenticate,authorizeRoles('Trainee'),TraineeTrainingController.checkStatus);
-router.get('/enrollment/:trainingId/course',upload.none(),authenticate,authorizeRoles('Trainee'),TraineeTrainingController.getCourseByProgram);
-router.get('/enrollment/:trainingId/materials',upload.none(),authenticate,authorizeRoles('Trainee'),TraineeTrainingController.getMaterials);
-router.get('/enrollment/:trainingId/attendance',upload.none(),authenticate,authorizeRoles('Trainee'),require('../controllers/trainee/trainee_attendance_controller').getAttendance);
-router.post('/attendance',upload.none(),authenticate,authorizeRoles('Trainee'),require('../controllers/trainee/trainee_attendance_controller').markAttendance);
+router.get('/trainings', upload.none(), authenticate, authorizeRoles('Trainee'), TraineeTrainingController.getTraining);
+router.get('/training/:trainingId', upload.none(), authenticate, authorizeRoles('Trainee'), TraineeTrainingController.getTrainingById);
+router.post('/training/:trainingId/enrollments', upload.none(), authenticate, authorizeRoles('Trainee'), TraineeTrainingController.enrollInTraining);
+router.get('/enrollments', upload.none(), authenticate, authorizeRoles('Trainee'), TraineeTrainingController.myEnrollments);
+router.get('/enrollment/:enrollmentId', upload.none(), authenticate, authorizeRoles('Trainee'), TraineeTrainingController.myEnrollmentDetails);
+router.get('/enrollment/:enrollmentId/status', upload.none(), authenticate, authorizeRoles('Trainee'), TraineeTrainingController.checkStatus);
+router.get('/enrollment/:trainingId/course', upload.none(), authenticate, authorizeRoles('Trainee'), TraineeTrainingController.getCourseByProgram);
+router.get('/enrollment/:trainingId/materials', upload.none(), authenticate, authorizeRoles('Trainee'), TraineeTrainingController.getMaterials);
+router.get('/enrollment/:trainingId/attendance', upload.none(), authenticate, authorizeRoles('Trainee'), require('../controllers/trainee/trainee_attendance_controller').getAttendance);
+router.post('/attendance', upload.none(), authenticate, authorizeRoles('Trainee'), require('../controllers/trainee/trainee_attendance_controller').markAttendance);
 router.post(
     "/training/:trainingId/ratings",
     authenticate,
@@ -43,26 +43,32 @@ router.post(
     authorizeRoles("Trainee"),
     require("../controllers/trainee/trainee_feedback_controller").feedback
 );
-router.get('/upcoming',authenticate,authorizeRoles('Trainee'), upload.none(), require('../controllers/trainee/trainee_training_controller').getUpcomingTrainings);
+router.get('/upcoming', authenticate, authorizeRoles('Trainee'), upload.none(), require('../controllers/trainee/trainee_training_controller').getUpcomingTrainings);
 //TICKETS
-router.post('/tickets', upload.none(), authenticate,authorizeRoles('Trainee'), require('../controllers/trainee/trainee_ticket_controller').raiseTicket);
-router.get('/tickets', upload.none(), authenticate,authorizeRoles('Trainee'), require('../controllers/trainee/trainee_ticket_controller').myTicket);
-router.get('/tickets/:ticketId',upload.none(), authenticate,authorizeRoles('Trainee'), require('../controllers/trainee/trainee_ticket_controller').getTicketById);
-router.post('/ticket/:ticketId/reply', upload.none(), authenticate,authorizeRoles('Trainee'), require('../controllers/trainee/trainee_ticket_controller').replyTickets);
-router.patch('/ticket/:ticketId',upload.none(), authenticate,authorizeRoles('Trainee'), require('../controllers/trainee/trainee_ticket_controller').closeTicket);
+router.post('/tickets', upload.none(), authenticate, authorizeRoles('Trainee'), require('../controllers/trainee/trainee_ticket_controller').raiseTicket);
+router.get('/tickets', upload.none(), authenticate, authorizeRoles('Trainee'), require('../controllers/trainee/trainee_ticket_controller').myTicket);
+router.get('/tickets/:ticketId', upload.none(), authenticate, authorizeRoles('Trainee'), require('../controllers/trainee/trainee_ticket_controller').getTicketById);
+router.post('/ticket/:ticketId/reply', upload.none(), authenticate, authorizeRoles('Trainee'), require('../controllers/trainee/trainee_ticket_controller').replyTickets);
+router.patch('/ticket/:ticketId', upload.none(), authenticate, authorizeRoles('Trainee'), require('../controllers/trainee/trainee_ticket_controller').closeTicket);
 //DOCUMENT
-router.get('/documents', upload.none(), authenticate,authorizeRoles('Admin','Trainer','Trainee'), require('../controllers/document_controller').getDocuments);
+router.get('/documents', upload.none(), authenticate, authorizeRoles('Admin', 'Trainer', 'Trainee'), require('../controllers/document_controller').getDocuments);
 // FAQ
-router.get('/faqs',upload.none(),authenticate,authorizeRoles('Trainee'),require('../controllers/trainee/trainee_faq_controller').getFaq);
+router.get('/faqs', upload.none(), authenticate, authorizeRoles('Trainee'), require('../controllers/trainee/trainee_faq_controller').getFaq);
 //BANNER
-router.get('/banners',authenticate,authorizeRoles('Trainee'), upload.none(), require('../controllers/banner_controller').getBanners);
-module.exports=router;
+router.get('/banners', authenticate, authorizeRoles('Trainee'), upload.none(), require('../controllers/banner_controller').getBanners);
+module.exports = router;
 
 // FCM
-router.post('/fcm/register-token',authenticate,authorizeRoles('Trainee'),upload.none(),require('../controllers/token_controller').registerToken);
+router.post('/fcm/register-token', authenticate, authorizeRoles('Trainee'), upload.none(), require('../controllers/token_controller').registerToken);
 
+//EVALUATION
+router.get('/evaluation/status', authenticate, authorizeRoles('Trainee'), upload.none(), require('../controllers/trainee/trainee_evaluation_controller').checkEvaluationStatus);
+router.get('/evaluation/questions', authenticate, authorizeRoles('Trainee'), upload.none(), require('../controllers/trainee/trainee_evaluation_controller').getEvaluationQuestions);
+router.post('/evaluation/answers', authenticate, authorizeRoles('Trainee'), upload.none(), require('../controllers/trainee/trainee_evaluation_controller').submitEvaluation);
 
+//OFFICE ORDER & CERTIFICATE
+router.get('/certificate-and-release-order', authenticate, authorizeRoles('Trainee'), upload.none(), require('../controllers/trainee/trainee_certificate_controller').getCertificateAndReleaseOrder);
 //UNAUTH API
 
-router.get('/programs',upload.none(),require('../controllers/home_controller').getPrograms);
-router.get('/trainings/calendar',upload.none(),require('../controllers/home_controller').getCalendarTrainings);
+router.get('/programs', upload.none(), require('../controllers/home_controller').getPrograms);
+router.get('/trainings/calendar', upload.none(), require('../controllers/home_controller').getCalendarTrainings);

@@ -1,12 +1,12 @@
-const Attendance=require('../../models/attendance_model');
-const User=require('../../models/user_model');
-const Enrollment=require('../../models/enrollment_model');
-const Session=require('../../models/training_course_model');
+const Attendance = require('../../models/attendance_model');
+const User = require('../../models/user_model');
+const Enrollment = require('../../models/enrollment_model');
+const Session = require('../../models/training_course_model');
 const TrainingCourse = require("../../models/training_course_model");
 const STATUS = require("../../utils/httpStatus");
 const TrainingProgram = require("../../models/training_program_model");
 const dayjs = require("dayjs");
-const mongoose=require("mongoose");
+const mongoose = require("mongoose");
 
 exports.getSessionAttendance = async (req, res) => {
     try {
@@ -18,7 +18,7 @@ exports.getSessionAttendance = async (req, res) => {
                 status: STATUS.NOT_FOUND
             });
         }
-        const sessionDate=  dayjs(session.tc_date).startOf('day').toDate();
+        const sessionDate = dayjs(session.tc_date).startOf('day').toDate();
         const enrollments = await Enrollment.find({
             training_program: session.t_program,
             status: 'Approved'
@@ -72,7 +72,7 @@ exports.getFullAttendance = async (req, res) => {
             });
         }
         const [enrollments, currentAttendance, attendanceStats, totalSessionsCount] = await Promise.all([
-            Enrollment.find({ training_program: programId,status:'Approved' }).populate("user", "full_name image").lean(),
+            Enrollment.find({ training_program: programId, status: 'Approved' }).populate("user", "full_name image").lean(),
             Attendance.find({ trainingId: programId }).lean(),
             Attendance.aggregate([
                 { $match: { trainingId: new mongoose.Types.ObjectId(programId) } },
@@ -130,10 +130,11 @@ exports.getTraineeAttendanceDetails = async (req, res) => {
     }
 
     try {
-        const [program, sessions,traineeName] = await Promise.all([
+        const [program, sessions, traineeName, trainingCategory] = await Promise.all([
             TrainingProgram.findById(trainingId).select('t_name').lean(),
             Session.find({ t_program: trainingId }).sort({ tc_date: 1 }).lean(),
             User.findById(traineeId).select('full_name').lean(),
+            TrainingProgram.findById(trainingId).populate('t_category').lean(),
         ]);
 
         if (!program) {
@@ -184,6 +185,7 @@ exports.getTraineeAttendanceDetails = async (req, res) => {
                 traineeId,
                 traineeName,
                 programName: program.t_name,
+                trainingCategory: trainingCategory.t_category.name,
                 stats: {
                     totalSessions,
                     presentCount,

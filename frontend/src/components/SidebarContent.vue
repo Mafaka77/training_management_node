@@ -109,6 +109,10 @@
             class="mt-1 ml-4 border-l border-zinc-200 dark:border-white/5 pl-2 space-y-1 overflow-hidden">
             <SidebarItem to="/admin/master/room" :isDark="isDark" icon="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z">
               Rooms</SidebarItem>
+            <SidebarItem to="/admin/master/location" :isDark="isDark"
+              icon="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z M12 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6z">
+              Geo Location
+            </SidebarItem>
             <SidebarItem to="/admin/master/category" :isDark="isDark"
               icon="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z">Categories
             </SidebarItem>
@@ -118,6 +122,8 @@
               FAQs</SidebarItem>
             <SidebarItem to="/admin/master/banner" :isDark="isDark"
               icon="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z">Banners</SidebarItem>
+            <SidebarItem to="/admin/master/evaluation" :isDark="isDark"
+              icon="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z">Evaluation</SidebarItem>
           </div>
         </Transition>
       </nav>

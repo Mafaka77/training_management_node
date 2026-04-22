@@ -4,7 +4,8 @@
     <div class="mx-auto flex max-w-[90rem] items-center justify-between px-4 py-3 sm:px-6">
 
       <div class="flex items-center gap-4">
-        <button @click="$emit('toggleSidebar')" class="md:hidden p-2 rounded-lg hover:bg-zinc-500/10 transition-colors">
+        <button @click="$emit('toggleSidebar')" class="p-2 rounded-lg hover:bg-zinc-500/10 transition-colors"
+          title="Toggle Sidebar">
           <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
