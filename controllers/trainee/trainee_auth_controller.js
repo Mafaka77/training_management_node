@@ -146,19 +146,19 @@ exports.sendOtp = async (req, res) => {
         return res.status(STATUS.OK).json({ message: 'User already exists', status: STATUS.CONFLICT })
     }
     const otp = generateOTP(mobile);
-    const templateId = '1407173926279603243';
-    const message = `Please enter OTP ${otp} to register to ATI.EGOVMZ`;
+    const templateId = '1407177545229547887';
+    const message = `Your OTP code for ATI is ${otp}.EGOVMZ`;
     try {
-        // const response = await axios.get("https://sms.msegs.in/api/send-sms", {
-        //     headers: {
-        //         'Authorization': `Bearer ${process.env.SMS_TOKEN}`
-        //     },
-        //     params: {
-        //         template_id: templateId,
-        //         message: message,
-        //         recipient: mobile
-        //     }
-        // });
+        const response = await axios.get("https://sms.msegs.in/api/send-sms", {
+            headers: {
+                'Authorization': `Bearer ${process.env.SMS_TOKEN}`
+            },
+            params: {
+                template_id: templateId,
+                message: message,
+                recipient: mobile
+            }
+        });
         await sendEmail('zuala4@gmail.com', 'OTP', message);
         console.log(otp);
         return res.status(STATUS.OK).json({ message: 'OTP Sent', status: STATUS.OK, otp: otp })

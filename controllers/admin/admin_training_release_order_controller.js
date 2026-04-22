@@ -289,7 +289,7 @@ exports.prepareForESign = async (req, res) => {
         const incomingData = {
             "Name": user.full_name,
             "FileType": "PDF",
-            "AuthToken": "940af2bc-2664-4ed9-bbfa-bb7302192680",
+            "AuthToken": "c49046e1-c3de-4a1b-8024-679f0debadaa",
             "File": fileBase64,
             "SignatureMode": "2",
             "SelectPage": "1",
@@ -341,6 +341,8 @@ exports.prepareForESign = async (req, res) => {
     }
 }
 exports.emSignerSuccessResponse = async (req, res) => {
+    const SERVER_URL = 'https://staging2.egovmz.in';
+    // const SERVER_URL = 'http://localhost:5173';
     const { trainingId } = req.params;
     try {
 
@@ -367,11 +369,11 @@ exports.emSignerSuccessResponse = async (req, res) => {
                 }
             }
         );
-        res.redirect(`http://localhost:5173/admin/training/${trainingId}/signature-success`);
+        res.redirect(`${SERVER_URL}/admin/training/${trainingId}/signature-success`);
 
     } catch (error) {
         console.error("Signature processing failed:", error);
-        res.redirect(`http://localhost:5173/admin/training/${trainingId}/signature-failure`);
+        res.redirect(`${SERVER_URL}/admin/training/${trainingId}/signature-failure`);
     }
 }
 
