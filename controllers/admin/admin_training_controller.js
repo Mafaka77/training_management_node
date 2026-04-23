@@ -10,6 +10,8 @@ const Notification = require('../../models/notification_model');
 const { sendPushToUser } = require('../../services/push_service');
 const { parse, startOfDay } = require('date-fns');
 const mongoose = require("mongoose");
+const axios = require('axios');
+const { sendEmail } = require('../../services/mailer_services');
 function parseDateFlexible(val) {
     if (val === undefined || val === null || val === '') return null;
     let d;
@@ -331,7 +333,7 @@ exports.getEnrollmentsByProgram = async (req, res) => {
     }
 }
 
-exports.getFoundationUsers = async (req, res) => {
+exports.searchFoundationUsers = async (req, res) => {
     try {
         const { search } = req.query;
 
@@ -381,17 +383,121 @@ exports.getFoundationUsers = async (req, res) => {
         });
     }
 };
+exports.getFoundationUsersByGroup = async (req, res) => {
+    try {
+        const { trainingId } = req.params;
+
+        // Extract query parameters with defaults
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const search = req.query.search || '';
+        const sortBy = req.query.sortBy || 'mandatoryCourseDueDate';
+        const sortOrder = req.query.sortOrder === 'desc' ? -1 : 1;
+
+        const training = await TrainingProgram.findById(trainingId);
+
+        if (!training) {
+            return res.status(STATUS.NOT_FOUND).json({ message: "Training not found", status: STATUS.NOT_FOUND });
+        }
+
+        const eligibility = training.t_eligibility;
+        const existingEnrollments = await Enrollment.find({ training_program: trainingId }).select("user").lean();
+        const enrolledUserIds = existingEnrollments.map(enrollment => enrollment.user);
+
+        // 1. Build the Database Query
+        const dbQuery = {
+            is_blacklisted: false,
+            confirmation: 'Confirmed',
+            mandatory_completion: false,
+            group: { $in: eligibility },
+            _id: { $nin: enrolledUserIds }
+        };
+
+        // Apply Search Filter (Name or Mobile)
+        if (search) {
+            dbQuery.$or = [
+                { full_name: { $regex: search, $options: 'i' } },
+                { mobile: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        // 2. Fetch the filtered users
+        const users = await User.find(dbQuery)
+            .select("full_name department mobile date_of_entry_in_present_grade")
+            .lean();
+
+        // 3. Map to add the Due Date
+        const mappedUsers = users.map(user => {
+            let dueDate = null;
+
+            if (user.date_of_entry_in_present_grade) {
+                const entryDate = new Date(user.date_of_entry_in_present_grade);
+                dueDate = new Date(entryDate);
+                dueDate.setFullYear(entryDate.getFullYear() + 2);
+            }
+
+            return {
+                ...user,
+                mandatoryCourseDueDate: dueDate
+            };
+        });
+
+        // 4. Apply Sorting
+        mappedUsers.sort((a, b) => {
+            // Special handling for the calculated date field
+            if (sortBy === 'mandatoryCourseDueDate') {
+                if (!a.mandatoryCourseDueDate) return 1; // Always push nulls to the bottom
+                if (!b.mandatoryCourseDueDate) return -1;
+                return (a.mandatoryCourseDueDate - b.mandatoryCourseDueDate) * sortOrder;
+            }
+
+            // Generic string/number sorting for other fields (e.g., full_name, department)
+            const valA = a[sortBy] || '';
+            const valB = b[sortBy] || '';
+
+            if (valA < valB) return -1 * sortOrder;
+            if (valA > valB) return 1 * sortOrder;
+            return 0;
+        });
+
+        // 5. Apply Pagination (Slice the array)
+        const startIndex = (page - 1) * limit;
+        const endIndex = page * limit;
+        const paginatedUsers = mappedUsers.slice(startIndex, endIndex);
+
+        // 6. Return standard paginated payload
+        return res.status(STATUS.OK).json({
+            status: STATUS.OK,
+            data: paginatedUsers,
+            pagination: {
+                totalRecords: mappedUsers.length,
+                currentPage: page,
+                totalPages: Math.ceil(mappedUsers.length / limit),
+                limit: limit
+            }
+        });
+
+    } catch (error) {
+        console.error("Error fetching foundation users by group:", error);
+        return res.status(500).json({ message: "Internal server error", status: 500 });
+    }
+}
+
 exports.enrollInTraining = async (req, res) => {
     const { trainingId } = req.params;
     const { userId } = req.body;
+
     if (!mongoose.Types.ObjectId.isValid(trainingId) || !mongoose.Types.ObjectId.isValid(userId)) {
+        // Note: It's better practice to use res.status(STATUS.BAD_REQUEST) here rather than OK
         return res.status(STATUS.OK).json({ message: "Invalid ID provided", status: STATUS.BAD_REQUEST });
     }
+
     try {
         const user = await User.findById(userId);
         if (!user) {
             return res.status(STATUS.OK).json({ message: "User not found", status: STATUS.NOT_FOUND });
         }
+
         if (user.is_blacklisted) {
             const now = new Date();
             const isCurrentlyBlocked = (!user.blacklist_details.end_date || now <= user.blacklist_details.end_date) &&
@@ -405,14 +511,12 @@ exports.enrollInTraining = async (req, res) => {
             }
         }
 
-        // Check if training exists
         const training = await TrainingProgram.findById(trainingId);
         if (!training) {
             return res.status(STATUS.OK).json({ message: "Training not found", status: STATUS.NOT_FOUND });
         }
-        if (training.t_eligibility && training.t_eligibility.length > 0) {
 
-            // Check if user even has a group assigned
+        if (training.t_eligibility && training.t_eligibility.length > 0) {
             if (!user.group) {
                 return res.status(STATUS.OK).json({
                     message: "This training is restricted to specific groups. Please update your profile.",
@@ -420,11 +524,7 @@ exports.enrollInTraining = async (req, res) => {
                 });
             }
 
-            // Check if user's group ID exists in the t_eligibility array
-            const isEligible = training.t_eligibility.some(groupId =>
-                groupId.equals(user.group)
-            );
-
+            const isEligible = training.t_eligibility.some(groupId => groupId.equals(user.group));
             if (!isEligible) {
                 return res.status(STATUS.OK).json({
                     message: "You are not eligible for this training based on your group.",
@@ -432,50 +532,89 @@ exports.enrollInTraining = async (req, res) => {
                 });
             }
         }
+
         if (training.t_status !== 'Upcoming') {
             return res.status(STATUS.OK).json({ message: "Enrollment is only allowed for upcoming trainings", status: STATUS.FORBIDDEN });
         }
-        // Check if capacity is reached
 
         const currentEnrollments = await Enrollment.countDocuments({ training_program: trainingId, status: 'Approved' });
         if (currentEnrollments >= training.t_capacity) {
             return res.status(STATUS.OK).json({ message: "Training capacity reached", status: STATUS.BAD_REQUEST });
         }
 
-        // Check if user already enrolled
         const existingEnrollment = await Enrollment.findOne({ training_program: trainingId, user: userId });
         if (existingEnrollment) {
-            return res.status(STATUS.OK).json({ message: "You are already enrolled in this training", status: STATUS.CONFLICT });
+            return res.status(STATUS.OK).json({ message: "Trainee already enrolled in this training", status: STATUS.CONFLICT });
         }
-
-        // Create enrollment
         const newEnrollment = new Enrollment({
             training_program: trainingId,
             user: userId,
             status: 'Approved'
         });
         await newEnrollment.save();
-        const adminNotification = new Notification({
-            sender_id: req.user.user.id,
-            type: "Training",
-            title: "New Enrollment Request",
-            message: `${user.full_name} applied for ${training.t_name}`,
-            // Attach the ID here:
-            target_url: `/admin/training/enrollment/${newEnrollment._id}`,
-            is_read: false
-        });
-        await adminNotification.save();
-        sendPushToUser(userId, {
-            title: "Enrollment",
-            body: `You have been enrolled in ${training.t_name}`,
-        });
 
-        return res.status(STATUS.OK).json({ message: "Enrolled successfully", enrollment: newEnrollment, status: STATUS.CREATED });
+
+        // SMS Notification
+        try {
+            const startDate = training.t_start_date.toLocaleDateString();
+            const templateId = '1407177545223617029';
+            const message = `ATI a training turin thlan i ni a, Dt. ${startDate} 09:30 AM ah ATI Reception ah in report tura hriattir i ni e. EGOVMZ`;
+
+            await axios.get("https://sms.msegs.in/api/send-sms", {
+                headers: { 'Authorization': `Bearer ${process.env.SMS_TOKEN}` },
+                params: {
+                    template_id: templateId,
+                    message: message,
+                    recipient: user.mobile // <-- Fixed: was just 'mobile' previously
+                }
+            });
+        } catch (smsError) {
+            console.error("Failed to send SMS:", smsError.message);
+        }
+
+        // Admin Notification
+        try {
+            const adminNotification = new Notification({
+                sender_id: req.user.user.id,
+                type: "Training",
+                title: "New Enrollment Request",
+                message: `${user.full_name} applied for ${training.t_name}`,
+                target_url: `/admin/training/enrollment/${newEnrollment._id}`,
+                is_read: false
+            });
+            await adminNotification.save();
+        } catch (notifError) {
+            console.error("Non-fatal error: Failed to save Admin Notification:", notifError.message);
+        }
+
+        // Push Notification
+        try {
+            // Assuming sendPushToUser returns a Promise
+            await sendPushToUser(userId, {
+                title: "Enrollment",
+                body: `You have been enrolled in ${training.t_name}.`,
+            });
+        } catch (pushError) {
+            console.error("Non-fatal error: Failed to send Push Notification:", pushError.message);
+        }
+        try {
+            await sendEmail(user.email, "Enrollment", `You have been enrolled in ${training.t_name}.`);
+        } catch (ex) { }
+
+        // --- 3. RETURN SUCCESS ---
+        // Even if the side effects above fail, the user gets a success response!
+        return res.status(STATUS.OK).json({
+            message: "Enrolled successfully",
+            enrollment: newEnrollment,
+            status: STATUS.CREATED
+        });
 
     } catch (e) {
-        return res
-            .status(STATUS.INTERNAL_SERVER_ERROR)
-            .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+        console.error("Fatal Enrollment Error:", e);
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            message: e.message,
+            status: STATUS.INTERNAL_SERVER_ERROR
+        });
     }
 }
 

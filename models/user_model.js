@@ -74,6 +74,10 @@ const userSchema = new mongoose.Schema({
         type: Date,
         required: false,
     },
+    date_of_entry_in_present_grade: {
+        type: Date,
+        required: false,
+    },
     date_of_superannuation: {
         type: Date,
         required: false,
@@ -91,6 +95,10 @@ const userSchema = new mongoose.Schema({
     service_cadre: {
         type: String,
         required: false,
+    },
+    disclaimer: {
+        type: Boolean,
+        default: false,
     },
     roles: [{
         type: mongoose.Schema.Types.ObjectId,

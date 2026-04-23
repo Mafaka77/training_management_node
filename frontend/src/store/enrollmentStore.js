@@ -19,6 +19,12 @@ export const useEnrollmentStore = defineStore('enrollment', {
         },
         isFoundation: false,
         foundationUsers: [],
+        foundationPagination: {
+            totalRecords: 0,
+            currentPage: 1,
+            totalPages: 1,
+            limit: 12
+        },
         userHistory: [],
 
     }),
@@ -105,6 +111,33 @@ export const useEnrollmentStore = defineStore('enrollment', {
                 return { success: false, message: ex.message }
             }
             finally {
+                this.isLoading = false;
+            }
+        },
+        async getFoundationUsersByGroup(trainingId, params = {}) {
+            this.isLoading = true;
+            try {
+                // Construct the query parameters
+                const queryParams = {
+                    page: params.page || 1,
+                    limit: params.limit || 12, // 12 fits nicely in a 1, 2, or 3 column grid
+                    search: params.search || '',
+                    sortBy: params.sortBy || 'mandatoryCourseDueDate',
+                    sortOrder: params.sortOrder || 'asc'
+                };
+
+                const response = await api.get(`/enrollment/foundation-users/group/${trainingId}`, {
+                    params: queryParams
+                });
+
+                if (response.status === 200 && response.data.status === 200) {
+                    this.foundationUsers = response.data.data;
+                    this.foundationPagination = response.data.pagination;
+                    console.log(this.foundationUsers);
+                }
+            } catch (ex) {
+                console.error("Failed to fetch foundation users:", ex);
+            } finally {
                 this.isLoading = false;
             }
         }

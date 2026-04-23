@@ -104,7 +104,6 @@ exports.getEnrollmentById = async (req, res) => {
             user: new mongoose.Types.ObjectId(enrollment.user._id),
             status: 'Approved'
         }).populate("training_program");
-        console.log(userHistory);
         res.status(STATUS.OK).json({
             status: STATUS.OK,
             enrollment,
