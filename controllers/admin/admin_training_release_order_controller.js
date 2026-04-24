@@ -276,7 +276,7 @@ exports.deleteReleaseOrder = async (req, res) => {
 exports.prepareForESign = async (req, res) => {
     const PUBLIC_KEY_PATH = path.join(__dirname, '../../cert', 'cert.cer')
     // const SERVER_URL = 'https://parchment-unabashed-urging.ngrok-free.dev';
-    const SERVER_URL = import.meta.env.VITE_BASE_URL;
+    const SERVER_URL = 'https://staging2.egovmz.in';
     try {
         const { trainingId } = req.params;
         const releaseOrder = await ReleaseOrder.findOne({ training_program: trainingId });
@@ -341,7 +341,7 @@ exports.prepareForESign = async (req, res) => {
     }
 }
 exports.emSignerSuccessResponse = async (req, res) => {
-    const SERVER_URL = import.meta.env.VITE_BASE_URL;
+    const SERVER_URL = 'https://staging2.egovmz.in';
     // const SERVER_URL = 'http://localhost:5173';
     const { trainingId } = req.params;
     try {
