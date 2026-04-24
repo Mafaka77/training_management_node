@@ -27,6 +27,7 @@ export const useEnrollmentStore = defineStore('enrollment', {
         },
         userHistory: [],
 
+
     }),
     actions: {
 
@@ -82,7 +83,7 @@ export const useEnrollmentStore = defineStore('enrollment', {
                 return { success: false, message: response.data.message }
 
             } catch (ex) {
-                return { success: false, message: response.ex.message }
+                return { success: false, message: ex }
             }
         },
         async searchFoundationUsers(query) {
@@ -140,6 +141,39 @@ export const useEnrollmentStore = defineStore('enrollment', {
             } finally {
                 this.isLoading = false;
             }
+        },
+        async fetchTraineeEnrollmentHistory(userId) {
+            this.isLoading = true;
+            try {
+                const response = await api.get(`/enrollment/history/${userId}`);
+                if (response.status === 200 && response.data.status === 200) {
+                    this.userHistory = response.data.data;
+                    return { success: true, message: 'History Found' }
+                }
+                if (response.status === 200 && response.data.status === 204) {
+                    return { success: false, message: 'No history found' }
+                }
+                return { success: false, message: 'Error Occured' }
+            } catch (ex) {
+                return { success: false, message: ex.message }
+            }
+            finally {
+                this.isLoading = false;
+            }
+        },
+        async fetchEnrollmentDetails(enrollmentId) {
+            try {
+                var response = await api.get(`/enrollment/${enrollmentId}/details`);
+                if (response.status === 200 && response.data.status === 200) {
+                    this.enrollment = response.data.enrollment;
+                    this.userHistory = response.data.userHistory;
+                    return { success: true, message: 'Enrollment Details Found' }
+                }
+                return { success: false, message: 'Enrollment Details Not Found' }
+            } catch (ex) {
+                return { success: false, message: ex.message }
+            }
         }
+
     }
 });

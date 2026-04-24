@@ -57,6 +57,8 @@ router.get('/enrollments/:programId', authenticate, authorizeRoles('Admin', 'Dir
 router.get('/enrollment/foundation-users', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingController.searchFoundationUsers);
 router.get('/enrollment/foundation-users/group/:trainingId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingController.getFoundationUsersByGroup)
 router.post('/enrollment/:trainingId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingController.enrollInTraining);
+router.get('/enrollment/history/:userId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingController.getTraineeEnrollmentHistory);
+router.get('/enrollment/:enrollmentId/details', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingController.getEnrollmentDetails);
 //TRAINING COURSE
 router.post('/submit-training-course', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingCourseController.submitTrainingCourse);
 router.get('/get-trainer', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingCourseController.getTrainer);

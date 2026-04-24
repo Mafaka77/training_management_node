@@ -618,3 +618,58 @@ exports.enrollInTraining = async (req, res) => {
     }
 }
 
+exports.getTraineeEnrollmentHistory = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const enrollments = await Enrollment.find({ user: userId })
+            .populate("training_program", "t_name")
+            .sort({ createdAt: -1 })
+            .lean();
+        if (enrollments.length === 0) {
+            return res.status(STATUS.OK).json({
+                status: STATUS.NO_CONTENT,
+                data: []
+            });
+        }
+        return res.status(STATUS.OK).json({
+            status: STATUS.OK,
+            data: enrollments
+        });
+    } catch (ex) {
+        console.error("Error fetching trainee enrollment history:", ex);
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            message: "Internal server error",
+            status: STATUS.INTERNAL_SERVER_ERROR
+        });
+    }
+}
+exports.getEnrollmentDetails = async (req, res) => {
+    try {
+        const { enrollmentId } = req.params;
+        const enrollment = await Enrollment.findById(enrollmentId)
+            .populate("training_program", "t_name t_start_date t_end_date")
+            .populate("user")
+            .lean();
+        if (!enrollment) {
+            return res.status(STATUS.OK).json({
+                status: STATUS.NOT_FOUND,
+                data: null
+            });
+        }
+        const userHistory = await Enrollment.find({
+            user: new mongoose.Types.ObjectId(enrollment.user._id),
+            status: 'Approved'
+        }).populate("training_program");
+        return res.status(STATUS.OK).json({
+            status: STATUS.OK,
+            enrollment,
+            userHistory
+        });
+    } catch (ex) {
+        console.error("Error fetching enrollment details:", ex);
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            message: "Internal server error",
+            status: STATUS.INTERNAL_SERVER_ERROR
+        });
+    }
+}

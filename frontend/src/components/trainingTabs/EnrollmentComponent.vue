@@ -109,7 +109,7 @@
               </td>
               <td class="px-6 py-4 text-right">
                 <div class="flex items-center justify-end gap-2">
-                  <router-link
+                  <!-- <router-link
                     :to="{ name: detailRouteName, params: { id: item._id, programId: item.training_program._id } }"
                     class="p-2 hover:text-blue-500 transition-colors">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -118,7 +118,15 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                     </svg>
-                  </router-link>
+                  </router-link> -->
+                  <button @click="enrollmentDetails(item)" class="p-2 hover:text-blue-500 transition-colors">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  </button>
                   <button v-if="item.status === 'Pending'" @click="updateStatus(item._id, 'Approved')"
                     class="p-2 text-zinc-400 hover:text-emerald-500 transition-colors">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -162,132 +170,162 @@
 
   <Teleport to="body">
     <Transition name="fade">
-      <div v-if="showSearchModal" class="fixed inset-0 z-[100] flex flex-col bg-white dark:bg-zinc-950">
+      <div v-if="showSearchModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
 
-        <div class="relative w-full h-full flex flex-col overflow-hidden">
+        <div class="absolute inset-0 bg-zinc-900/70 backdrop-blur-sm transition-opacity"
+          @click="showSearchModal = false"></div>
 
-          <div class="p-4 sm:p-6 border-b dark:border-white/5 bg-zinc-50 dark:bg-zinc-900/50 shrink-0">
-            <div class="flex items-center gap-4 mb-4 max-w-4xl mx-auto">
-              <button @click="showSearchModal = false"
-                class="p-2 -ml-2 rounded-full hover:bg-zinc-200 dark:hover:bg-white/10 text-zinc-500 transition-colors">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-              </button>
-              <h3 class="text-xl font-black dark:text-white uppercase tracking-tight flex-1">Enroll Trainee</h3>
+        <div
+          class="relative w-full max-w-6xl h-full max-h-[90vh] flex flex-col bg-white dark:bg-zinc-950 rounded-xl shadow-2xl border border-zinc-200 dark:border-white/10 overflow-hidden transform transition-all">
+
+          <div
+            class="px-6 py-4 border-b border-zinc-200 dark:border-white/10 bg-white dark:bg-zinc-950 flex items-center justify-between shrink-0">
+            <div>
+              <h3 class="text-lg font-bold text-zinc-900 dark:text-white tracking-tight">Enroll Trainee</h3>
+              <p class="text-xs text-zinc-500 mt-0.5">Search and select trainees to add to this foundation course.</p>
+            </div>
+            <button @click="showSearchModal = false"
+              class="p-2 rounded-md hover:bg-zinc-100 dark:hover:bg-white/5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div
+            class="px-6 py-3 bg-zinc-50 dark:bg-white/[0.02] border-b border-zinc-200 dark:border-white/10 flex flex-col sm:flex-row gap-3 shrink-0">
+            <div class="relative flex-1 max-w-md">
+              <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input v-model="userSearchQuery" type="text" placeholder="Search by name, department, or mobile..."
+                class="w-full pl-9 pr-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-white/10 shadow-sm rounded-md text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none dark:text-white transition-all"
+                autofocus />
             </div>
 
-            <div class="max-w-4xl mx-auto flex flex-col sm:flex-row gap-3">
-              <div class="relative group flex-1">
-                <svg
-                  class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-focus-within:text-blue-500 transition-colors"
-                  fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <input v-model="userSearchQuery" type="text" placeholder="Search by name or mobile..."
-                  class="w-full pl-12 pr-4 py-3.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 shadow-sm rounded-xl text-base focus:ring-2 focus:ring-blue-500/50 outline-none dark:text-white transition-all"
-                  autofocus />
-              </div>
-
-              <div class="sm:w-64">
-                <select v-model="foundationSortBy"
-                  class="w-full py-3.5 px-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 shadow-sm rounded-xl text-sm font-bold text-zinc-700 dark:text-zinc-300 outline-none focus:ring-2 focus:ring-blue-500/50 cursor-pointer appearance-none">
-                  <option value="mandatoryCourseDueDate_asc">Due Date (Urgent First)</option>
-                  <option value="mandatoryCourseDueDate_desc">Due Date (Latest First)</option>
-                  <option value="full_name_asc">Name (A-Z)</option>
-                  <option value="department_asc">Department</option>
-                </select>
-              </div>
+            <div class="sm:w-64 ml-auto">
+              <select v-model="foundationSortBy"
+                class="w-full py-2 px-3 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-white/10 shadow-sm rounded-md text-sm text-zinc-700 dark:text-zinc-300 outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 cursor-pointer appearance-none">
+                <option value="mandatoryCourseDueDate_asc">Sort: Due Date (Urgent)</option>
+                <option value="mandatoryCourseDueDate_desc">Sort: Due Date (Latest)</option>
+                <option value="full_name_asc">Sort: Name (A-Z)</option>
+                <option value="department_asc">Sort: Department</option>
+              </select>
             </div>
           </div>
 
-          <div class="flex-1 overflow-y-auto p-4 custom-scrollbar">
-            <div class="max-w-4xl mx-auto space-y-2">
+          <div class="flex-1 overflow-y-auto custom-scrollbar bg-white dark:bg-zinc-950">
 
-              <div v-if="isLoading" class="py-20 flex flex-col items-center gap-3">
-                <div class="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                <span class="text-xs font-bold text-zinc-500 uppercase tracking-widest">Searching Database</span>
-              </div>
+            <div v-if="isLoading" class="py-24 flex flex-col items-center justify-center gap-3">
+              <div class="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              <span class="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Querying Database...</span>
+            </div>
 
-              <template v-else-if="foundationUsers && foundationUsers.length > 0">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  <button v-for="user in foundationUsers" :key="user._id" @click="selectUser(user)"
-                    class="w-full flex flex-col p-4 rounded-2xl bg-zinc-50 dark:bg-white/[0.02] border border-zinc-100 dark:border-white/5 hover:bg-blue-600 hover:border-blue-600 hover:text-white transition-all group text-left shadow-sm hover:shadow-md relative overflow-hidden">
+            <table v-else-if="foundationUsers && foundationUsers.length > 0"
+              class="w-full text-left border-collapse whitespace-nowrap">
+              <thead
+                class="sticky top-0 z-10 bg-white dark:bg-zinc-950 shadow-[0_1px_0_0_theme(colors.zinc.200)] dark:shadow-[0_1px_0_0_theme(colors.white/10)]">
+                <tr>
+                  <th class="px-6 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-500">Trainee</th>
+                  <th class="px-6 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-500">Department</th>
+                  <th class="px-6 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-500">Mandatory Due</th>
+                  <th class="px-6 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-500 text-center">History
+                  </th>
+                  <th class="px-6 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-500 text-right">Action
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-zinc-200 dark:divide-white/10">
+                <tr v-for="user in foundationUsers" :key="user._id"
+                  class="hover:bg-zinc-50 dark:hover:bg-white/[0.02] transition-colors group">
 
-                    <div class="flex items-center gap-4 w-full">
+                  <td class="px-6 py-3">
+                    <div class="flex items-center gap-3">
                       <div
-                        class="h-12 w-12 shrink-0 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 group-hover:bg-white/20 group-hover:text-white flex items-center justify-center font-black text-sm uppercase transition-colors">
+                        class="h-8 w-8 shrink-0 rounded-md bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 flex items-center justify-center font-bold text-xs uppercase border border-blue-200 dark:border-blue-800/50">
                         {{ user.full_name?.charAt(0) }}
                       </div>
-                      <div class="flex-1 min-w-0">
-                        <p class="text-sm font-black truncate">{{ user.full_name }}</p>
-                        <p class="text-[11px] opacity-60 truncate">{{ user.department }}</p>
-                        <p class="text-[10px] font-semibold opacity-80 truncate mt-0.5">{{ user.mobile }}</p>
+                      <div>
+                        <p class="text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-none">{{ user.full_name
+                          }}</p>
+                        <p class="text-xs text-zinc-500 mt-1">{{ user.mobile }}</p>
                       </div>
                     </div>
+                  </td>
 
-                    <div
-                      class="mt-4 pt-3 border-t border-zinc-200 dark:border-white/10 group-hover:border-white/20 flex items-center justify-between">
-                      <div class="flex flex-col">
-                        <span class="text-[9px] uppercase tracking-widest opacity-60 font-bold mb-0.5">Mandatory
-                          Due</span>
-                        <span class="text-xs font-black flex items-center gap-1.5"
-                          :class="isOverdue(user.mandatoryCourseDueDate) ? 'text-red-500 group-hover:text-white' : 'text-zinc-800 dark:text-zinc-200 group-hover:text-white'">
-                          <svg v-if="isOverdue(user.mandatoryCourseDueDate)" class="w-3.5 h-3.5" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                          </svg>
-                          {{ user.mandatoryCourseDueDate ? formatDueDate(user.mandatoryCourseDueDate) : 'No Data' }}
-                        </span>
-                      </div>
-                      <svg class="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
+                  <td class="px-6 py-3">
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400 max-w-[250px] truncate" :title="user.department">
+                      {{ user.department }}
+                    </p>
+                  </td>
+
+                  <td class="px-6 py-3">
+                    <div v-if="user.mandatoryCourseDueDate" class="inline-flex items-center gap-1.5">
+                      <div class="w-2 h-2 rounded-full"
+                        :class="isOverdue(user.mandatoryCourseDueDate) ? 'bg-red-500' : 'bg-emerald-500'"></div>
+                      <span class="text-xs font-medium"
+                        :class="isOverdue(user.mandatoryCourseDueDate) ? 'text-red-600 dark:text-red-400' : 'text-zinc-700 dark:text-zinc-300'">
+                        {{ formatDueDate(user.mandatoryCourseDueDate) }}
+                      </span>
+                    </div>
+                    <span v-else class="text-xs text-zinc-400 italic">Not Assigned</span>
+                  </td>
+
+                  <td class="px-6 py-3 text-center">
+                    <button @click="viewHistory(user)"
+                      class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-zinc-600 hover:text-blue-600 hover:bg-blue-50 dark:text-zinc-400 dark:hover:bg-blue-500/10 dark:hover:text-blue-400 rounded-md transition-colors">
+                      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                    </div>
+                      Logs
+                    </button>
+                  </td>
 
-                  </button>
-                </div>
-              </template>
+                  <td class="px-6 py-3 text-right">
+                    <button @click="selectUser(user)"
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700 rounded-md text-xs font-medium transition-colors shadow-sm active:scale-95">
+                      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                      </svg>
+                      Enroll
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
 
-              <div v-else class="py-32 flex flex-col items-center justify-center">
-                <div
-                  class="inline-flex p-5 rounded-full bg-zinc-50 dark:bg-white/5 border border-zinc-100 dark:border-white/5 shadow-sm mb-5">
-                  <svg class="w-10 h-10 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                </div>
-                <h4 class="text-base font-black text-zinc-900 dark:text-white mb-1">No matches found</h4>
-                <p class="text-sm font-medium text-zinc-500">
-                  Try adjusting your search terms or filters.
-                </p>
-              </div>
-
+            <div v-else class="py-32 flex flex-col items-center justify-center text-center">
+              <svg class="w-12 h-12 text-zinc-300 dark:text-zinc-700 mb-4" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              <h4 class="text-sm font-bold text-zinc-900 dark:text-white">No trainees found</h4>
+              <p class="text-xs text-zinc-500 mt-1 max-w-sm">Adjust your search parameters or select a different sort
+                criteria to find eligible users.</p>
             </div>
           </div>
 
           <div v-if="foundationPagination && foundationPagination.totalPages > 1"
-            class="p-4 border-t dark:border-white/5 bg-zinc-50 dark:bg-zinc-900/50 flex items-center justify-between shrink-0">
-            <div class="max-w-4xl mx-auto w-full flex items-center justify-between">
-              <span class="text-xs font-bold text-zinc-500">
-                Showing page {{ foundationPagination.currentPage }} of {{ foundationPagination.totalPages }}
-              </span>
-              <div class="flex gap-2">
-                <button @click="changeFoundationPage(foundationPagination.currentPage - 1)"
-                  :disabled="foundationPagination.currentPage <= 1 || isLoading"
-                  class="px-4 py-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 rounded-lg text-sm font-bold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 disabled:opacity-50 transition-colors shadow-sm">
-                  Previous
-                </button>
-                <button @click="changeFoundationPage(foundationPagination.currentPage + 1)"
-                  :disabled="foundationPagination.currentPage >= foundationPagination.totalPages || isLoading"
-                  class="px-4 py-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 rounded-lg text-sm font-bold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 disabled:opacity-50 transition-colors shadow-sm">
-                  Next
-                </button>
-              </div>
+            class="px-6 py-3 border-t border-zinc-200 dark:border-white/10 bg-white dark:bg-zinc-950 flex items-center justify-between shrink-0">
+            <span class="text-xs text-zinc-500">
+              Showing page <span class="font-bold text-zinc-700 dark:text-zinc-300">{{ foundationPagination.currentPage
+                }}</span> of {{ foundationPagination.totalPages }}
+            </span>
+            <div class="flex items-center gap-2">
+              <button @click="changeFoundationPage(foundationPagination.currentPage - 1)"
+                :disabled="foundationPagination.currentPage <= 1 || isLoading"
+                class="inline-flex items-center px-3 py-1.5 border border-zinc-300 dark:border-white/10 rounded-md text-xs font-medium text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm">
+                Previous
+              </button>
+              <button @click="changeFoundationPage(foundationPagination.currentPage + 1)"
+                :disabled="foundationPagination.currentPage >= foundationPagination.totalPages || isLoading"
+                class="inline-flex items-center px-3 py-1.5 border border-zinc-300 dark:border-white/10 rounded-md text-xs font-medium text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm">
+                Next
+              </button>
             </div>
           </div>
 
@@ -295,6 +333,11 @@
       </div>
     </Transition>
   </Teleport>
+
+  <EnrollmentHistoryModal :show="showHistoryModal" :history="userHistory" :loading="isLoading"
+    @close="showHistoryModal = false" />
+  <EnrollmentDetailsModal :show="showDetailsModal" :enrollment="enrollment" :loading="isLoading"
+    :userHistory="userHistory" @close="showDetailsModal = false" @update-status="updateStatus" />
 </template>
 
 <script setup>
@@ -303,7 +346,8 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useAlertStore } from '../../store/alertStore';
 import { useAuthStore } from '../../store/authStore';
 import { useEnrollmentStore } from '../../store/enrollmentStore';
-
+import EnrollmentDetailsModal from './enrollmentModal/EnrollmentDetailsModal.vue';
+import EnrollmentHistoryModal from './enrollmentModal/EnrollmentHistoryModal.vue';
 const props = defineProps({
   programId: { type: String, required: true }
 });
@@ -313,7 +357,7 @@ const store = useEnrollmentStore();
 const alert = useAlertStore();
 
 // Main Table State
-const { enrollments, pagination, isFoundation, isEnrollmentLoading } = storeToRefs(store);
+const { enrollments, pagination, isFoundation, isEnrollmentLoading, userHistory, enrollment } = storeToRefs(store);
 const activeFilter = ref('All');
 const searchQuery = ref('');
 let searchTimer = null;
@@ -326,6 +370,9 @@ const userSearchQuery = ref('');
 const foundationSortBy = ref('mandatoryCourseDueDate_asc'); // Combined sort value
 const foundationPage = ref(1);
 let debounceTimer = null;
+//HISTORY
+const showHistoryModal = ref(false);
+const showDetailsModal = ref(false)
 
 // Date Helpers
 const formatDueDate = (dateString) => {
@@ -433,6 +480,7 @@ const updateStatus = async (id, status) => {
   const res = await store.updateEnrollmentStatus(id, status);
   if (res.success) {
     alert.success(res.message);
+    showDetailsModal.value = false;
     fetchData(pagination.value.page);
   } else {
     alert.error(res.message);
@@ -446,6 +494,23 @@ const detailRouteName = computed(() => {
   }
   return 'trainer.dashboard';
 });
-
+const viewHistory = async (user) => {
+  const response = await store.fetchTraineeEnrollmentHistory(user._id);
+  if (response.success) {
+    showHistoryModal.value = true;
+    alert.success(response.message);
+  } else {
+    alert.error(response.message);
+  }
+}
+const enrollmentDetails = async (item) => {
+  const response = await store.fetchEnrollmentDetails(item._id);
+  if (response.success) {
+    alert.success(response.message);
+    showDetailsModal.value = true;
+  } else {
+    alert.error(response.message);
+  }
+}
 onMounted(() => fetchData());
 </script>
