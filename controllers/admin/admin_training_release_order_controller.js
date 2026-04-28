@@ -73,8 +73,8 @@ exports.downloadReleaseOrder = async (req, res) => {
         if (authHeader) {
             await page.setExtraHTTPHeaders({ 'Authorization': authHeader });
         }
-        // const domain = "http://localhost:5173";
-        const domain = "https://atimz.mizoram.gov.in";
+        const domain = "http://localhost:5173";
+        // const domain = "https://atimz.mizoram.gov.in";
         await page.goto(domain);
         if (token) {
             await page.evaluate((t) => {
@@ -307,11 +307,11 @@ exports.prepareForESign = async (req, res) => {
             "EnableDrawSignature": true,
             "EnableeSignaturePad": false,
             "IsCompressed": false,
-            "IsCosign": true,
+            "IsCosign": false,
             "Storetodb": false,
             "IsGSTN": false,
             "IsGSTN3B": false,
-            "IsCustomized": true,
+            "IsCustomized": false,
             "AuthenticationMode": 1,
             "EnableInitials": false
         };
@@ -353,6 +353,7 @@ exports.emSignerSuccessResponse = async (req, res) => {
         }
         const sessionKey = Buffer.from(releaseOrder.temp_session_key, 'base64');
         const encryptedBuffer = Buffer.from(req.body.Returnvalue, 'base64');
+        console.log(encryptedBuffer, sessionKey);
         const decryptedPdfBuffer = decryptBinaryAES(encryptedBuffer, sessionKey);
 
         const newFileName = `signed_${releaseOrder.file_name}`;
@@ -365,6 +366,7 @@ exports.emSignerSuccessResponse = async (req, res) => {
             {
                 $set: {
                     is_signed: true,
+                    file_name: newFileName,
                     release_order_url: `/uploads/${newFileName}`
                 }
             }

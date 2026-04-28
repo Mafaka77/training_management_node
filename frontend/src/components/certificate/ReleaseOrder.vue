@@ -82,7 +82,7 @@
                                 <span class="font-bold">{{ formatDate(training?.t_end_date) }}</span>,
                                 the participants (names and details shown in the Annexure) are hereby released with
                                 effect from the afternoon of <span class="font-bold">{{ formatDate(training?.t_end_date)
-                                }}</span>.
+                                    }}</span>.
                             </p>
                             <p style="text-indent: 4rem;">
                                 Successful completion of the course will depend on the result of the end-of-course
@@ -145,7 +145,7 @@
                             </p>
                             <p class="text-sm font-bold italic text-[#27272a] font-serif">"{{ training?.t_name }}"</p>
                             <p>Period: {{ formatDate(training?.t_start_date) }} to {{ formatDate(training?.t_end_date)
-                            }}</p>
+                                }}</p>
                         </div>
                     </div>
 

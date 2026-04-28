@@ -245,11 +245,11 @@ exports.prepareForESign = async (req, res) => {
             "EnableDrawSignature": true,
             "EnableeSignaturePad": false,
             "IsCompressed": false,
-            "IsCosign": true,
+            "IsCosign": false,
             "Storetodb": false,
             "IsGSTN": false,
             "IsGSTN3B": false,
-            "IsCustomized": true,
+            "IsCustomized": false,
             "AuthenticationMode": 1,
             "EnableInitials": false
         };
