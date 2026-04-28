@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const Counter = require('./Counter'); // Import your Counter model
+const Counter = require('./counter_model'); // Import your Counter model
 
 const certificateSchema = new mongoose.Schema({
     certificate_id: {
@@ -14,6 +14,10 @@ const certificateSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
+    },
+    certificate_url: {
+        type: String,
+        required: false,
     },
     signed_by: {
         type: mongoose.Schema.Types.ObjectId,

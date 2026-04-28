@@ -30,144 +30,193 @@
           <svg class="w-5 h-5 text-slate-300 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 5 7 7-7 7" />
           </svg>
-          <span class="ms-1 text-sm font-medium text-slate-400 dark:text-zinc-500  tracking-tighter ">Attendance
+          <span class="ms-1 text-sm font-medium text-slate-400 dark:text-zinc-500 tracking-tighter">Attendance
             Record</span>
         </li>
       </ol>
     </nav>
 
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6" v-if="traineeAttendance">
-      <div class="space-y-1">
-        <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-none">
-          {{ traineeAttendance.programName }}
-        </h1>
-        <div class="flex items-center gap-2">
-          <div class="h-2 w-2 rounded-full bg-blue-600 dark:bg-blue-500 animate-pulse"></div>
-          <p class="text-slate-500 dark:text-zinc-400 text-sm">
-            Trainee: <span class="text-slate-900 dark:text-zinc-100 font-bold underline decoration-blue-500/30">
-              {{ traineeAttendance.traineeName?.full_name || 'N/A' }}
-            </span>
+    <div v-if="isAttendanceLoading" class="space-y-6">
+      <div class="flex items-center justify-between">
+        <div class="space-y-3">
+          <div class="h-8 w-64 bg-slate-200 dark:bg-white/10 rounded animate-pulse"></div>
+          <div class="h-4 w-48 bg-slate-200 dark:bg-white/10 rounded animate-pulse"></div>
+        </div>
+        <div class="h-10 w-32 bg-slate-200 dark:bg-white/10 rounded-2xl animate-pulse"></div>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div v-for="i in 4" :key="i"
+          class="bg-white dark:bg-zinc-900/50 border border-slate-200 dark:border-white/5 p-5 rounded-3xl animate-pulse">
+          <div class="h-3 w-16 bg-slate-200 dark:bg-white/10 rounded mb-4"></div>
+          <div class="h-8 w-20 bg-slate-200 dark:bg-white/10 rounded"></div>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div v-for="i in 3" :key="`row-${i}`"
+          class="h-20 w-full bg-white dark:bg-zinc-900/40 border border-slate-200 dark:border-white/5 rounded-3xl animate-pulse">
+        </div>
+      </div>
+    </div>
+
+    <template v-else>
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6" v-if="traineeAttendance">
+        <div class="space-y-1">
+          <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-none">
+            {{ traineeAttendance.programName }}
+          </h1>
+          <div class="flex items-center gap-2">
+            <div class="h-2 w-2 rounded-full bg-blue-600 dark:bg-blue-500 animate-pulse"></div>
+            <p class="text-slate-500 dark:text-zinc-400 text-sm">
+              Trainee: <span class="text-slate-900 dark:text-zinc-100 font-bold underline decoration-blue-500/30">
+                {{ traineeAttendance.traineeName?.full_name || 'N/A' }}
+              </span>
+            </p>
+          </div>
+        </div>
+
+        <div v-if="traineeAttendance.stats?.isEligible" class="flex flex-wrap items-center gap-3">
+
+          <div
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-full text-emerald-600 dark:text-emerald-400">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.64.304 1.24.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
+            </svg>
+            <span class="text-[11px] font-bold uppercase tracking-wider">Qualified</span>
+          </div>
+          <div v-if="!isCertificate">
+            <router-link :to="{
+              name: 'training.certificate',
+              params: {
+                id: route.params.id,
+                traineeId: route.params.traineeId,
+              }
+            }"
+              class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold shadow-sm shadow-blue-500/20 transition-all active:scale-95">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Generate Certificate
+            </router-link>
+          </div>
+
+          <div v-else>
+            <button disabled
+              class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 rounded-lg text-sm font-semibold border border-emerald-200 dark:border-emerald-500/20 cursor-default">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Certificate Generated
+            </button>
+
+          </div>
+
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4" v-if="traineeAttendance?.stats">
+        <div v-for="(val, label) in mappedStats" :key="label"
+          class="bg-white dark:bg-zinc-900/50 border border-slate-200 dark:border-white/5 p-5 rounded-3xl shadow-sm dark:shadow-none relative group hover:ring-2 hover:ring-blue-500/20 transition-all">
+          <p class="text-[10px] font-black text-slate-400 dark:text-zinc-500 uppercase tracking-widest">{{ label }}</p>
+          <p class="text-3xl font-bold mt-2"
+            :class="label === 'Percentage' ? (val >= 75 ? 'text-blue-600 dark:text-blue-400' : 'text-rose-600 dark:text-rose-400') : 'text-slate-900 dark:text-white'">
+            {{ val }}{{ label === 'Percentage' ? '%' : '' }}
           </p>
         </div>
       </div>
 
-      <div v-if="traineeAttendance.stats?.isEligible"
-        class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-2xl text-emerald-700 dark:text-emerald-500 shadow-sm">
-        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-          <path
-            d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.64.304 1.24.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
-        </svg>
-        <span class="text-[10px] font-black uppercase tracking-widest">Qualified</span>
-        <router-link :to="{
-          name: 'training.certificate',
-          params: {
-            id: route.params.id,
-            traineeId: route.params.traineeId,
-          }
-        }"
-          class="ml-2 px-3 py-1 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors">
-          Generate Certificate
-        </router-link>
-      </div>
-    </div>
+      <div class="space-y-6">
+        <div v-for="(sessions, date) in groupedRecords" :key="date"
+          class="border border-slate-200 dark:border-white/5 rounded-3xl bg-white dark:bg-zinc-900/40 shadow-sm overflow-hidden">
 
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4" v-if="traineeAttendance?.stats">
-      <div v-for="(val, label) in mappedStats" :key="label"
-        class="bg-white dark:bg-zinc-900/50 border border-slate-200 dark:border-white/5 p-5 rounded-3xl shadow-sm dark:shadow-none relative group hover:ring-2 hover:ring-blue-500/20 transition-all">
-        <p class="text-[10px] font-black text-slate-400 dark:text-zinc-500 uppercase tracking-widest">{{ label }}</p>
-        <p class="text-3xl font-bold mt-2"
-          :class="label === 'Percentage' ? (val >= 75 ? 'text-blue-600 dark:text-blue-400' : 'text-rose-600 dark:text-rose-400') : 'text-slate-900 dark:text-white'">
-          {{ val }}{{ label === 'Percentage' ? '%' : '' }}
-        </p>
-      </div>
-    </div>
-
-    <div class="space-y-6">
-      <div v-for="(sessions, date) in groupedRecords" :key="date"
-        class="border border-slate-200 dark:border-white/5 rounded-3xl bg-white dark:bg-zinc-900/40 shadow-sm overflow-hidden">
-
-        <button @click="toggleDate(date)"
-          class="w-full flex items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors">
-          <div class="flex items-center gap-5">
-            <div class="text-left">
-              <span
-                class="block text-[10px] font-black text-blue-600 dark:text-blue-500 uppercase tracking-widest mb-1 leading-none">Session
-                Date</span>
-              <span class="text-sm font-bold text-slate-800 dark:text-zinc-200">{{ date }}</span>
+          <button @click="toggleDate(date)"
+            class="w-full flex items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors">
+            <div class="flex items-center gap-5">
+              <div class="text-left">
+                <span
+                  class="block text-[10px] font-black text-blue-600 dark:text-blue-500 uppercase tracking-widest mb-1 leading-none">Session
+                  Date</span>
+                <span class="text-sm font-bold text-slate-800 dark:text-zinc-200">{{ date }}</span>
+              </div>
+              <div class="h-8 w-px bg-slate-200 dark:bg-white/10 hidden sm:block"></div>
+              <div class="flex gap-2">
+                <span
+                  class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-zinc-800 text-[10px] font-bold text-slate-600 dark:text-zinc-400">
+                  {{ sessions.length }} Total
+                </span>
+                <span
+                  class="px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-500/10 text-[10px] font-bold text-emerald-700 dark:text-emerald-500">
+                  {{sessions.filter(s => s.status === 'Present').length}} Present
+                </span>
+              </div>
             </div>
-            <div class="h-8 w-px bg-slate-200 dark:bg-white/10 hidden sm:block"></div>
-            <div class="flex gap-2">
-              <span
-                class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-zinc-800 text-[10px] font-bold text-slate-600 dark:text-zinc-400">
-                {{ sessions.length }} Total
-              </span>
-              <span
-                class="px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-500/10 text-[10px] font-bold text-emerald-700 dark:text-emerald-500">
-                {{sessions.filter(s => s.status === 'Present').length}} Present
-              </span>
-            </div>
-          </div>
 
-          <svg class="w-5 h-5 text-slate-400 transition-transform duration-500"
-            :class="{ 'rotate-180 text-blue-600': expandedDates.includes(date) }" fill="none" viewBox="0 0 24 24"
-            stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
+            <svg class="w-5 h-5 text-slate-400 transition-transform duration-500"
+              :class="{ 'rotate-180 text-blue-600': expandedDates.includes(date) }" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
 
-        <Transition name="expand">
-          <div v-if="expandedDates.includes(date)"
-            class="border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-black/20">
-            <div class="p-4 space-y-3">
-              <div v-for="record in sessions" :key="record.sessionId"
-                class="flex flex-col md:flex-row md:items-center justify-between p-4 rounded-2xl bg-white dark:bg-zinc-900/60 border border-slate-200 dark:border-white/5 group hover:border-blue-300 dark:hover:border-white/20 transition-all shadow-sm">
+          <Transition name="expand">
+            <div v-if="expandedDates.includes(date)"
+              class="border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-black/20">
+              <div class="p-4 space-y-3">
+                <div v-for="record in sessions" :key="record.sessionId"
+                  class="flex flex-col md:flex-row md:items-center justify-between p-4 rounded-2xl bg-white dark:bg-zinc-900/60 border border-slate-200 dark:border-white/5 group hover:border-blue-300 dark:hover:border-white/20 transition-all shadow-sm">
 
-                <div class="flex items-center gap-4">
-                  <div
-                    :class="['w-1.5 h-10 rounded-full', record.status === 'Present' ? 'bg-emerald-500' : 'bg-rose-500']">
-                  </div>
-                  <div>
-                    <h4
-                      class="text-sm font-bold text-slate-800 dark:text-zinc-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                      {{ record.sessionTopic }}
-                    </h4>
+                  <div class="flex items-center gap-4">
                     <div
-                      class="flex items-center gap-3 mt-1 text-[10px] font-semibold text-slate-500 dark:text-zinc-500 uppercase tracking-tighter">
-                      <span>ID: {{ record.sessionId.slice(-6) }}</span>
-                      <span class="text-slate-300 dark:text-zinc-700">•</span>
-                      <span class="flex items-center gap-1">
-                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        {{ record.startTime }} - {{ record.endTime }}
-                      </span>
+                      :class="['w-1.5 h-10 rounded-full', record.status === 'Present' ? 'bg-emerald-500' : 'bg-rose-500']">
+                    </div>
+                    <div>
+                      <h4
+                        class="text-sm font-bold text-slate-800 dark:text-zinc-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        {{ record.sessionTopic }}
+                      </h4>
+                      <div
+                        class="flex items-center gap-3 mt-1 text-[10px] font-semibold text-slate-500 dark:text-zinc-500 uppercase tracking-tighter">
+                        <span>ID: {{ record.sessionId.slice(-6) }}</span>
+                        <span class="text-slate-300 dark:text-zinc-700">•</span>
+                        <span class="flex items-center gap-1">
+                          <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          {{ record.startTime }} - {{ record.endTime }}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div class="flex items-center gap-10 mt-4 md:mt-0">
-                  <div class="text-right">
-                    <p class="text-[9px] text-slate-400 dark:text-zinc-600 uppercase font-black tracking-widest">Status
-                    </p>
-                    <span
-                      :class="['text-xs font-bold uppercase', record.status === 'Present' ? 'text-emerald-600 dark:text-emerald-500' : 'text-rose-600 dark:text-rose-500']">
-                      {{ record.status }}
-                    </span>
-                  </div>
-                  <div class="text-right min-w-[80px]">
-                    <p class="text-[9px] text-slate-400 dark:text-zinc-600 uppercase font-black tracking-widest">
-                      Check-In</p>
-                    <p class="text-xs font-mono text-slate-600 dark:text-zinc-300">
-                      {{ record.signInTime ? formatTime(record.signInTime) : '—' }}
-                    </p>
+                  <div class="flex items-center gap-10 mt-4 md:mt-0">
+                    <div class="text-right">
+                      <p class="text-[9px] text-slate-400 dark:text-zinc-600 uppercase font-black tracking-widest">
+                        Status
+                      </p>
+                      <span
+                        :class="['text-xs font-bold uppercase', record.status === 'Present' ? 'text-emerald-600 dark:text-emerald-500' : 'text-rose-600 dark:text-rose-500']">
+                        {{ record.status }}
+                      </span>
+                    </div>
+                    <div class="text-right min-w-[80px]">
+                      <p class="text-[9px] text-slate-400 dark:text-zinc-600 uppercase font-black tracking-widest">
+                        Check-In</p>
+                      <p class="text-xs font-mono text-slate-600 dark:text-zinc-300">
+                        {{ record.signInTime ? formatTime(record.signInTime) : '—' }}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </Transition>
+          </Transition>
+        </div>
       </div>
-    </div>
+    </template>
   </div>
 </template>
 
@@ -178,7 +227,7 @@ import { useRoute } from 'vue-router';
 import { useAttendanceStore } from '../../../../store/attendanceStore';
 
 const attendanceStore = useAttendanceStore();
-const { traineeAttendance } = storeToRefs(attendanceStore);
+const { traineeAttendance, isAttendanceLoading, isCertificate } = storeToRefs(attendanceStore);
 const route = useRoute();
 
 /** * Expansion State
@@ -256,6 +305,7 @@ const formatTime = (dateStr) => {
 
 onMounted(() => {
   attendanceStore.fetchTraineeAttendance(route.params.traineeId, route.params.id);
+
 });
 </script>
 

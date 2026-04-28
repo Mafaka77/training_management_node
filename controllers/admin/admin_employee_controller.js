@@ -1,13 +1,13 @@
-const User=require('../../models/user_model');
+const User = require('../../models/user_model');
 const Role = require("../../models/role_model");
 const STATUS = require("../../utils/httpStatus");
 const bcrypt = require("bcryptjs");
 
-exports.submitEmployee=async function(req, res){
+exports.submitEmployee = async function (req, res) {
     try {
-       
-        const { full_name, email, mobile,password,district,department,designation ,trainer,director} = req.body;
-        
+
+        const { full_name, email, mobile, password, district, department, designation, trainer, director, signature, course_director } = req.body;
+        console.log(full_name)
         const rolesToAssign = [];
         const baseRole = await Role.findOne({ name: "Employee" });
         if (baseRole) rolesToAssign.push(baseRole._id);
@@ -18,17 +18,23 @@ exports.submitEmployee=async function(req, res){
                 rolesToAssign.push(trainerRole._id);
             }
         }
-        if(director === true || director === 'true'){
+        if (director === true || director === 'true') {
             const directorRole = await Role.findOne({ name: "Director" });
             if (directorRole) {
                 rolesToAssign.push(directorRole._id);
+            }
+        }
+        if (course_director === true || course_director === 'true') {
+            const courseDirectorRole = await Role.findOne({ name: "Course Director" });
+            if (courseDirectorRole) {
+                rolesToAssign.push(courseDirectorRole._id);
             }
         }
         if (!full_name || !email || !mobile) {
             return res.status(STATUS.OK).json({ message: "All fields are required", status: STATUS.BAD_REQUEST });
         }
 
-        const existingTrainer = await User.findOne({ mobile,email });
+        const existingTrainer = await User.findOne({ mobile, email });
         if (existingTrainer) {
             return res.status(STATUS.OK).json({ message: "Trainer already exists", status: STATUS.CONFLICT });
         }
@@ -39,10 +45,11 @@ exports.submitEmployee=async function(req, res){
             full_name,
             email,
             mobile,
-            password:hashedPassword,
+            password: hashedPassword,
             district,
             designation,
             department,
+            signature: req.file ? `/uploads/${req.file.filename}` : undefined,
             roles: rolesToAssign
         });
 
@@ -55,7 +62,7 @@ exports.submitEmployee=async function(req, res){
     }
 }
 
-exports.getEmployees=async function(req, res){
+exports.getEmployees = async function (req, res) {
     try {
         // pagination
         const page = parseInt(req.query.page) || 1;   // default page = 1
@@ -102,7 +109,7 @@ exports.getEmployees=async function(req, res){
         }
 
         return res.status(STATUS.OK).json({
-            employees:trainers,
+            employees: trainers,
             pagination: {
                 total,
                 page,

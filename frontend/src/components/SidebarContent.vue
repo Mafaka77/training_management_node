@@ -6,8 +6,8 @@
         <div class="h-px flex-1 bg-gradient-to-r from-zinc-500/20 to-transparent"></div>
       </div>
       <nav class="space-y-1">
-        <SidebarItem v-if="userRole.some(role => ['Trainer', 'Director'].includes(role))" to="/admin/trainer/dashboard"
-          :isDark="isDark" icon="M3 3h7v7H3z M14 3h7v7h-7z M14 14h7v7h-7z M3 14h7v7H3z">
+        <SidebarItem v-if="userRole.some(role => ['Trainer', 'Director', 'Course Director'].includes(role))"
+          to="/admin/trainer/dashboard" :isDark="isDark" icon="M3 3h7v7H3z M14 3h7v7h-7z M14 14h7v7h-7z M3 14h7v7H3z">
           Dashboard
         </SidebarItem>
 
@@ -30,8 +30,9 @@
           My Sessions
         </SidebarItem>
 
-        <SidebarItem v-if="userRole.some(role => ['Admin', 'Director'].includes(role))" to="/admin/training/program"
-          :isDark="isDark" icon="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z M14 2v6h6">
+        <SidebarItem v-if="userRole.some(role => ['Admin', 'Director', 'Course Director'].includes(role))"
+          to="/admin/training/program" :isDark="isDark"
+          icon="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z M14 2v6h6">
           Programs
         </SidebarItem>
 
@@ -42,7 +43,7 @@
       </nav>
     </section>
 
-    <section v-if="userRole.includes('Admin')">
+    <section v-if="userRole.some(role => ['Admin', 'Director'].includes(role))">
       <div class="flex items-center gap-2 mb-3">
         <span class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Users</span>
         <div class="h-px flex-1 bg-gradient-to-r from-zinc-500/20 to-transparent"></div>
@@ -82,7 +83,7 @@
       </nav>
     </section>
 
-    <section v-if="userRole.includes('Admin')">
+    <section v-if="userRole.some(role => ['Admin', 'Director'].includes(role))">
       <div class="flex items-center gap-2 mb-3">
         <span class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Infrastructure</span>
         <div class="h-px flex-1 bg-gradient-to-r from-zinc-500/20 to-transparent"></div>
@@ -135,11 +136,13 @@
       </div>
 
       <nav class="space-y-1">
-        <SidebarItem v-if="userRole.includes('Admin')" to="/admin/ticket" :isDark="isDark"
+        <SidebarItem v-if="userRole.some(role => ['Admin', 'Director'].includes(role))" to="/admin/ticket"
+          :isDark="isDark"
           icon="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4">
           Tickets
         </SidebarItem>
-        <SidebarItem v-if="userRole.includes('Admin')" to="/admin/notification" :isDark="isDark"
+        <SidebarItem v-if="userRole.some(role => ['Admin', 'Director'].includes(role))" to="/admin/notification"
+          :isDark="isDark"
           icon="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4">
           Notification
         </SidebarItem>

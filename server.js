@@ -49,7 +49,8 @@ app.use((req, res, next) => {
   next();
 });
 
-
+// Add this in your main server.js/app.js if you haven't already:
+app.use('/assets', express.static(path.join(__dirname, '/frontend/src/assets')));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' })); // <-- for form-data
 const uploadsPath = path.join(__dirname, 'uploads');

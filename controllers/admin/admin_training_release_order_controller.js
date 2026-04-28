@@ -341,8 +341,8 @@ exports.prepareForESign = async (req, res) => {
     }
 }
 exports.emSignerSuccessResponse = async (req, res) => {
-    const SERVER_URL = 'https://staging2.egovmz.in';
-    // const SERVER_URL = 'http://localhost:5173';
+    // const SERVER_URL = 'https://staging2.egovmz.in';
+    const SERVER_URL = 'http://localhost:5173';
     const { trainingId } = req.params;
     try {
 

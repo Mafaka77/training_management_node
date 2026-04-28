@@ -199,7 +199,7 @@ export const useUserManageStore = defineStore('userManageStore', {
         },
 
         async submitEmployee(data) {
-
+            console.log(data);
             try {
                 const response = await api.post('/employee', data);
                 const statusCode = response.status === 200 && response.data.status === 201;

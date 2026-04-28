@@ -211,7 +211,7 @@ exports.getGroups = async (req, res) => {
 }
 exports.getTrainingDirectors = async (req, res) => {
     try {
-        const trainerRole = await Role.findOne({ name: "Director" });
+        const trainerRole = await Role.findOne({ name: "Course Director" });
         const directors = await User.find({ roles: trainerRole._id })
             .select("full_name email mobile roles")
             .populate("roles", "name"); // optional: show role name

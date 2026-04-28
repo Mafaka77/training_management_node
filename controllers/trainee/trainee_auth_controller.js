@@ -147,8 +147,8 @@ exports.sendOtp = async (req, res) => {
         if (user) {
             return res.status(STATUS.OK).json({ message: 'User already exists', status: STATUS.CONFLICT })
         }
+        const otp = generateOTP(mobile);
         try {
-            const otp = generateOTP(mobile);
             const templateId = '1407177545229547887';
             const message = `Your OTP code for ATI is ${otp}.EGOVMZ`;
             await axios.get("https://sms.msegs.in/api/send-sms", {
@@ -173,7 +173,7 @@ exports.sendOtp = async (req, res) => {
         }
         return res.status(STATUS.OK).json({ message: 'OTP Sent', status: STATUS.OK, otp: otp })
     } catch (ex) {
-        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({ message: 'Failed to send OTP', status: 500 })
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({ message: ex.message, status: 500 })
     }
 
 

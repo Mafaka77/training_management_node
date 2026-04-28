@@ -3,7 +3,7 @@ import api from "../api/axios";
 export const useCertificateStore = defineStore('certificate', {
     state: () => ({
         releaseOrder: {},
-        certificates: {},
+        certificates: [],
         certificateDetails: {},
         isCertificateLoading: false,
         isLoading: false,
@@ -17,6 +17,7 @@ export const useCertificateStore = defineStore('certificate', {
             parameter3: '',
         },
         selectedTemplate: '',
+        director: {},
     }),
     actions: {
         async generateReleaseOrder(trainingId) {
@@ -134,12 +135,58 @@ export const useCertificateStore = defineStore('certificate', {
                 if (response.status === 200 && response.data.status === 200) {
                     this.certificateDetails = response.data.data;
                     this.selectedTemplate = response.data.data.program.t_category.name;
+                    this.director = response.data.data.director;
                     return { success: true, message: response.data.message }
                 }
                 return { success: false, message: response.data.message }
             } catch (e) {
                 return { success: false, message: e }
             } finally {
+                this.isCertificateLoading = false;
+            }
+        },
+        // async storeCertificate(traineeId, formData) {
+        //     this.isLoading = true;
+        //     try {
+        //         const response = await api.post(`/trainee/${traineeId}/certificate/store`, formData, {
+        //             headers: { 'Content-Type': 'multipart/form-data' }
+        //         });
+        //         if (response.status === 200 && response.data.status === 200) {
+        //             return { success: true, message: response.data.message }
+        //         }
+        //         return { success: false, message: response.data.message }
+        //     } catch (ex) {
+        //         return { success: false, message: ex.response.data.message }
+        //     } finally {
+        //         this.isLoading = false;
+        //     }
+        // },
+        async requestCertificateGeneration(payload) {
+            this.isLoading = true;
+            try {
+                const response = await api.post(`/certificate/generate-server`, payload);
+                if (response.status === 200 && response.data.status === 200) {
+                    return { success: true, message: response.data.message }
+                }
+                return { success: false, message: response.data.message }
+            } catch (ex) {
+                return { success: false, message: ex.response.data.message }
+            } finally {
+                this.isLoading = false;
+            }
+        },
+        async fetchCertificates(trainingId) {
+            this.isCertificateLoading = true;
+            try {
+                const response = await api.get(`/certificates/${trainingId}`);
+                console.log(response.data);
+                if (response.status === 200 && response.data.status === 200) {
+                    this.certificates = response.data.data;
+                    return { success: true, message: response.data.message }
+                }
+                return { success: false, message: response.data.message }
+            } catch (ex) { }
+            finally {
                 this.isCertificateLoading = false;
             }
         }

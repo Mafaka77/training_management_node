@@ -100,6 +100,10 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    signature: {
+        type: String,
+        required: false,
+    },
     roles: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Role',

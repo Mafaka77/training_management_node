@@ -7,7 +7,7 @@ const STATUS = require("../../utils/httpStatus");
 const TrainingProgram = require("../../models/training_program_model");
 const dayjs = require("dayjs");
 const mongoose = require("mongoose");
-
+const Certificate = require("../../models/certificate_model");
 exports.getSessionAttendance = async (req, res) => {
     try {
         const { sessionId } = req.params;
@@ -121,14 +121,21 @@ exports.getFullAttendance = async (req, res) => {
 exports.getTraineeAttendanceDetails = async (req, res) => {
     const { traineeId } = req.params;
     const { trainingId } = req.query;
-
+    let isCertificate = false;
     if (!mongoose.Types.ObjectId.isValid(traineeId) || !mongoose.Types.ObjectId.isValid(trainingId)) {
         return res.status(STATUS.OK).json({
             status: STATUS.BAD_REQUEST,
             message: "Invalid Trainee ID or Training ID format"
         });
     }
+    const certificate = await Certificate.find({ user: traineeId, training_program: trainingId }).lean();
 
+    if (certificate.length == 0) {
+        isCertificate = false;
+    } else {
+        isCertificate = true;
+    }
+    console.log(isCertificate)
     try {
         const [program, sessions, traineeName, trainingCategory] = await Promise.all([
             TrainingProgram.findById(trainingId).select('t_name').lean(),
@@ -193,7 +200,8 @@ exports.getTraineeAttendanceDetails = async (req, res) => {
                     attendancePercentage: attendancePercentage, // Returning as number for easier UI logic
                     isEligible: attendancePercentage >= 75
                 },
-                records: sessionDetails
+                records: sessionDetails,
+                isCertificate: isCertificate
             }
         });
 

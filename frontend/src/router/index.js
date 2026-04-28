@@ -69,7 +69,7 @@ const routes = [
                 component: () => import("../pages/trainer/TrainingsParent.vue"),
                 meta: {
                     middleware: ["auth", "role"],
-                    roles: ["Trainer", "Director"],
+                    roles: ["Trainer", "Director", "Course Director"],
                 },
                 children: [
                     {
@@ -94,7 +94,7 @@ const routes = [
                 component: () => import("../pages/trainer/program/programParent.vue"),
                 meta: {
                     middleware: ["auth", "role"],
-                    roles: ["Trainer", "Director"],
+                    roles: ["Trainer", "Director", "Course Director"],
                 },
                 children: [
                     {
@@ -139,7 +139,7 @@ const routes = [
                 component: () => import("../pages/Dashboard.vue"),
                 meta: {
                     middleware: ["auth", "role"],
-                    roles: ["Admin"],
+                    roles: ["Admin", "Director"],
                 },
             },
             {
@@ -148,7 +148,7 @@ const routes = [
                 component: () => import("../pages/trainer/TrainerDashboard.vue"),
                 meta: {
                     middleware: ["auth", "role"],
-                    roles: ["Trainer", "Director"],
+                    roles: ["Trainer", "Director", "Course Director"],
                 },
             },
             {
@@ -156,7 +156,7 @@ const routes = [
                 component: () => import("../pages/training/program/ProgramParent.vue"),
                 meta: {
                     middleware: ["auth", "role"],
-                    roles: ["Admin"],
+                    roles: ["Admin", "Director"],
                 },
                 children: [
                     {
@@ -181,7 +181,7 @@ const routes = [
                 component: () => import("../pages/training/program/session/sessionParent.vue"),
                 meta: {
                     middleware: ["auth", "role"],
-                    roles: ["Admin"],
+                    roles: ["Admin", "Director"],
                 },
                 children: [
                     {
@@ -226,7 +226,7 @@ const routes = [
                 component: () => import("../pages/training/enrollment/enrollmentParent.vue"),
                 meta: {
                     middleware: ["auth", "role"],
-                    roles: ["Admin"],
+                    roles: ["Admin", "Director"],
                 },
                 children: [
                     {
@@ -247,7 +247,7 @@ const routes = [
                 component: () => import("../pages/master/room/roomParent.vue"),
                 meta: {
                     middleware: ["auth", "role"],
-                    roles: ["Admin"],
+                    roles: ["Admin", "Director"],
                 },
                 children: [
                     {
@@ -272,7 +272,7 @@ const routes = [
                 component: () => import("../pages/master/location/locationParent.vue"),
                 meta: {
                     middleware: ["auth", "role"],
-                    roles: ["Admin"],
+                    roles: ["Admin", "Director"],
                 },
                 children: [
                     {
@@ -291,7 +291,7 @@ const routes = [
                 component: () => import("../pages/master/evaluation/evaluationParent.vue"),
                 meta: {
                     middleware: ["auth", "role"],
-                    roles: ["Admin"],
+                    roles: ["Admin", "Director"],
                 },
                 children: [
                     {
@@ -312,7 +312,7 @@ const routes = [
                 component: () => import("../pages/master/category/catParent.vue"),
                 meta: {
                     middleware: ["auth", "role"],
-                    roles: ["Admin"],
+                    roles: ["Admin", "Director"],
                 },
                 children: [
                     {
@@ -337,7 +337,7 @@ const routes = [
                 component: () => import("../pages/master/document/docParent.vue"),
                 meta: {
                     middleware: ["auth", "role"],
-                    roles: ["Admin"],
+                    roles: ["Admin", "Director"],
                 },
                 children: [
                     {
@@ -362,7 +362,7 @@ const routes = [
                 component: () => import("../pages/master/faq/faqParent.vue"),
                 meta: {
                     middleware: ["auth", "role"],
-                    roles: ["Admin"],
+                    roles: ["Admin", "Director"],
                 },
                 children: [
                     {
@@ -387,7 +387,7 @@ const routes = [
                 component: () => import("../pages/master/banner/bannerParent.vue"),
                 meta: {
                     middleware: ["auth", "role"],
-                    roles: ["Admin"],
+                    roles: ["Admin", "Director"],
                 },
                 children: [
                     {
@@ -403,7 +403,7 @@ const routes = [
                 component: () => import("../pages/user/trainer/trainerParent.vue"),
                 meta: {
                     middleware: ["auth", "role"],
-                    roles: ["Admin"],
+                    roles: ["Admin", "Director"],
                 },
                 children: [
                     {
@@ -428,7 +428,7 @@ const routes = [
                 component: () => import("../pages/user/trainee/traineeParent.vue"),
                 meta: {
                     middleware: ["auth", "role"],
-                    roles: ["Admin"],
+                    roles: ["Admin", "Director"],
                 },
                 children: [
                     {
@@ -453,7 +453,7 @@ const routes = [
                 component: () => import("../pages/user/employee/employeeParent.vue"),
                 meta: {
                     middleware: ["auth", "role"],
-                    roles: ["Admin"],
+                    roles: ["Admin", "Director"],
                 },
                 children: [
                     {
@@ -473,7 +473,7 @@ const routes = [
                 component: () => import("../pages/ticket/ticketParent.vue"),
                 meta: {
                     middleware: ["auth", "role"],
-                    roles: ["Admin"],
+                    roles: ["Admin", "Director"],
                 },
                 children: [
                     {
@@ -493,7 +493,7 @@ const routes = [
                 component: () => import("../pages/notification/notiParent.vue"),
                 meta: {
                     middleware: ["auth", "role"],
-                    roles: ["Admin"],
+                    roles: ["Admin", "Director"],
                 },
                 children: [
                     {

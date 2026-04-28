@@ -9,8 +9,9 @@ const roles = [
     { name: "Trainer" },
     { name: "Trainee" },
     { name: "Guest" },
-    {name:"Employee"},
-    {name:"Director"},
+    { name: "Employee" },
+    { name: "Director" },
+    { name: "Course Director" }
 
 ];
 
@@ -26,7 +27,7 @@ const seedRoles = async () => {
 
         // Hash the password
         const hashedPassword = await bcrypt.hash("password", 10);
-await User.deleteMany(); // Clear existing users before creating a new one
+        await User.deleteMany(); // Clear existing users before creating a new one
         // Create the admin user
         const adminUser = new User({
             full_name: "Admin User",

@@ -77,7 +77,6 @@ export const useTrainingStore = defineStore('training', {
             }
         },
         async submitTraining(formData) {
-            console.log(formData);
             try {
                 const response = await api.post('/submit-training-program', formData);
                 if (response.status === 200) {

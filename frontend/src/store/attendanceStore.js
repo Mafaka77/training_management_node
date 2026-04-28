@@ -8,7 +8,8 @@ export const useAttendanceStore = defineStore('attendance', {
         sessionTopic: '',
         attendanceData: [],
         totalSessions: 0,
-        traineeAttendance: {}
+        traineeAttendance: {},
+        isCertificate: false
 
 
     }),
@@ -37,16 +38,19 @@ export const useAttendanceStore = defineStore('attendance', {
             }
         },
         async fetchTraineeAttendance(id, trainingId) {
+            this.isAttendanceLoading = true;
             try {
                 const response = await api.get(`/trainee/${id}/attendance`, {
                     params: {
                         trainingId: trainingId
                     }
                 });
+                console.log(response.data.data)
                 this.traineeAttendance = response.data.data;
+                this.isCertificate = response.data.data.isCertificate || false;
 
             } catch (e) { } finally {
-
+                this.isAttendanceLoading = false;
             }
         },
 

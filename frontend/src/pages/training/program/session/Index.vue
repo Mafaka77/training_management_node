@@ -265,30 +265,7 @@
         </div>
       </div>
       <div v-if="activeTab === 'release-order'" class="space-y-6">
-        <!-- <div v-if="!form.release_order"
-          class="flex flex-col items-center justify-center py-20 bg-zinc-50 dark:bg-zinc-900/50 border-2 border-dashed border-zinc-200 dark:border-white/5 rounded-3xl">
-          <div v-if="form.t_status === 'Completed' && !isLoading && !form.release_order" class="flex justify-end">
-            <button @click="generateReleaseOrder"
-              class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/20 active:scale-95">
-              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M17 21l3-3m0 0l-3-3m3 3H12" />
-              </svg>
-              Generate Release Order
-            </button>
-          </div>
-          <div
-            class="w-12 h-12 mb-4 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-          </div>
-          <h2 class="text-sm font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100">No Release Order
-          </h2>
 
-        </div> -->
         <div v-if="form.t_status === 'Upcoming' || form.t_status === 'Draft' || form.t_status === 'Ongoing'"
           class="flex flex-col items-center justify-center py-20 bg-zinc-50 dark:bg-zinc-900/50 border-2 border-dashed border-zinc-200 dark:border-white/5 rounded-3xl">
           <div
@@ -304,6 +281,27 @@
         </div>
         <div v-else>
           <ReleaseOrder :program-id="route.params.id" />
+        </div>
+
+
+      </div>
+      <div v-if="activeTab === 'certificate'" class="space-y-6">
+        <div v-if="form.t_status === 'Upcoming' || form.t_status === 'Draft' || form.t_status === 'Ongoing'"
+          class="flex flex-col items-center justify-center py-20 bg-zinc-50 dark:bg-zinc-900/50 border-2 border-dashed border-zinc-200 dark:border-white/5 rounded-3xl">
+          <div
+            class="w-12 h-12 mb-4 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <h2 class="text-sm font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100">Registry Locked
+          </h2>
+          <p class="text-xs text-zinc-500 mt-1 max-w-[240px] text-center leading-relaxed"> Certificate becomes
+            available once the training status moves to <span class="text-blue-500 font-bold">Completed</span>. </p>
+        </div>
+        <div v-else>
+          <CertificateComponent :program-id="route.params.id" />
         </div>
       </div>
       <Transition enter-active-class="duration-300 ease-out" enter-from-class="opacity-0" enter-to-class="opacity-100"
@@ -366,6 +364,7 @@ import { storeToRefs } from 'pinia';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import AttendanceComponent from "../../../../components/trainingTabs/AttendanceComponent.vue";
+import CertificateComponent from '../../../../components/trainingTabs/CertificateComponent.vue';
 import EnrollmentComponent from "../../../../components/trainingTabs/EnrollmentComponent.vue";
 import Materials from '../../../../components/trainingTabs/Materials.vue';
 import ReleaseOrder from "../../../../components/trainingTabs/ReleaseOrderComponent.vue";
@@ -417,6 +416,11 @@ const tabs = [
     id: 'release-order',
     label: 'Release Order',
     icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'
+  },
+  {
+    id: 'certificate',
+    label: 'Certificate',
+    icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
   }
 ];
 
