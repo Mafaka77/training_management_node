@@ -184,7 +184,7 @@ exports.generateAndStoreCertificate = async (req, res) => {
         console.error("Puppeteer PDF Generation Error:", ex);
         return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
             status: STATUS.INTERNAL_SERVER_ERROR,
-            message: "An error occurred while generating the PDF on the server."
+            message: ex.message
         });
     }
 };
