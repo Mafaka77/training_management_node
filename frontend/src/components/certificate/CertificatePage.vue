@@ -471,22 +471,18 @@ const downloadPDF = async () => {
     isGenerating.value = true;
 
     try {
-        // 1. Grab the certificate container from the screen
         const element = document.getElementById('certificate-canvas');
-
-        // 2. Clone it
         const clonedElement = element.cloneNode(true);
-
-        // 🚨 IMAGE FIX: Force absolute URLs for Puppeteer 🚨
-        // The live browser knows the absolute URL of the images. 
-        // We copy those resolved URLs and force them onto the clone.
         const originalImages = element.querySelectorAll('img');
         const clonedImages = clonedElement.querySelectorAll('img');
-        originalImages.forEach((img, index) => {
-            clonedImages[index].src = img.src; // Converts '/assets/seal.png' to 'http://localhost:5173/assets/seal.png'
-        });
+        // We use a standard 'for' loop so we can use 'await'
+        for (let i = 0; i < originalImages.length; i++) {
+            // originalImages[i].src gets the absolute URL the browser is currently looking at
+            const absoluteUrl = originalImages[i].src;
+            const base64Data = await imageToBase64(absoluteUrl);
+            clonedImages[i].src = base64Data;
+        }
 
-        // 3. Remove all editing capabilities and hover borders from the clone
         const editables = clonedElement.querySelectorAll('.editable-text');
         editables.forEach(el => {
             el.removeAttribute('contenteditable');
@@ -494,24 +490,13 @@ const downloadPDF = async () => {
             el.style.outline = 'none';
             el.style.backgroundColor = 'transparent';
         });
-
-        // 4. Extract the exact HTML string
         const finalHtmlString = clonedElement.outerHTML;
-
-        // Create a safe filename
         const rawName = certificateDetails.value?.trainee?.full_name || 'Trainee';
         const safeName = rawName.replace(/\s+/g, '_');
-
-        // Grab the program name and strip out any special characters that file systems hate
         const rawProgram = certificateDetails.value?.program?.t_name || 'Program';
         const safeProgram = rawProgram.replace(/[^a-zA-Z0-9]/g, '_');
-
-        // Add a timestamp to guarantee absolute uniqueness
         const timestamp = Date.now();
-
         const filename = `certificate_${safeName}_${timestamp}.pdf`;
-
-        // 5. Send payload
         const payload = {
             traineeId: route.params.traineeId,
             trainingId: route.params.id,
@@ -543,7 +528,21 @@ const fetchTraineeDetails = async () => {
         alert.error('Failed to fetch trainee details');
     }
 }
-
+// Helper to convert an image URL to a Base64 text string
+const imageToBase64 = async (url) => {
+    try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.readAsDataURL(blob);
+        });
+    } catch (error) {
+        console.warn("Could not convert image to Base64:", url);
+        return url; // Fallback to original URL if it fails
+    }
+};
 onMounted(() => {
     fetchTraineeDetails();
 });
