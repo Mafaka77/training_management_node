@@ -8,6 +8,8 @@ const Certificate = require('../../models/certificate_model')
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
+const { readFileSync } = require('fs');
+const crypto = require('crypto');
 exports.getTraineeCertificateDetails = async (req, res) => {
     const { traineeId } = req.params;
     const { trainingId } = req.query;
@@ -166,6 +168,7 @@ exports.generateAndStoreCertificate = async (req, res) => {
         const certificate = new Certificate({
             user: traineeId,
             training_program: trainingId,
+            file_name: filename,
             certificate_url: `/uploads/certificate/${filename}`,
         });
 
@@ -204,4 +207,125 @@ exports.fetchCertificates = async (req, res) => {
             message: ex.message
         });
     }
+}
+exports.prepareForESign = async (req, res) => {
+    const PUBLIC_KEY_PATH = path.join(__dirname, '../../cert', 'cert.cer')
+    // const SERVER_URL = 'https://parchment-unabashed-urging.ngrok-free.dev';
+    const SERVER_URL = 'https://atimz.mizoram.gov.in';
+    try {
+        const { id } = req.params;
+        console.log(id);
+        const certificate = await Certificate.findById(id).populate('user').populate('training_program');
+        // console.log(certificate);
+
+        const user = await User.findById(req.user.user.id);
+        console.log(user);
+        const sessionKey = crypto.randomBytes(32);
+        const pdfFilePath = certificate.certificate_url;
+        const localFilePath = path.join(__dirname, '../../', pdfFilePath)
+        const fileBase64 = readFileSync(localFilePath, 'base64');
+        const incomingData = {
+            "Name": user.full_name,
+            "FileType": "PDF",
+            "AuthToken": "c49046e1-c3de-4a1b-8024-679f0debadaa",
+            "File": fileBase64,
+            "SignatureMode": "3",
+            "SelectPage": "1",
+            "SignaturePosition": "Bottom-Right",
+            "PageNumber": "1",
+            "PreviewRequired": true,
+            "PagelevelCoordinates": "",
+            "CustomizeCoordinates": "",
+            "SUrl": `${SERVER_URL}/admin-api/certificate/${certificate._id}/training/${certificate.training_program._id}/success`,
+            "FUrl": `${SERVER_URL}/admin-api/emSignerFailureResponse/${certificate.training_program._id}`,
+            "CUrl": `${SERVER_URL}/admin-api/emSignerResponse`,
+            "ReferenceNumber": "ATI-" + Date.now(),
+            "Enableuploadsignature": true,
+            "Enablefontsignature": true,
+            "EnableDrawSignature": true,
+            "EnableeSignaturePad": false,
+            "IsCompressed": false,
+            "IsCosign": true,
+            "Storetodb": false,
+            "IsGSTN": false,
+            "IsGSTN3B": false,
+            "IsCustomized": true,
+            "AuthenticationMode": 1,
+            "EnableInitials": false
+        };
+        await certificate.updateOne({
+            $set: {
+                temp_session_key: sessionKey.toString('base64'),
+                reference_number: incomingData.ReferenceNumber
+            }
+        })
+        const jsonString = JSON.stringify(incomingData);
+        const parameter2 = encryptAES(jsonString, sessionKey);
+        const hash = crypto.createHash('sha256').update(jsonString).digest();
+        const parameter3 = encryptAES(hash, sessionKey);
+
+        const publicKey = readFileSync(PUBLIC_KEY_PATH, 'utf8');
+        const parameter1 = crypto.publicEncrypt(
+            {
+                key: publicKey, padding: crypto.constants.RSA_PKCS1_PADDING
+            },
+            sessionKey
+        ).toString("base64");
+
+        return res.status(STATUS.OK).json({ status: STATUS.OK, parameter1, parameter2, parameter3 })
+
+    } catch (ex) {
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({ status: STATUS.INTERNAL_SERVER_ERROR, message: ex.message })
+    }
+}
+
+exports.certificateSuccessResponse = async (req, res) => {
+    const SERVER_URL = 'https://atimz.mizoram.gov.in';
+    // const SERVER_URL = 'http://localhost:5173';
+    const { trainingId, certificateId } = req.params;
+    try {
+
+        const certificate = await Certificate.findOne({ _id: certificateId });
+
+        if (!certificate) {
+            return res.status(404).send("Certificate not found.");
+        }
+        const sessionKey = Buffer.from(certificate.temp_session_key, 'base64');
+        const encryptedBuffer = Buffer.from(req.body.Returnvalue, 'base64');
+        const decryptedPdfBuffer = decryptBinaryAES(encryptedBuffer, sessionKey);
+
+        const newFileName = `signed_${certificate.file_name}`;
+        const filePath = path.join(__dirname, "../../uploads/certificate", certificate.file_name);
+        await require('fs').promises.unlink(filePath);
+        const savePath = path.join(__dirname, '../../uploads/certificate', newFileName);
+        await require('fs').promises.writeFile(savePath, decryptedPdfBuffer);
+        await Certificate.updateOne(
+            { _id: certificateId },
+            {
+                $set: {
+                    is_signed: true,
+                    certificate_url: `/uploads/certificate/${newFileName}`
+                }
+            }
+        );
+        res.redirect(`${SERVER_URL}/admin/training/${trainingId}/signature-success`);
+
+    } catch (error) {
+        console.error("Signature processing failed:", error);
+        res.redirect(`${SERVER_URL}/admin/training/${trainingId}/signature-failure`);
+    }
+}
+function encryptAES(data, key) {
+    const cipher = crypto.createCipheriv("aes-256-ecb", key, null);
+    let encrypted = cipher.update(data, "utf8", "base64");
+    encrypted += cipher.final("base64");
+    return encrypted;
+}
+
+function decryptBinaryAES(encryptedBuffer, key) {
+    const decipher = crypto.createDecipheriv("aes-256-ecb", key, null);
+    decipher.setAutoPadding(true);
+    const chunk1 = decipher.update(encryptedBuffer);
+    const chunk2 = decipher.final();
+    return Buffer.concat([chunk1, chunk2]);
 }

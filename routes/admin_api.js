@@ -189,9 +189,9 @@ router.get('/trainee/:traineeId/certificate', authenticate, authorizeRoles('Admi
 // router.post('/trainee/:traineeId/certificate/store', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), uploadCertificate.single('certificate'), require('../controllers/admin/admin_certificate_controller').storeCertificate)
 router.post('/certificate/generate-server', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), require('../controllers/admin/admin_certificate_controller').generateAndStoreCertificate);
 router.get('/certificates/:trainingId', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), require('../controllers/admin/admin_certificate_controller').fetchCertificates);
+router.get('/certificate/:id/prepare-esign', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), require('../controllers/admin/admin_certificate_controller').prepareForESign);
+router.post('/certificate/:certificateId/training/:trainingId/success', upload.none(), require('../controllers/admin/admin_certificate_controller').certificateSuccessResponse)
 module.exports = router;
-
-
 
 
 

@@ -15,6 +15,10 @@ const certificateSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
+    file_name: {
+        type: String,
+        required: false,
+    },
     certificate_url: {
         type: String,
         required: false,

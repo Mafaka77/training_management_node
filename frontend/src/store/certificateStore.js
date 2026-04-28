@@ -189,6 +189,22 @@ export const useCertificateStore = defineStore('certificate', {
             finally {
                 this.isCertificateLoading = false;
             }
+        },
+        async handleCertificateSignature(id) {
+            this.isSigning = true;
+            try {
+                const response = await api.get(`/certificate/${id}/prepare-esign`);
+                if (response.status === 200 && response.data.status === 200) {
+                    this.params.parameter1 = response.data.parameter1;
+                    this.params.parameter2 = response.data.parameter2;
+                    this.params.parameter3 = response.data.parameter3;
+                    return { success: true, message: response.data.message }
+                }
+                return { success: false, message: response.data.message }
+            } catch (ex) { }
+            finally {
+                this.isSigning = false;
+            }
         }
     },
 });

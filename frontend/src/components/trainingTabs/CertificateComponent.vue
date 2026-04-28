@@ -41,6 +41,12 @@
         </div>
 
         <div v-else>
+            <form ref="eMudhraForm" method="post" action="https://demogateway-core.emsigner.com/Secure/index"
+                class="hidden">
+                <input type="hidden" name="Parameter1" :value="params.parameter1" />
+                <input type="hidden" name="Parameter2" :value="params.parameter2" />
+                <input type="hidden" name="Parameter3" :value="params.parameter3" />
+            </form>
             <div v-if="processedCertificates.length > 0" class="space-y-4">
                 <div v-for="certificate in processedCertificates" :key="certificate.id || certificate._id"
                     class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row sm:items-center justify-between group gap-4">
@@ -63,21 +69,24 @@
                     </div>
 
                     <div class="flex items-center gap-3">
-                        <button @click="handleSignDocument" :disabled="isSigning"
-                            class="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 disabled:bg-slate-300 transition-all shadow-md shadow-indigo-100 active:scale-95">
-                            <svg v-if="isSigning" class="animate-spin w-4 h-4" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                    stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                </path>
-                            </svg>
-                            <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                            </svg>
-                            {{ isSigning ? 'Signing...' : 'Sign Document' }}
-                        </button>
+                        <div v-if="!certificate.is_signed">
+                            <button @click="handleSignDocument(certificate._id)" :disabled="isSigning"
+                                class="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 disabled:bg-slate-300 transition-all shadow-md shadow-indigo-100 active:scale-95">
+                                <svg v-if="isSigning" class="animate-spin w-4 h-4" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                        stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
+                                </svg>
+                                <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                                {{ isSigning ? 'Signing...' : 'Sign Document' }}
+                            </button>
+
+                        </div>
 
                         <a v-if="certificate.is_signed" :href="certificate.certificate_url" target="_blank"
                             class="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-all"
@@ -90,12 +99,7 @@
                             </svg>
                         </a>
 
-                        <form ref="eMudhraForm" method="post"
-                            action="https://demogateway-core.emsigner.com/Secure/index" class="hidden">
-                            <input type="hidden" name="Parameter1" :value="params.parameter1" />
-                            <input type="hidden" name="Parameter2" :value="params.parameter2" />
-                            <input type="hidden" name="Parameter3" :value="params.parameter3" />
-                        </form>
+
 
                         <div>
                             <button @click="showDeleteConfirm = true"
@@ -272,11 +276,11 @@ const prevPage = () => {
 };
 
 // --- Actions ---
-const handleSignDocument = async () => {
+const handleSignDocument = async (certificateId) => {
     try {
-        const response = await certificateStore.handleSignDocument(trainingId);
+        const response = await certificateStore.handleCertificateSignature(certificateId);
         if (response.success) {
-            console.log(params.value);
+            console.log(params);
             await nextTick();
             eMudhraForm.value.submit();
         }
