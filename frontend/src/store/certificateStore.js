@@ -18,6 +18,12 @@ export const useCertificateStore = defineStore('certificate', {
         },
         selectedTemplate: '',
         director: {},
+        currentPage: 1,
+        itemsPerPage: 5,
+        sortKey: 'createdAt',
+        sortOrder: 'desc',
+        totalItems: 0,
+        totalPages: 1,
     }),
     actions: {
         async generateReleaseOrder(trainingId) {
@@ -45,14 +51,12 @@ export const useCertificateStore = defineStore('certificate', {
                 return response
             } catch (ex) { }
         },
-        async saveReleaseOrderToServer(formData, trainingId) {
+        async saveReleaseOrderToServer(payload, trainingId) {
             this.isLoading = true;
             this.error = null;
             try {
                 // Trigger the server-side PDF generation
-                const response = await api.post(`/training/${trainingId}/release-order/store`, formData, {
-                    headers: { 'Content-Type': 'multipart/form-data' }
-                });
+                const response = await api.post(`/training/${trainingId}/release-order/store`, payload);
 
                 if (response.status === 200 && response.data.status === 201) {
                     return {
@@ -178,17 +182,40 @@ export const useCertificateStore = defineStore('certificate', {
         async fetchCertificates(trainingId) {
             this.isCertificateLoading = true;
             try {
-                const response = await api.get(`/certificates/${trainingId}`);
-                console.log(response.data);
+                // Pass the store's state as query parameters to the backend
+                const response = await api.get(`/certificates/${trainingId}`, {
+                    params: {
+                        page: this.currentPage,
+                        limit: this.itemsPerPage,
+                        sortKey: this.sortKey,
+                        sortOrder: this.sortOrder
+                    }
+                });
+
                 if (response.status === 200 && response.data.status === 200) {
                     this.certificates = response.data.data;
-                    return { success: true, message: response.data.message }
+
+                    // Save backend pagination metadata to the store
+                    this.totalItems = response.data.total || response.data.data.length;
+                    this.totalPages = response.data.totalPages || 1;
+                    this.currentPage = response.data.currentPage || 1;
+
+                    return { success: true, message: response.data.message };
                 }
-                return { success: false, message: response.data.message }
-            } catch (ex) { }
-            finally {
+                return { success: false, message: response.data.message };
+            } catch (ex) {
+                console.error("Fetch Certificates Error:", ex);
+                return { success: false, message: "Server error" };
+            } finally {
                 this.isCertificateLoading = false;
             }
+        },
+
+        // Helper to reset filters when opening a different training program
+        resetQueryState() {
+            this.currentPage = 1;
+            this.sortKey = 'createdAt';
+            this.sortOrder = 'desc';
         },
         async handleCertificateSignature(id) {
             this.isSigning = true;
@@ -205,6 +232,23 @@ export const useCertificateStore = defineStore('certificate', {
             finally {
                 this.isSigning = false;
             }
-        }
+        },
+        async deleteCertificate(id) {
+            this.isCertificateLoading = true;
+            try {
+                const response = await api.delete(`/certificate/${id}`);
+                if (response.status === 200 && response.data.status === 200) {
+                    return { success: true, message: response.data.message }
+                }
+                return { success: false, message: response.data.message }
+            } catch (ex) {
+                return { success: false, message: ex.response.data.message }
+            }
+            finally {
+                this.isCertificateLoading = false;
+            }
+        },
+
+
     },
 });

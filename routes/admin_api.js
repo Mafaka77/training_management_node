@@ -44,6 +44,9 @@ router.get('/room/:id', authenticate, authorizeRoles('Admin', 'Director'), uploa
 //TRAINING CATEGORY
 router.get('/get-training-category', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), trainingCategoryController.getTrainingCategory);
 router.post('/submit-training-category', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingCategoryController.createTrainingCategory);
+router.get('/training-category/:categoryId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingCategoryController.getTrainingCategoryById)
+router.put('/training-category/:categoryId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingCategoryController.updateTrainingCategory)
+router.delete('/training-category/:categoryId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingCategoryController.deleteTrainingCategory)
 
 //TRAINING PROGRAM
 router.post('/submit-training-program', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), fileUpload.single('t_banner'), trainingController.submitTrainingProgram);
@@ -90,6 +93,7 @@ router.post('/trainee', authenticate, authorizeRoles('Admin', 'Director'), uploa
 router.get('/trainee/:traineeId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), traineeController.getTraineeById);
 router.put('/trainee/:traineeId/blacklist', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), traineeController.blacklistTrainee);
 router.put('/trainee/:traineeId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), traineeController.updateTrainee);
+router.delete('/trainee/:traineeId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), traineeController.deleteTrainee);
 
 router.post('/employee', authenticate, authorizeRoles('Admin', 'Director'), fileUpload.single('signature'), require('../controllers/admin/admin_employee_controller').submitEmployee);
 router.get('/employees', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_employee_controller').getEmployees)
@@ -122,6 +126,10 @@ router.delete('/faqs/:faqId', authenticate, authorizeRoles('Admin', 'Director'),
 router.post('/evaluation-question', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_evaluation_question_controller').createEvaluationQuestion)
 router.get('/evaluation-questions', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_evaluation_question_controller').getAllEvaluationQuestions)
 router.delete('/evaluation-question/:id', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_evaluation_question_controller').deleteEvaluationQuestion)
+
+//EVALUATION ANSWERS
+router.get('/evaluations/training/:trainingId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_evaluation_controller').fetchEvaluationByTrainingId)
+router.get('/evaluations/:evaluationId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_evaluation_controller').fetchEvaluationById)
 
 //MATERIALS
 router.get('/materials/:programId', authenticate, authorizeRoles('Admin', 'Trainer', 'Director'), upload.none(), require('../controllers/admin/admin_material_controller').getMaterials);
@@ -177,8 +185,8 @@ router.patch('/notification/:id/read', authenticate, authorizeRoles('Admin', 'Di
 
 //CERTIFICATE AND ORDERS
 router.get('/training/:trainingId/release-order/generate', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), ReleaseOrderController.generateReleaseOrder)
-router.get('/training/:trainingId/release-order/download', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), ReleaseOrderController.downloadReleaseOrder)
-router.post('/training/:trainingId/release-order/store', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), fileUpload.single('release-order'), ReleaseOrderController.saveReleaseOrderToServer);
+// router.get('/training/:trainingId/release-order/download', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), ReleaseOrderController.downloadReleaseOrder)
+router.post('/training/:trainingId/release-order/store', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), fileUpload.single('release-order'), ReleaseOrderController.generateAndStoreReleaseOrder);
 router.get('/training/:trainingId/release-order', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), ReleaseOrderController.getReleaseOrder);
 router.delete('/training/:trainingId/release-order', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), ReleaseOrderController.deleteReleaseOrder);
 router.get('/training/:trainingId/release-order/prepare-esign', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), ReleaseOrderController.prepareForESign)
@@ -191,9 +199,15 @@ router.post('/certificate/generate-server', authenticate, authorizeRoles('Admin'
 router.get('/certificates/:trainingId', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), require('../controllers/admin/admin_certificate_controller').fetchCertificates);
 router.get('/certificate/:id/prepare-esign', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), require('../controllers/admin/admin_certificate_controller').prepareForESign);
 router.post('/certificate/:certificateId/training/:trainingId/success', upload.none(), require('../controllers/admin/admin_certificate_controller').certificateSuccessResponse)
+router.delete('/certificate/:certificateId', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), require('../controllers/admin/admin_certificate_controller').deleteCertificate)
+//SELECTED TRAINEE ORDERS
+router.get('/training/:trainingId/enrollment/order', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), TrainingEnrollmentController.generateSelectedTraineesOrder);
+router.post('/training/enrollment/order/store', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), fileUpload.single('release-order'), TrainingEnrollmentController.storeSelectedListOrder);
+router.get('/training/:trainingId/enrollment/order/:id/esign', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), TrainingEnrollmentController.prepareForESign);
+router.post('/training/:trainingId/enrollment/order/:id/success', upload.none(), TrainingEnrollmentController.enrolledOrderSuccessResponse);
+router.get('/training/:trainingId/enrollment/orders', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), TrainingEnrollmentController.fetchEnrolledOrdersByTraining);
+router.delete('/training/enrollment/order/:id/delete', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), TrainingEnrollmentController.deleteEnrolledOrder);
 module.exports = router;
-
-
 
 
 

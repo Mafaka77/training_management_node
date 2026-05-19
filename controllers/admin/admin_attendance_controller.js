@@ -61,52 +61,131 @@ exports.getSessionAttendance = async (req, res) => {
 };
 
 
+
 exports.getFullAttendance = async (req, res) => {
     try {
-        const { programId } = req.params; // Ensure sessionId is passed if checking "Today"
+        const { programId } = req.params;
+
+        // 1. Extract query parameters with defaults
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const search = req.query.search || '';
+        const sortBy = req.query.sortBy || 'user.full_name'; // Default sort
+        const sortOrder = req.query.sortOrder === 'desc' ? -1 : 1;
 
         if (!mongoose.Types.ObjectId.isValid(programId)) {
-            return res.status(STATUS.OK).json({
-                status: STATUS.BAD_REQUEST,
-                message: "Invalid Program ID format"
-            });
+            return res.status(STATUS.BAD_REQUEST).json({ message: "Invalid Program ID format" });
         }
-        const [enrollments, currentAttendance, attendanceStats, totalSessionsCount] = await Promise.all([
-            Enrollment.find({ training_program: programId, status: 'Approved' }).populate("user", "full_name image").lean(),
-            Attendance.find({ trainingId: programId }).lean(),
-            Attendance.aggregate([
-                { $match: { trainingId: new mongoose.Types.ObjectId(programId) } },
-                { $group: { _id: "$enrollmentId", count: { $sum: 1 } } }
-            ]),
-            Session.countDocuments({ t_program: programId })
-        ]);
-        const statsMap = (Array.isArray(attendanceStats) ? attendanceStats : []).reduce((acc, curr) => {
-            if (curr._id) {
-                acc[curr._id.toString()] = curr.count;
-            }
-            return acc;
-        }, {});
-        const presentTodaySet = new Set(
-            (currentAttendance || []).map(a => a.enrollmentId.toString())
-        );
-        const registry = enrollments.map(trainee => {
-            const traineeIdStr = trainee._id.toString();
-            const attendedCount = statsMap[traineeIdStr] || 0;
 
-            return {
-                _id: trainee._id,
-                user: trainee.user,
-                attendedCount: attendedCount,
-                isPresentToday: presentTodaySet.has(traineeIdStr),
-                percentage: totalSessionsCount > 0
-                    ? Math.round((attendedCount / totalSessionsCount) * 100)
-                    : 0
-            };
-        });
+        // 2. Fast count of total sessions
+        const totalSessionsCount = await Session.countDocuments({ t_program: programId });
+
+        // 3. The Aggregation Pipeline
+        const pipeline = [
+            // A. Match specific training program and approved enrollments
+            { $match: { training_program: new mongoose.Types.ObjectId(programId), status: 'Approved' } },
+
+            // 🚨 NEW: Check Certificates Collection 🚨
+            // We do this BEFORE unwinding the user so we can match the raw ObjectIds safely
+            {
+                $lookup: {
+                    from: 'certificates', // IMPORTANT: Verify this is your exact MongoDB collection name (usually pluralized)
+                    let: { traineeId: '$user', pId: '$training_program' },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ['$user', '$$traineeId'] },
+                                        { $eq: ['$training_program', '$$pId'] }
+                                    ]
+                                }
+                            }
+                        },
+                        { $project: { _id: 1 } } // Optimization: We only need to know it exists, don't fetch the whole doc
+                    ],
+                    as: 'certificateDocs'
+                }
+            },
+
+            // B. Join User Details
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'user',
+                    foreignField: '_id',
+                    as: 'user'
+                }
+            },
+            { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+
+            // C. Join Attendance Records to calculate counts
+            {
+                $lookup: {
+                    from: 'attendances',
+                    localField: '_id',
+                    foreignField: 'enrollmentId',
+                    as: 'attendanceRecords'
+                }
+            },
+
+            // D. Calculate total attended, percentage, AND set the certificate flag
+            {
+                $addFields: {
+                    attendedCount: { $size: "$attendanceRecords" },
+                    percentage: totalSessionsCount > 0
+                        ? { $round: [{ $multiply: [{ $divide: [{ $size: "$attendanceRecords" }, totalSessionsCount] }, 100] }, 0] }
+                        : 0,
+                    // 🚨 NEW: Boolean flag based on whether the certificate lookup found anything 🚨
+                    isCertificateGenerated: { $gt: [{ $size: "$certificateDocs" }, 0] }
+                }
+            },
+
+            // E. Apply Search Filter
+            ...(search ? [{
+                $match: {
+                    "user.full_name": { $regex: search, $options: 'i' }
+                }
+            }] : []),
+
+            // F. Sort
+            { $sort: { [sortBy]: sortOrder } },
+
+            // G. Split into Pagination Data and Overall Metadata
+            {
+                $facet: {
+                    metadata: [
+                        {
+                            $group: {
+                                _id: null,
+                                totalTrainees: { $sum: 1 },
+                                avgPercentage: { $avg: "$percentage" }
+                            }
+                        }
+                    ],
+                    data: [
+                        { $skip: (page - 1) * limit },
+                        { $limit: limit },
+                        // Clean up the output by hiding the heavy arrays we used for calculations
+                        { $project: { attendanceRecords: 0, certificateDocs: 0 } }
+                    ]
+                }
+            }
+        ];
+
+        const result = await Enrollment.aggregate(pipeline);
+
+        const metadata = result[0].metadata[0] || { totalTrainees: 0, avgPercentage: 0 };
+        const data = result[0].data;
+
         return res.status(STATUS.OK).json({
             status: STATUS.OK,
+            data: data,
             totalSessions: totalSessionsCount,
-            data: registry
+            totalItems: metadata.totalTrainees,
+            totalPages: Math.ceil(metadata.totalTrainees / limit),
+            currentPage: page,
+            averagePercentage: Math.round(metadata.avgPercentage)
         });
 
     } catch (ex) {
@@ -116,100 +195,100 @@ exports.getFullAttendance = async (req, res) => {
             message: ex.message
         });
     }
-};
+},
 
-exports.getTraineeAttendanceDetails = async (req, res) => {
-    const { traineeId } = req.params;
-    const { trainingId } = req.query;
-    let isCertificate = false;
-    if (!mongoose.Types.ObjectId.isValid(traineeId) || !mongoose.Types.ObjectId.isValid(trainingId)) {
-        return res.status(STATUS.OK).json({
-            status: STATUS.BAD_REQUEST,
-            message: "Invalid Trainee ID or Training ID format"
-        });
-    }
-    const certificate = await Certificate.find({ user: traineeId, training_program: trainingId }).lean();
-
-    if (certificate.length == 0) {
-        isCertificate = false;
-    } else {
-        isCertificate = true;
-    }
-    console.log(isCertificate)
-    try {
-        const [program, sessions, traineeName, trainingCategory] = await Promise.all([
-            TrainingProgram.findById(trainingId).select('t_name').lean(),
-            Session.find({ t_program: trainingId }).sort({ tc_date: 1 }).lean(),
-            User.findById(traineeId).select('full_name').lean(),
-            TrainingProgram.findById(trainingId).populate('t_category').lean(),
-        ]);
-
-        if (!program) {
+    exports.getTraineeAttendanceDetails = async (req, res) => {
+        const { traineeId } = req.params;
+        const { trainingId } = req.query;
+        let isCertificate = false;
+        if (!mongoose.Types.ObjectId.isValid(traineeId) || !mongoose.Types.ObjectId.isValid(trainingId)) {
             return res.status(STATUS.OK).json({
-                status: STATUS.NOT_FOUND,
-                message: "Program not found"
+                status: STATUS.BAD_REQUEST,
+                message: "Invalid Trainee ID or Training ID format"
             });
         }
+        const certificate = await Certificate.find({ user: traineeId, training_program: trainingId }).lean();
 
-        const attendanceRecords = await Attendance.find({
-            user: traineeId,
-            trainingId: trainingId
-        }).lean();
-        const attendanceMap = new Map(
-            attendanceRecords.map(rec => [rec.sessionId.toString(), rec])
-        );
+        if (certificate.length == 0) {
+            isCertificate = false;
+        } else {
+            isCertificate = true;
+        }
+        console.log(isCertificate)
+        try {
+            const [program, sessions, traineeName, trainingCategory] = await Promise.all([
+                TrainingProgram.findById(trainingId).select('t_name').lean(),
+                Session.find({ t_program: trainingId }).sort({ tc_date: 1 }).lean(),
+                User.findById(traineeId).select('full_name').lean(),
+                TrainingProgram.findById(trainingId).populate('t_category').lean(),
+            ]);
 
-        const totalSessions = sessions.length;
-        let presentCount = 0;
-
-        const sessionDetails = sessions.map(session => {
-            const record = attendanceMap.get(session._id.toString());
-            const isPresent = record && record.status === 'Present';
-
-            if (isPresent) presentCount++;
-
-            return {
-                sessionId: session._id,
-                sessionTopic: session.tc_topic,
-                sessionDate: session.tc_date,
-                startTime: session.tc_start_time,
-                endTime: session.tc_end_time,
-                // Logic: If no record in Attendance collection, they are "Absent"
-                status: record ? record.status : "Absent",
-                signInTime: record ? record.createdAt : null,
-                remarks: record ? record.remarks : ""
-            };
-        });
-
-        // 4. Detailed Analytics
-        const attendancePercentage = totalSessions > 0
-            ? parseFloat(((presentCount / totalSessions) * 100).toFixed(2))
-            : 0;
-
-        return res.status(STATUS.OK).json({
-            status: STATUS.OK,
-            data: {
-                traineeId,
-                traineeName,
-                programName: program.t_name,
-                trainingCategory: trainingCategory.t_category.name,
-                stats: {
-                    totalSessions,
-                    presentCount,
-                    absentCount: totalSessions - presentCount,
-                    attendancePercentage: attendancePercentage, // Returning as number for easier UI logic
-                    isEligible: attendancePercentage >= 75
-                },
-                records: sessionDetails,
-                isCertificate: isCertificate
+            if (!program) {
+                return res.status(STATUS.OK).json({
+                    status: STATUS.NOT_FOUND,
+                    message: "Program not found"
+                });
             }
-        });
 
-    } catch (ex) {
-        console.error("Trainee Attendance Details Error:", ex);
-        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
-            status: STATUS.INTERNAL_SERVER_ERROR,
-            message: ex.message
-        });
+            const attendanceRecords = await Attendance.find({
+                user: traineeId,
+                trainingId: trainingId
+            }).lean();
+            const attendanceMap = new Map(
+                attendanceRecords.map(rec => [rec.sessionId.toString(), rec])
+            );
+
+            const totalSessions = sessions.length;
+            let presentCount = 0;
+
+            const sessionDetails = sessions.map(session => {
+                const record = attendanceMap.get(session._id.toString());
+                const isPresent = record && record.status === 'Present';
+
+                if (isPresent) presentCount++;
+
+                return {
+                    sessionId: session._id,
+                    sessionTopic: session.tc_topic,
+                    sessionDate: session.tc_date,
+                    startTime: session.tc_start_time,
+                    endTime: session.tc_end_time,
+                    // Logic: If no record in Attendance collection, they are "Absent"
+                    status: record ? record.status : "Absent",
+                    signInTime: record ? record.createdAt : null,
+                    remarks: record ? record.remarks : ""
+                };
+            });
+
+            // 4. Detailed Analytics
+            const attendancePercentage = totalSessions > 0
+                ? parseFloat(((presentCount / totalSessions) * 100).toFixed(2))
+                : 0;
+
+            return res.status(STATUS.OK).json({
+                status: STATUS.OK,
+                data: {
+                    traineeId,
+                    traineeName,
+                    programName: program.t_name,
+                    trainingCategory: trainingCategory.t_category.name,
+                    stats: {
+                        totalSessions,
+                        presentCount,
+                        absentCount: totalSessions - presentCount,
+                        attendancePercentage: attendancePercentage, // Returning as number for easier UI logic
+                        isEligible: attendancePercentage >= 75
+                    },
+                    records: sessionDetails,
+                    isCertificate: isCertificate
+                }
+            });
+
+        } catch (ex) {
+            console.error("Trainee Attendance Details Error:", ex);
+            return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+                status: STATUS.INTERNAL_SERVER_ERROR,
+                message: ex.message
+            });
+        }
     }
-}

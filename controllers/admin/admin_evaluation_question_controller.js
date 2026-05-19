@@ -1,5 +1,7 @@
 const EvaluationQuestion = require('../../models/evaluation_question_model');
+const EvaluationAnswer = require('../../models/evaluation_answer_model')
 const status = require('../../utils/httpStatus');
+const { default: mongoose } = require('mongoose');
 exports.createEvaluationQuestion = async (req, res) => {
     try {
         const { question_text, input_type, category, is_mandatory, is_active } = req.body;
@@ -34,3 +36,4 @@ exports.deleteEvaluationQuestion = async (req, res) => {
         return res.status(status.INTERNAL_SERVER_ERROR).json({ status: status.INTERNAL_SERVER_ERROR, message: ex.message });
     }
 }
+

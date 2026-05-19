@@ -127,7 +127,6 @@ export const useTrainingStore = defineStore('training', {
             try {
                 const response = await api.get('/directors');
                 this.directors = response.data.data;
-                console.log(response.data.data);
             } catch (error) {
                 console.error('Error fetching directors:', error);
             }

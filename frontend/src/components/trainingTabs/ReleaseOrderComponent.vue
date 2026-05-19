@@ -6,13 +6,13 @@
             </div>
         </div>
 
-        <div v-if="isLoading" class="space-y-4">
+        <div v-if="store.isLoading" class="space-y-4">
             <div v-for="i in 2" :key="i"
                 class="h-24 w-full bg-slate-100 animate-pulse rounded-2xl border border-slate-200"></div>
         </div>
 
         <div v-else>
-            <div v-if="releaseOrder" class="space-y-4">
+            <div v-if="store.releaseOrder" class="space-y-4">
                 <div
                     class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex items-center justify-between group">
                     <div class="flex items-center gap-4">
@@ -26,29 +26,32 @@
                         <div>
                             <h3 class="font-bold text-slate-800">Official Release Order</h3>
                             <p class="text-xs text-slate-400 font-mono mt-0.5 uppercase tracking-wider">
-                                Generated: {{ formatDate(releaseOrder.createdAt) }}
+                                Generated: {{ formatDate(store.releaseOrder.createdAt) }}
                             </p>
                         </div>
                     </div>
 
                     <div class="flex items-center gap-3">
-                        <button @click="handleSignDocument" :disabled="isSigning"
-                            class="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 disabled:bg-slate-300 transition-all shadow-md shadow-indigo-100 active:scale-95">
-                            <svg v-if="isSigning" class="animate-spin w-4 h-4" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                    stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                </path>
-                            </svg>
-                            <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                            </svg>
-                            {{ isSigning ? 'Signing...' : 'Sign Document' }}
-                        </button>
+                        <div v-if="!store.releaseOrder.is_signed">
+                            <button @click="handleSignDocument" :disabled="store.isSigning"
+                                class="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 disabled:bg-slate-300 transition-all shadow-md shadow-indigo-100 active:scale-95">
+                                <svg v-if="store.isSigning" class="animate-spin w-4 h-4" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                        stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
+                                </svg>
+                                <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                                {{ store.isSigning ? 'Signing...' : 'Sign Document' }}
+                            </button>
+                        </div>
 
-                        <a v-if="releaseOrder.is_signed" :href="releaseOrder.release_order_url" target="_blank"
+                        <a v-if="store.releaseOrder.is_signed" :href="store.releaseOrder.release_order_url"
+                            target="_blank"
                             class="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-all"
                             title="Preview Signed Document">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -58,14 +61,16 @@
                                     d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
                         </a>
+
                         <form ref="eMudhraForm" method="post"
-                            action="https://demogateway-core.emsigner.com/Secure/index">
-                            <input type="hidden" name="Parameter1" :value="params.parameter1" />
-                            <input type="hidden" name="Parameter2" :value="params.parameter2" />
-                            <input type="hidden" name="Parameter3" :value="params.parameter3" />
+                            action="https://demogateway-core.emsigner.com/Secure/index" class="hidden">
+                            <input type="hidden" name="Parameter1" :value="store.params?.parameter1" />
+                            <input type="hidden" name="Parameter2" :value="store.params?.parameter2" />
+                            <input type="hidden" name="Parameter3" :value="store.params?.parameter3" />
                         </form>
+
                         <div>
-                            <button @click="showDeleteConfirm = true"
+                            <button @click="store.showDeleteConfirm = true"
                                 class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -74,7 +79,7 @@
                             </button>
 
                             <Transition name="fade">
-                                <div v-if="showDeleteConfirm"
+                                <div v-if="store.showDeleteConfirm"
                                     class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
                                     <div class="bg-white rounded-[28px] w-full max-w-sm p-6 shadow-2xl scale-in">
                                         <div
@@ -92,13 +97,13 @@
                                         </p>
 
                                         <div class="flex gap-3">
-                                            <button @click="showDeleteConfirm = false"
+                                            <button @click="store.showDeleteConfirm = false"
                                                 class="flex-1 px-4 py-2.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">
                                                 Cancel
                                             </button>
-                                            <button @click="confirmDelete(releaseOrder)" :disabled="isLoading"
+                                            <button @click="confirmDelete" :disabled="store.isLoading"
                                                 class="flex-1 px-4 py-2.5 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 disabled:bg-red-300 transition-all flex items-center justify-center gap-2">
-                                                <svg v-if="isLoading" class="animate-spin h-4 w-4 text-white"
+                                                <svg v-if="store.isLoading" class="animate-spin h-4 w-4 text-white"
                                                     viewBox="0 0 24 24">
                                                     <circle class="opacity-25" cx="12" cy="12" r="10"
                                                         stroke="currentColor" stroke-width="4"></circle>
@@ -139,43 +144,79 @@
 </template>
 
 <script setup>
-import { storeToRefs } from 'pinia';
 import { nextTick, onMounted, ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRouter } from 'vue-router';
 import { useAlertStore } from '../../store/alertStore';
 import { useCertificateStore } from '../../store/certificateStore';
-import { formatDate } from '../../utils/dateFormatter'; // Import your utility
+import { formatDate } from '../../utils/dateFormatter';
+
 const alert = useAlertStore();
 const router = useRouter();
-const certificateStore = useCertificateStore();
-const { releaseOrder, isLoading, isSigning, showDeleteConfirm, params } = storeToRefs(certificateStore);
-const route = useRoute();
-const trainingId = route.params.id;
-const eMudhraForm = ref(null)
+const store = useCertificateStore(); // Assigned directly to 'store'
+const eMudhraForm = ref(null);
+
+const props = defineProps({
+    programId: {
+        type: String,
+        required: true
+    }
+});
+
 const handleSignDocument = async () => {
     try {
-        const response = await certificateStore.handleSignDocument(trainingId);
+        const response = await store.handleSignDocument(props.programId);
         if (response.success) {
-            console.log(params.value);
+            console.log(store.params);
             await nextTick();
             eMudhraForm.value.submit();
         }
     } catch (ex) { }
-}
+};
+
 const confirmDelete = async () => {
-    const response = await certificateStore.deleteReleaseOrder(trainingId);
+    const response = await store.deleteReleaseOrder(props.programId);
     if (response.success) {
-        showDeleteConfirm.value = false;
-        certificateStore.getReleaseOrder(trainingId);
+        store.showDeleteConfirm = false;
+        store.getReleaseOrder(props.programId);
         alert.success(response.message);
     } else {
         alert.error(response.message);
     }
-}
+};
+
 const generateReleaseOrder = async () => {
-    router.push({ name: 'training.release-order', params: { id: route.params.id } });
-}
+    router.push({ name: 'training.release-order', params: { id: props.programId } });
+};
+
 onMounted(() => {
-    certificateStore.getReleaseOrder(trainingId);
+    store.getReleaseOrder(props.programId);
 });
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
+.scale-in {
+    animation: scaleIn 0.2s ease-out forwards;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+</style>

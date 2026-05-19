@@ -43,6 +43,11 @@ const routes = [
                 name: "contact",
                 component: () => import("../pages/frontend/Contact.vue"),
             },
+            {
+                path: "/terms",
+                name: "terms",
+                component: () => import("../pages/frontend/Terms.vue"),
+            },
         ]
     },
 
@@ -200,7 +205,7 @@ const routes = [
                         component: () => import('../pages/training/program/attendance/Index.vue')
                     },
                     {
-                        path: ':id/release-order',
+                        path: ':id/session/release-order',
                         name: 'training.release-order',
                         component: () => import('../components/certificate/ReleaseOrder.vue')
                     },
@@ -218,6 +223,16 @@ const routes = [
                         path: ':id/trainee/:traineeId/certificate',
                         name: 'training.certificate',
                         component: () => import('../components/certificate/CertificatePage.vue')
+                    },
+                    {
+                        path: ':id/evaluation/:evaluationId',
+                        name: 'training.evaluation',
+                        component: () => import('../pages/training/program/evaluation/Index.vue')
+                    },
+                    {
+                        path: ':id/certificate/selected-order',
+                        name: 'certificate.selected-order',
+                        component: () => import('../components/certificate/SelectedListOrder.vue')
                     }
                 ]
             },

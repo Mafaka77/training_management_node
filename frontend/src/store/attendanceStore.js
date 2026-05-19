@@ -9,7 +9,14 @@ export const useAttendanceStore = defineStore('attendance', {
         attendanceData: [],
         totalSessions: 0,
         traineeAttendance: {},
-        isCertificate: false
+        isCertificate: false,
+        currentPage: 1,
+        itemsPerPage: 10,
+        searchQuery: '',
+        sortBy: 'user.full_name',
+        sortOrder: 'asc',
+        totalItems: 0,
+        totalPages: 1,
 
 
     }),
@@ -27,15 +34,45 @@ export const useAttendanceStore = defineStore('attendance', {
                 this.isAttendanceLoading = false;
             }
         },
-        async fetchAttendances(id) {
-            try {
-                const response = await api.get(`/training/${id}/attendance`);
-                console.log(response.data.data);
-                this.attendanceData = response.data.data;
-                this.totalSessions = response.data.totalSessions
-            } catch (e) { } finally {
+        // Make sure you add these to your state():
+        // totalItems: 0, totalPages: 1, currentPage: 1, averagePercentage: 0, isAttendanceLoading: false
 
+        async fetchAttendances(id) {
+            this.isAttendanceLoading = true;
+            try {
+                // The API reads the parameters directly from the store's state
+                const response = await api.get(`/training/${id}/attendance`, {
+                    params: {
+                        page: this.currentPage,
+                        limit: this.itemsPerPage,
+                        search: this.searchQuery,
+                        sortBy: this.sortBy,
+                        sortOrder: this.sortOrder
+                    }
+                });
+                console.log(response.data)
+                if (response.status === 200) {
+                    this.attendanceData = response.data.data;
+                    this.totalSessions = response.data.totalSessions;
+                    this.totalItems = response.data.totalItems;
+                    this.totalPages = response.data.totalPages;
+
+                    // The backend might return 0 pages if the search is empty, ensure minimum 1
+                    this.currentPage = response.data.currentPage || 1;
+                    this.averagePercentage = response.data.averagePercentage;
+                }
+            } catch (e) {
+                console.error("Fetch Attendance Error:", e);
+            } finally {
+                this.isAttendanceLoading = false;
             }
+        },
+        // Helper action to reset filters when leaving a specific training program entirely
+        resetQueryState() {
+            this.currentPage = 1;
+            this.searchQuery = '';
+            this.sortBy = 'user.full_name';
+            this.sortOrder = 'asc';
         },
         async fetchTraineeAttendance(id, trainingId) {
             this.isAttendanceLoading = true;

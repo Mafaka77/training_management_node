@@ -1,8 +1,8 @@
-const TrainingCategory= require('../../models/training_category_model');
-const STATUS= require('../../utils/httpStatus');
+const TrainingCategory = require('../../models/training_category_model');
+const STATUS = require('../../utils/httpStatus');
 //TRAINING CATEGORY-----------------------------------------------
 
-exports.createTrainingCategory= async (req, res) => {
+exports.createTrainingCategory = async (req, res) => {
     const { name, description } = req.body;
 
     try {
@@ -28,10 +28,39 @@ exports.createTrainingCategory= async (req, res) => {
         return res.status(STATUS.OK).json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }
 }
-exports.getTrainingCategory= async (req, res) => {
+exports.getTrainingCategory = async (req, res) => {
     try {
         const categories = await TrainingCategory.find();
         return res.status(STATUS.OK).json({ categories, status: STATUS.OK });
+    } catch (e) {
+        return res.status(STATUS.OK).json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+    }
+}
+
+exports.getTrainingCategoryById = async (req, res) => {
+    const { categoryId } = req.params;
+    try {
+        const category = await TrainingCategory.findById(categoryId);
+        return res.status(STATUS.OK).json({ category, status: STATUS.OK });
+    } catch (e) {
+        return res.status(STATUS.OK).json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+    }
+}
+exports.updateTrainingCategory = async (req, res) => {
+    const { categoryId } = req.params;
+    const { name, description } = req.body;
+    try {
+        const category = await TrainingCategory.findByIdAndUpdate(categoryId, { name, description }, { new: true });
+        return res.status(STATUS.OK).json({ category, status: STATUS.OK });
+    } catch (e) {
+        return res.status(STATUS.OK).json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+    }
+}
+exports.deleteTrainingCategory = async (req, res) => {
+    const { categoryId } = req.params;
+    try {
+        const category = await TrainingCategory.findByIdAndDelete(categoryId);
+        return res.status(STATUS.OK).json({ category, status: STATUS.OK });
     } catch (e) {
         return res.status(STATUS.OK).json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }

@@ -7,10 +7,12 @@ const puppeteer = require('puppeteer');
 const { readFileSync } = require('fs');
 const crypto = require('crypto');
 const path = require('path');
+const fs = require('fs');
+const mongoose = require('mongoose');
 exports.generateReleaseOrder = async (req, res) => {
     try {
         const { trainingId } = req.params;
-        const [training, enrollments] = await Promise.all([
+        let [training, enrollments] = await Promise.all([
             Training.findById(trainingId).populate('t_director').lean(),
             Enrollment.find({
                 training_program: trainingId,
@@ -32,7 +34,30 @@ exports.generateReleaseOrder = async (req, res) => {
                 status: httpStatus.NOT_FOUND
             });
         }
+        if (enrollments.length === 1) {
+            const singleRecord = enrollments[0];
+            const fakeEnrollments = [];
 
+            for (let i = 1; i <= 120; i++) {
+                // Deep copy the object so we can modify it safely
+                const copy = JSON.parse(JSON.stringify(singleRecord));
+
+                // Make the IDs unique so Vue's v-for :key doesn't crash
+                copy._id = singleRecord._id + '_mock_' + i;
+
+                // Modify the user data slightly so you can tell them apart in the UI
+                if (copy.user) {
+                    copy.user._id = singleRecord.user._id + '_mock_' + i;
+                    copy.user.full_name = `${singleRecord.user.full_name} (Clones ${i})`;
+                    copy.user.email = `clone${i}@example.com`;
+                }
+
+                fakeEnrollments.push(copy);
+            }
+
+            // Replace the real array with your massive fake array
+            enrollments = fakeEnrollments;
+        }
         return res.status(httpStatus.OK).json({
             message: 'Participants retrieved successfully',
             status: httpStatus.OK,
@@ -50,110 +75,108 @@ exports.generateReleaseOrder = async (req, res) => {
 };
 
 
+exports.generateAndStoreReleaseOrder = async (req, res) => {
+    const { trainingId, filename, htmlContent } = req.body;
 
-exports.downloadReleaseOrder = async (req, res) => {
-    let browser;
+    if (!mongoose.Types.ObjectId.isValid(trainingId)) {
+        return res.status(httpStatus.OK).json({ status: httpStatus.BAD_REQUEST, message: "Invalid Training ID format" });
+    }
+
     try {
-        const { trainingId } = req.params;
+        // 1. Wrap the Vue HTML in a standard document shell with Tailwind
+        const fullHtmlContent = `
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <script src="https://cdn.tailwindcss.com"></script>
+                <style>
+                    @page { size: A4 portrait; margin: 0; }
+                    body { 
+                        margin: 0; 
+                        padding: 0; 
+                        width: 210mm; 
+                        -webkit-print-color-adjust: exact !important; 
+                        print-color-adjust: exact !important;
+                        font-family: 'Times New Roman', Times, serif;
+                        background-color: white;
+                    }
+                    /* Ensure the Annexure gets pushed to the second page */
+                    section { page-break-after: always; }
+                    section:last-child { page-break-after: auto; }
+                </style>
+            </head>
+            <body>
+                ${htmlContent}
+            </body>
+            </html>
+        `;
 
-        const authHeader = req.headers.authorization;
-        const token = authHeader ? authHeader.split(' ')[1] : null;
+        // 2. Setup File Path
+        const dir = path.join(__dirname, '../../uploads'); // Adjust to your root uploads folder
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
 
-        browser = await puppeteer.launch({
-            headless: "new",
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+        const finalFilename = filename || `Release_Order_${Date.now()}.pdf`;
+        const filePath = path.join(dir, finalFilename);
+
+        // 3. Launch Puppeteer (With Production-Safe Flags)
+        const browser = await puppeteer.launch({
+            headless: 'new',
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-gpu',
+                '--no-zygote',
+                '--single-process'
+            ]
         });
 
         const page = await browser.newPage();
-        await page.setViewport({
-            width: 794,
-            height: 1123,
-            deviceScaleFactor: 1,
-        });
-        if (authHeader) {
-            await page.setExtraHTTPHeaders({ 'Authorization': authHeader });
-        }
-        const domain = "http://localhost:5173";
-        // const domain = "https://atimz.mizoram.gov.in";
-        await page.goto(domain);
-        if (token) {
-            await page.evaluate((t) => {
-                localStorage.setItem('token', t); // Match this key to what your app uses
-            }, token);
-        }
-        const previewUrl = `${domain}/admin/training/${trainingId}/release-order/`;
 
-        await page.goto(previewUrl, {
-            waitUntil: "networkidle0",
-            timeout: 60000
-        });
-        await page.waitForSelector('#release-order-document', { timeout: 15000 });
-        await new Promise(resolve => setTimeout(resolve, 500));
-        await page.addStyleTag({
-            content: `
-        /* Target common class names and tags for headers/sidebars */
-        header, .header, #header, 
-        nav, .nav, .navbar,
-        aside, .sidebar, #sidebar,
-        .fixed, .no-print, 
-        [class*="sidebar"], [class*="header"] {
-            display: none !important;
-            height: 0 !important;
-            width: 0 !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            visibility: hidden !important;
-        }
+        // Load the HTML and wait for Tailwind to compile
+        await page.setContent(fullHtmlContent, { waitUntil: 'networkidle0' });
 
-        /* Reset the main content layout */
-        body, html {
-            margin: 0 !important;
-            padding: 0 !important;
-            background: white !important;
-        }
-
-        /* Ensure the document container takes the full width and removes offsets */
-        #release-order-document {
-            margin: 0 !important;
-            padding: 0 !important;
-            width: 210mm !important;
-            transform: none !important;
-            position: absolute !important;
-            top: 0 !important;
-            left: 0 !important;
-        }
-    `
-        });
-        await page.evaluate(() => {
-            // Remove any padding-left or margin-left that layouts use for sidebars
-            const main = document.querySelector('main');
-            if (main) {
-                main.style.margin = '0';
-                main.style.padding = '0';
-            }
-        });
-        const pdfBuffer = await page.pdf({
-            format: "A4",
+        // Generate the PDF
+        await page.pdf({
+            path: filePath,
+            format: 'A4',
             printBackground: true,
-            margin: { top: "0px", right: "0px", bottom: "0px", left: "0px" },
+            margin: { top: 0, right: 0, bottom: 0, left: 0 }
         });
 
         await browser.close();
-        res.set({
-            "Content-Type": "application/pdf",
-            "Content-Disposition": `attachment; filename="Release_Order_${trainingId}.pdf"`,
+
+        // 4. Save/Update MongoDB
+        // Using findOneAndUpdate with upsert:true creates it if it doesn't exist, or updates if it does
+        const releaseOrder = await ReleaseOrder.findOneAndUpdate(
+            { training_program: trainingId },
+            {
+                $set: {
+                    file_name: finalFilename,
+                    release_order_url: `/uploads/${finalFilename}`,
+                    is_signed: false // Reset signature status if they regenerate it
+                }
+            },
+            { new: true, upsert: true }
+        );
+
+        return res.status(httpStatus.OK).json({
+            status: httpStatus.CREATED,
+            message: "Release Order generated and saved successfully!",
+            data: releaseOrder
         });
 
-        return res.send(pdfBuffer);
-
-    } catch (error) {
-        if (browser) await browser.close();
-        console.error("Puppeteer PDF Error:", error);
-        res.status(500).json({ message: "Failed to generate report", error: error.message });
+    } catch (ex) {
+        console.error("Puppeteer PDF Generation Error:", ex);
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+            status: httpStatus.INTERNAL_SERVER_ERROR,
+            message: "An error occurred while generating the Release Order on the server."
+        });
     }
-};
-
-
+}
 
 exports.saveReleaseOrderToServer = async (req, res) => {
     try {
@@ -287,7 +310,7 @@ exports.prepareForESign = async (req, res) => {
         const localFilePath = path.join(__dirname, '../../', pdfFilePath)
         const fileBase64 = readFileSync(localFilePath, 'base64');
         const incomingData = {
-            "Name": "Lalfakzuala",
+            "Name": user.full_name,
             "FileType": "PDF",
             "AuthToken": "c49046e1-c3de-4a1b-8024-679f0debadaa",
             "File": fileBase64,
@@ -297,7 +320,7 @@ exports.prepareForESign = async (req, res) => {
             "PageNumber": "1",
             "PreviewRequired": true,
             "PagelevelCoordinates": "",
-            "CustomizeCoordinates": "",
+            "CustomizeCoordinates": "400,50,550,150",
             "SUrl": `${SERVER_URL}/admin-api/emSignerSuccessResponse/${trainingId}`,
             "FUrl": `${SERVER_URL}/admin-api/emSignerFailureResponse/${trainingId}`,
             "CUrl": `${SERVER_URL}/admin-api/emSignerResponse`,

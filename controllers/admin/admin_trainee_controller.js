@@ -1,6 +1,7 @@
 const User = require('../../models/user_model');
 const STATUS = require('../../utils/httpStatus');
 const Role = require("../../models/role_model");
+const Group = require('../../models/group_model');
 const bcrypt = require("bcryptjs");
 
 exports.getAllTrainee = async (req, res) => {
@@ -58,7 +59,7 @@ exports.getAllTrainee = async (req, res) => {
 exports.createTrainee = async (req, res) => {
     try {
         // 1. Destructure groups from req.body
-        const { full_name, email, mobile, password, department, district, group, gender, mandatory_completion } = req.body;
+        const { full_name, email, mobile, password, department, district, group, gender, designation, mandatory_completion, dob, date_of_entry, date_of_entry_in_present_grade, date_of_superannuation, recruitment, confirmation, service_cadre, disclaimer, is_govt_employee } = req.body;
 
         // Basic validation
         if (!full_name || !email || !mobile || !password) {
@@ -84,7 +85,7 @@ exports.createTrainee = async (req, res) => {
                 status: STATUS.NOT_FOUND,
             });
         }
-
+        const ngo = await Group.findOne({ group_name: 'NGO' });
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -95,11 +96,21 @@ exports.createTrainee = async (req, res) => {
             email,
             mobile,
             department,
+            designation,
             district,
             mandatory_completion: mandatory_completion || false,
             password: hashedPassword,
             roles: [role._id], // Roles is usually an array in your model
-            group: group || null, // Assign the Group ID
+            group: is_govt_employee ? group : ngo._id,
+            dob,
+            date_of_entry,
+            date_of_entry_in_present_grade,
+            date_of_superannuation,
+            recruitment,
+            confirmation,
+            service_cadre,
+            disclaimer: disclaimer || false,
+            is_govt_employee: is_govt_employee || false,
         });
 
         await newTrainee.save();
@@ -206,5 +217,26 @@ exports.updateTrainee = async (req, res) => {
         });
     }
 }
+exports.deleteTrainee = async (req, res) => {
+    try {
+        const trainee = await User.findByIdAndDelete(req.params.traineeId);
+        if (!trainee) {
+            return res.status(STATUS.OK).json({
+                message: "Trainee not found",
+                status: STATUS.NOT_FOUND,
+            });
+        }
+        return res.status(STATUS.OK).json({
+            message: "Trainee deleted successfully",
+            status: STATUS.OK,
+        });
+    } catch (e) {
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            message: e.message,
+            status: STATUS.INTERNAL_SERVER_ERROR,
+        });
+    }
+}
+
 
 

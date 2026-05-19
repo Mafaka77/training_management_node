@@ -1,13 +1,13 @@
 import axios from "axios"
-import { useAuthStore } from "../store/authStore.js"
 import router from "../router/index.js"
+import { useAuthStore } from "../store/authStore.js"
 
 // create axios instance
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL,
     timeout: 10000,
 })
-console.log(import.meta.env)
+
 api.interceptors.request.use(
     (config) => {
         const authStore = useAuthStore()

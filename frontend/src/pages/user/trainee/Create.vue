@@ -20,52 +20,74 @@
           <SingleSelect :options="genderOptions" v-model="form.gender" option-label="name" track-by="name"
             label="Gender" />
           <SingleSelect :options="districts" v-model="form.district" track-by="_id" label="District" />
+          <DatePicker label="Date of Birth" v-model="form.dob" format="dd/MM/yyyy" />
         </div>
-
-        <h3
-          class="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mt-10 mb-6 border-b border-zinc-100 dark:border-white/5 pb-2">
-          Work & Group Assignment
-        </h3>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <BaseInput v-model="form.designation" type="text" label="Designation" placeholder="e.g. Executive" />
-          <BaseInput v-model="form.department" type="text" label="Department" placeholder="e.g. Operations" />
-
-          <div class="md:col-span-2 space-y-4">
+        <div class="flex items-start gap-3 p-4 mt-5 rounded-xl border transition-all" :class="form.mandatory_completion
+          ? 'bg-emerald-50/50 border-emerald-200 dark:bg-emerald-500/5 dark:border-emerald-500/20'
+          : 'bg-zinc-50 border-zinc-200 dark:bg-white/5 dark:border-white/10'">
+          <div class="flex items-center h-5">
+            <input id="mandatory-check" type="checkbox" v-model="form.is_govt_employee"
+              class="h-5 w-5 cursor-pointer rounded border-zinc-300 text-blue-600 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900" />
+          </div>
+          <label for="mandatory-check" class="flex flex-col cursor-pointer">
+            <span class="text-sm font-bold transition-colors"
+              :class="form.is_govt_employee ? 'text-emerald-700 dark:text-emerald-400' : 'text-zinc-700 dark:text-zinc-200'">
+              Government Employee
+            </span>
+          </label>
+        </div>
+        <div v-if="form.is_govt_employee">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+            <BaseInput v-model="form.designation" type="text" label="Designation" placeholder="e.g. Executive" />
+            <BaseInput v-model="form.department" type="text" label="Department" placeholder="e.g. Operations" />
             <SingleSelect :options="groups" v-model="form.group" track-by="_id" option-label="group_name"
               label="Assign Groups" placeholder="Select groups..." />
+            <DatePicker label="Date of Joining Service" v-model="form.date_of_entry" format="dd/MM/yyyy" />
+            <DatePicker label="Date of Joining in Present Grade" v-model="form.date_of_entry_in_present_grade"
+              format="dd/MM/yyyy" />
+            <DatePicker label="Date of Superannuation" v-model="form.date_of_superannuation" format="dd/MM/yyyy" />
 
-            <div class="flex items-start gap-3 p-4 rounded-xl border transition-all" :class="form.mandatory_completion
-              ? 'bg-emerald-50/50 border-emerald-200 dark:bg-emerald-500/5 dark:border-emerald-500/20'
-              : 'bg-zinc-50 border-zinc-200 dark:bg-white/5 dark:border-white/10'">
-              <div class="flex items-center h-5">
-                <input id="mandatory-check" type="checkbox" v-model="form.mandatory_completion"
-                  class="h-5 w-5 cursor-pointer rounded border-zinc-300 text-blue-600 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900" />
+            <SingleSelect label="Recruitment" :options="recruitmentOptions" v-model="form.recruitment" track-by="name"
+              option-label="name" placeholder="Select recruitment..." />
+
+            <SingleSelect label="Confirmation" :options="confirmationOptions" v-model="form.confirmation"
+              track-by="name" option-label="name" placeholder="Select confirmation..." />
+
+            <BaseInput label="Service Cadre (if applicable)" v-model="form.service_cadre" />
+
+            <div class="md:col-span-2 space-y-4">
+              <div class="flex items-start gap-3 p-4 rounded-xl border transition-all" :class="form.mandatory_completion
+                ? 'bg-emerald-50/50 border-emerald-200 dark:bg-emerald-500/5 dark:border-emerald-500/20'
+                : 'bg-zinc-50 border-zinc-200 dark:bg-white/5 dark:border-white/10'">
+                <div class="flex items-center h-5">
+                  <input id="mandatory-check" type="checkbox" v-model="form.mandatory_completion"
+                    class="h-5 w-5 cursor-pointer rounded border-zinc-300 text-blue-600 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900" />
+                </div>
+                <label for="mandatory-check" class="flex flex-col cursor-pointer">
+                  <span class="text-sm font-bold transition-colors"
+                    :class="form.mandatory_completion ? 'text-emerald-700 dark:text-emerald-400' : 'text-zinc-700 dark:text-zinc-200'">
+                    I have completed the Mandatory Foundation Training
+                  </span>
+                  <span class="text-xs text-zinc-500 mt-0.5">
+                    Check this box only if you have already received your certification for the government service
+                    prerequisite course.
+                  </span>
+                </label>
               </div>
-              <label for="mandatory-check" class="flex flex-col cursor-pointer">
-                <span class="text-sm font-bold transition-colors"
-                  :class="form.mandatory_completion ? 'text-emerald-700 dark:text-emerald-400' : 'text-zinc-700 dark:text-zinc-200'">
-                  I have completed the Mandatory Foundation Training
-                </span>
-                <span class="text-xs text-zinc-500 mt-0.5">
-                  Check this box only if you have already received your certification for the government service
-                  prerequisite course.
-                </span>
-              </label>
+
+              <Transition name="fade">
+                <div v-if="!form.mandatory_completion && form.group"
+                  class="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 flex gap-2 items-center">
+                  <svg class="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <span class="text-[11px] font-medium text-amber-700 dark:text-amber-500">
+                    User will be flagged as "Training Required" for government service compliance.
+                  </span>
+                </div>
+              </Transition>
             </div>
-
-            <Transition name="fade">
-              <div v-if="!form.mandatory_completion && form.group"
-                class="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 flex gap-2 items-center">
-                <svg class="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-                <span class="text-[11px] font-medium text-amber-700 dark:text-amber-500">
-                  User will be flagged as "Training Required" for government service compliance.
-                </span>
-              </div>
-            </Transition>
           </div>
         </div>
 
@@ -91,6 +113,7 @@ import { storeToRefs } from "pinia";
 import { onMounted, reactive, ref } from "vue";
 import BaseInput from "../../../components/ui/BaseInput.vue";
 import Breadcrumbs from "../../../components/ui/Breadcrumbs.vue";
+import DatePicker from "../../../components/ui/DatePicker.vue";
 import SingleSelect from "../../../components/ui/SingleSelect.vue";
 import { useAlertStore } from "../../../store/alertStore.js";
 import { useUserManageStore } from "../../../store/userManageStore.js";
@@ -102,9 +125,18 @@ const isLoading = ref(false);
 
 const genderOptions = [
   { name: "Male" },
-  { name: "Female" }
+  { name: "Female" },
+  { name: "Others" }
 ];
-
+const recruitmentOptions = [
+  { name: "Direct" },
+  { name: "Regularisation" },
+  { name: "Absorption" }
+];
+const confirmationOptions = [
+  { name: "Confirmed" },
+  { name: "Not Confirmed" }
+];
 const form = reactive({
   full_name: '',
   email: '',
@@ -113,9 +145,18 @@ const form = reactive({
   district: '',
   designation: '',
   department: '',
-  group: '', // Array for MultiSelect
+  group: null, // Array for MultiSelect
   gender: '',
-  mandatory_completion: true
+  mandatory_completion: true,
+  is_govt_employee: true,
+  date_of_entry: null,
+  date_of_entry_in_present_grade: null,
+  date_of_superannuation: null,
+  recruitment: '',
+  confirmation: '',
+  service_cadre: '',
+  dob: null,
+  disclaimer: true,
 });
 
 const breadcrumbs = [
@@ -142,6 +183,16 @@ const submitForm = async () => {
         department: '',
         group: '',
         gender: '',
+        mandatory_completion: true,
+        is_govt_employee: true,
+        date_of_entry: null,
+        date_of_entry_in_present_grade: null,
+        date_of_superannuation: null,
+        recruitment: '',
+        confirmation: '',
+        service_cadre: '',
+        dob: null,
+        disclaimer: true,
       });
     }
   } catch (error) {
@@ -150,7 +201,18 @@ const submitForm = async () => {
     isLoading.value = false;
   }
 }
-
+const deleteTrainee = async (id) => {
+  try {
+    const response = await store.deleteTrainee(id);
+    if (response.success === false) {
+      alert.error(response.message);
+    } else {
+      alert.success(response.message);
+    }
+  } catch (error) {
+    alert.error('An error occurred while deleting. Please check your connection.');
+  }
+}
 onMounted(() => {
   store.fetchDistricts();
   store.fetchGroups();

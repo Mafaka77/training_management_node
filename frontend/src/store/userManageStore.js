@@ -157,7 +157,15 @@ export const useUserManageStore = defineStore('userManageStore', {
             }
         },
         async deleteTrainee(traineeId) {
-            try { } catch (e) { }
+            try {
+                const response = await api.delete(`/trainee/${traineeId}`);
+                if (response.status === 200 && response.data.status === 200) {
+                    return { success: true, message: response.data.message };
+                }
+                return { success: false, message: response.data.message };
+            } catch (e) {
+                return { success: false, message: "Server Error. Please try again later." };
+            }
         },
 
         async fetchTraineeById(traineeId) {

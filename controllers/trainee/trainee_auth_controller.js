@@ -99,7 +99,7 @@ exports.register = async (req, res) => {
                 status: STATUS.CONFLICT
             });
         }
-        // 🔑 Hash the password
+        const ngo = await Group.findOne({ group_name: 'NGO' });
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -112,7 +112,7 @@ exports.register = async (req, res) => {
             department,
             gender,
             designation,
-            group,
+            group: is_govt_employee === false ? ngo._id : group,
             mandatory_completion,
             dob,
             recruitment,

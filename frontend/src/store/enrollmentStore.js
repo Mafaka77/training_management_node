@@ -26,8 +26,14 @@ export const useEnrollmentStore = defineStore('enrollment', {
             limit: 12
         },
         userHistory: [],
-
-
+        selectedTraineeList: [],
+        trainingDetails: {},
+        params: {
+            parameter1: '',
+            parameter2: '',
+            parameter3: '',
+        },
+        enrolledOrders: [],
     }),
     actions: {
 
@@ -173,7 +179,93 @@ export const useEnrollmentStore = defineStore('enrollment', {
             } catch (ex) {
                 return { success: false, message: ex.message }
             }
-        }
+        },
+        async generateSelectedTraineeOrder(trainingId) {
+            this.isLoading = true;
+            try {
+                const response = await api.get(`/training/${trainingId}/enrollment/order`);
+                console.log(response.data);
+                if (response.status === 200 && response.data.status === 200) {
+                    this.trainingDetails = response.data.training;
+                    this.selectedTraineeList = response.data.enrollments
+                    return { success: true, message: response.data.message }
+                }
+                return { success: false, message: response.data.message }
+            } catch (ex) {
+                console.log(ex)
+                return { success: false, message: ex.message }
+            }
+            finally {
+                this.isLoading = false;
+            }
+        },
+        async saveSelectedOrder(data) {
+            this.isLoading = true;
+            try {
+                const response = await api.post(`/training/enrollment/order/store`, {
+                    trainingId: data.trainingId,
+                    filename: data.filename,
+                    htmlContent: data.htmlContent
+                });
+                if (response.status === 200 && response.data.status === 200) {
+                    return { success: true, message: response.data.message, data: response.data.data }
+                }
+                return { success: false, message: response.data.message }
+            } catch (ex) {
+                return { success: false, message: ex.message }
+            }
+            finally {
+                this.isLoading = false;
+            }
+        },
+        async handleSignature(trainingId, id) {
+            this.isLoading = true;
+            try {
+                const response = await api.get(`/training/${trainingId}/enrollment/order/${id}/esign`);
+                if (response.status === 200 && response.data.status === 200) {
+                    this.params.parameter1 = response.data.parameter1;
+                    this.params.parameter2 = response.data.parameter2;
+                    this.params.parameter3 = response.data.parameter3;
+                    return { success: true, message: response.data.message }
+                }
+                return { success: false, message: response.data.message }
+            } catch (ex) {
+                console.log(ex);
+                return { success: false, message: ex.message }
+            }
+            finally {
+                this.isLoading = false;
+            }
+        },
+        async fetchEnrolledOrdersByTraining(trainingId) {
+            this.isLoading = true;
+            try {
+                const response = await api.get(`/training/${trainingId}/enrollment/orders`);
 
+                if (response.status === 200 && response.data.status === 200) {
+                    this.enrolledOrders = response.data.data;
+                }
+                console.log(this.enrolledOrders);
+            } catch (ex) {
+                console.error("Fetch Error", ex);
+            } finally {
+                this.isLoading = false;
+            }
+        },
+        async deleteEnrolledOrder(id) {
+            this.isLoading = true;
+            try {
+                const response = await api.delete(`/training/enrollment/order/${id}/delete`);
+                if (response.status === 200 && response.data.status === 200) {
+                    return { success: true, message: response.data.message }
+                }
+                return { success: false, message: response.data.message }
+            } catch (ex) {
+                return { success: false, message: ex.message }
+            }
+            finally {
+                this.isLoading = false;
+            }
+        },
     }
 });

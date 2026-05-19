@@ -5,25 +5,25 @@
                 <h1 class="text-2xl font-bold text-slate-800">Certificates</h1>
             </div>
 
-            <div v-if="!isCertificateLoading && certificates?.length > 0" class="flex items-center gap-3">
+            <div v-if="!store.isCertificateLoading && store.certificates?.length > 0" class="flex items-center gap-3">
                 <label class="text-sm font-bold text-slate-500">Sort by:</label>
                 <div class="flex bg-slate-100 p-1 rounded-xl">
                     <button @click="setSort('createdAt')"
-                        :class="['px-3 py-1.5 text-sm font-semibold rounded-lg transition-all', sortKey === 'createdAt' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700']">
+                        :class="['px-3 py-1.5 text-sm font-semibold rounded-lg transition-all', store.sortKey === 'createdAt' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700']">
                         Date
-                        <span v-if="sortKey === 'createdAt'">{{ sortOrder === 'desc' ? '↓' : '↑' }}</span>
+                        <span v-if="store.sortKey === 'createdAt'">{{ store.sortOrder === 'desc' ? '↓' : '↑' }}</span>
                     </button>
                     <button @click="setSort('full_name')"
-                        :class="['px-3 py-1.5 text-sm font-semibold rounded-lg transition-all', sortKey === 'full_name' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700']">
+                        :class="['px-3 py-1.5 text-sm font-semibold rounded-lg transition-all', store.sortKey === 'full_name' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700']">
                         Name
-                        <span v-if="sortKey === 'full_name'">{{ sortOrder === 'asc' ? '↓' : '↑' }}</span>
+                        <span v-if="store.sortKey === 'full_name'">{{ store.sortOrder === 'asc' ? '↓' : '↑' }}</span>
                     </button>
                 </div>
             </div>
         </div>
 
-        <div v-if="isCertificateLoading" class="space-y-4">
-            <div v-for="i in itemsPerPage" :key="i"
+        <div v-if="store.isCertificateLoading" class="space-y-4">
+            <div v-for="i in store.itemsPerPage" :key="i"
                 class="bg-white border border-slate-200 rounded-2xl p-5 flex items-center justify-between animate-pulse">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 rounded-xl bg-slate-200"></div>
@@ -43,12 +43,13 @@
         <div v-else>
             <form ref="eMudhraForm" method="post" action="https://demogateway-core.emsigner.com/Secure/index"
                 class="hidden">
-                <input type="hidden" name="Parameter1" :value="params.parameter1" />
-                <input type="hidden" name="Parameter2" :value="params.parameter2" />
-                <input type="hidden" name="Parameter3" :value="params.parameter3" />
+                <input type="hidden" name="Parameter1" :value="store.params?.parameter1" />
+                <input type="hidden" name="Parameter2" :value="store.params?.parameter2" />
+                <input type="hidden" name="Parameter3" :value="store.params?.parameter3" />
             </form>
-            <div v-if="processedCertificates.length > 0" class="space-y-4">
-                <div v-for="certificate in processedCertificates" :key="certificate.id || certificate._id"
+
+            <div v-if="store.certificates?.length > 0" class="space-y-4">
+                <div v-for="certificate in store.certificates" :key="certificate.id || certificate._id"
                     class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row sm:items-center justify-between group gap-4">
 
                     <div class="flex items-center gap-4">
@@ -70,9 +71,9 @@
 
                     <div class="flex items-center gap-3">
                         <div v-if="!certificate.is_signed">
-                            <button @click="handleSignDocument(certificate._id)" :disabled="isSigning"
+                            <button @click="handleSignDocument(certificate._id)" :disabled="store.isSigning"
                                 class="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 disabled:bg-slate-300 transition-all shadow-md shadow-indigo-100 active:scale-95">
-                                <svg v-if="isSigning" class="animate-spin w-4 h-4" viewBox="0 0 24 24">
+                                <svg v-if="store.isSigning" class="animate-spin w-4 h-4" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                                         stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor"
@@ -83,9 +84,8 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                         d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                 </svg>
-                                {{ isSigning ? 'Signing...' : 'Sign Document' }}
+                                {{ store.isSigning ? 'Signing...' : 'Sign Document' }}
                             </button>
-
                         </div>
 
                         <a v-if="certificate.is_signed" :href="certificate.certificate_url" target="_blank"
@@ -99,19 +99,20 @@
                             </svg>
                         </a>
 
-
-
                         <div>
-                            <button @click="showDeleteConfirm = true"
-                                class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                            </button>
+                            <div v-if="!certificate.is_signed">
+                                <button @click="store.showDeleteConfirm = true"
+                                    class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </div>
+
 
                             <Transition name="fade">
-                                <div v-if="showDeleteConfirm"
+                                <div v-if="store.showDeleteConfirm"
                                     class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
                                     <div class="bg-white rounded-[28px] w-full max-w-sm p-6 shadow-2xl scale-in">
                                         <div
@@ -129,14 +130,15 @@
                                         </p>
 
                                         <div class="flex gap-3">
-                                            <button @click="showDeleteConfirm = false"
+                                            <button @click="store.showDeleteConfirm = false"
                                                 class="flex-1 px-4 py-2.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">
                                                 Cancel
                                             </button>
-                                            <button @click="confirmDelete(certificate)" :disabled="isLoading"
+                                            <button @click="confirmDelete(certificate)"
+                                                :disabled="store.isCertificateLoading"
                                                 class="flex-1 px-4 py-2.5 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 disabled:bg-red-300 transition-all flex items-center justify-center gap-2">
-                                                <svg v-if="isLoading" class="animate-spin h-4 w-4 text-white"
-                                                    viewBox="0 0 24 24">
+                                                <svg v-if="store.isCertificateLoading"
+                                                    class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
                                                     <circle class="opacity-25" cx="12" cy="12" r="10"
                                                         stroke="currentColor" stroke-width="4"></circle>
                                                     <path class="opacity-75" fill="currentColor"
@@ -153,27 +155,29 @@
                     </div>
                 </div>
 
-                <div v-if="totalPages > 1"
+                <div v-if="store.totalPages > 1"
                     class="flex flex-col sm:flex-row items-center justify-between mt-8 pt-4 border-t border-slate-200 gap-4">
                     <p class="text-sm text-slate-500">
-                        Showing <span class="font-bold text-slate-700">{{ startIndex + 1 }}</span> to <span
-                            class="font-bold text-slate-700">{{ Math.min(endIndex, certificates.length) }}</span> of
-                        <span class="font-bold text-slate-700">{{ certificates.length }}</span> results
+                        Showing <span class="font-bold text-slate-700">{{ ((store.currentPage - 1) * store.itemsPerPage)
+                            + 1 }}</span> to <span class="font-bold text-slate-700">{{ Math.min(store.currentPage *
+                                store.itemsPerPage, store.totalItems || 0) }}</span> of
+                        <span class="font-bold text-slate-700">{{ store.totalItems || 0 }}</span> results
                     </p>
                     <div class="flex items-center gap-2">
-                        <button @click="prevPage" :disabled="currentPage === 1"
+                        <button @click="changePage(store.currentPage - 1)" :disabled="store.currentPage === 1"
                             class="px-4 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm">
                             Previous
                         </button>
 
                         <div class="flex items-center gap-1 px-2">
-                            <button v-for="page in totalPages" :key="page" @click="currentPage = page"
-                                :class="['w-8 h-8 rounded-lg text-sm font-bold transition-all', currentPage === page ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-100']">
+                            <button v-for="page in store.totalPages" :key="page" @click="changePage(page)"
+                                :class="['w-8 h-8 rounded-lg text-sm font-bold transition-all', store.currentPage === page ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-100']">
                                 {{ page }}
                             </button>
                         </div>
 
-                        <button @click="nextPage" :disabled="currentPage === totalPages"
+                        <button @click="changePage(store.currentPage + 1)"
+                            :disabled="store.currentPage === store.totalPages"
                             class="px-4 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm">
                             Next
                         </button>
@@ -200,8 +204,7 @@
 </template>
 
 <script setup>
-import { storeToRefs } from 'pinia';
-import { computed, nextTick, onMounted, ref } from 'vue';
+import { nextTick, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAlertStore } from '../../store/alertStore';
 import { useCertificateStore } from '../../store/certificateStore';
@@ -209,78 +212,40 @@ import { formatDate } from '../../utils/dateFormatter';
 
 const alert = useAlertStore();
 const router = useRouter();
-const certificateStore = useCertificateStore();
-const { certificates, isLoading, isSigning, showDeleteConfirm, params, isCertificateLoading } = storeToRefs(certificateStore);
+const store = useCertificateStore();
 const route = useRoute();
 const trainingId = route.params.id;
 const eMudhraForm = ref(null);
 
-// --- Pagination & Sorting State ---
-const currentPage = ref(1);
-const itemsPerPage = ref(5);
-const sortKey = ref('createdAt'); // 'createdAt' or 'full_name'
-const sortOrder = ref('desc'); // 'asc' or 'desc'
+// Core fetch function
+const loadData = () => {
+    store.fetchCertificates(trainingId);
+};
 
-// --- Sorting Toggle Logic ---
-const setSort = (key) => {
-    if (sortKey.value === key) {
-        // Toggle order if clicking the same key
-        sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc';
-    } else {
-        // Default to ascending for strings, descending for dates
-        sortKey.value = key;
-        sortOrder.value = key === 'createdAt' ? 'desc' : 'asc';
+// Handlers directly mutate the store state
+const changePage = (page) => {
+    if (page >= 1 && page <= store.totalPages) {
+        store.currentPage = page;
+        loadData();
     }
-    currentPage.value = 1; // Reset to page 1 on sort change
 };
 
-// --- Processed Data (Sorted & Paginated) ---
-const processedCertificates = computed(() => {
-    if (!certificates.value || certificates.value.length === 0) return [];
-
-    // 1. Sort the array
-    let sortedArray = [...certificates.value].sort((a, b) => {
-        if (sortKey.value === 'createdAt') {
-            const dateA = new Date(a.createdAt).getTime();
-            const dateB = new Date(b.createdAt).getTime();
-            return sortOrder.value === 'desc' ? dateB - dateA : dateA - dateB;
-        } else if (sortKey.value === 'full_name') {
-            const nameA = (a.user?.full_name || '').toLowerCase();
-            const nameB = (b.user?.full_name || '').toLowerCase();
-            if (nameA < nameB) return sortOrder.value === 'asc' ? -1 : 1;
-            if (nameA > nameB) return sortOrder.value === 'asc' ? 1 : -1;
-            return 0;
-        }
-        return 0;
-    });
-
-    // 2. Paginate the array
-    return sortedArray.slice(startIndex.value, endIndex.value);
-});
-
-// --- Pagination Helpers ---
-const totalPages = computed(() => {
-    if (!certificates.value) return 0;
-    return Math.ceil(certificates.value.length / itemsPerPage.value);
-});
-
-const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage.value);
-const endIndex = computed(() => startIndex.value + itemsPerPage.value);
-
-const nextPage = () => {
-    if (currentPage.value < totalPages.value) currentPage.value++;
+const setSort = (key) => {
+    if (store.sortKey === key) {
+        store.sortOrder = store.sortOrder === 'asc' ? 'desc' : 'asc';
+    } else {
+        store.sortKey = key;
+        store.sortOrder = key === 'createdAt' ? 'desc' : 'asc';
+    }
+    store.currentPage = 1; // Reset to page 1 on sort change
+    loadData();
 };
 
-const prevPage = () => {
-    if (currentPage.value > 1) currentPage.value--;
-};
-
-// --- Actions ---
 const handleSignDocument = async (certificateId) => {
     try {
-        const response = await certificateStore.handleCertificateSignature(certificateId);
+        const response = await store.handleCertificateSignature(certificateId);
         if (response.success) {
-            console.log(params);
+            console.log(store.params);
             await nextTick();
             eMudhraForm.value.submit();
         }
@@ -288,12 +253,10 @@ const handleSignDocument = async (certificateId) => {
 }
 
 const confirmDelete = async (certificate) => {
-    // Ideally, pass the specific certificate ID to your store method here 
-    // Example: certificateStore.deleteReleaseOrder(certificate.id)
-    const response = await certificateStore.deleteReleaseOrder(trainingId);
+    const response = await store.deleteCertificate(certificate._id);
     if (response.success) {
-        showDeleteConfirm.value = false;
-        certificateStore.fetchCertificates(trainingId); // Refresh list
+        store.showDeleteConfirm = false;
+        loadData(); // Refresh list after delete
         alert.success(response.message);
     } else {
         alert.error(response.message);
@@ -301,7 +264,14 @@ const confirmDelete = async (certificate) => {
 }
 
 onMounted(() => {
-    certificateStore.fetchCertificates(trainingId);
+    // Check if we switched to a DIFFERENT training program. 
+    // If so, reset the filters back to page 1.
+    if (store.currentTrainingId !== trainingId) {
+        store.resetQueryState();
+        store.currentTrainingId = trainingId;
+    }
+
+    loadData();
 });
 </script>
 

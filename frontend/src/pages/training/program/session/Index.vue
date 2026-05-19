@@ -280,7 +280,7 @@
             available once the training status moves to <span class="text-blue-500 font-bold">Completed</span>. </p>
         </div>
         <div v-else>
-          <ReleaseOrder :program-id="route.params.id" />
+          <ReleaseOrderComponent :program-id="route.params.id" />
         </div>
 
 
@@ -302,6 +302,25 @@
         </div>
         <div v-else>
           <CertificateComponent :program-id="route.params.id" />
+        </div>
+      </div>
+      <div v-if="activeTab === 'evaluation'" class="space-y-6">
+        <div v-if="form.t_status === 'Upcoming' || form.t_status === 'Draft' || form.t_status === 'Ongoing'"
+          class="flex flex-col items-center justify-center py-20 bg-zinc-50 dark:bg-zinc-900/50 border-2 border-dashed border-zinc-200 dark:border-white/5 rounded-3xl">
+          <div
+            class="w-12 h-12 mb-4 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <h2 class="text-sm font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100">Registry Locked
+          </h2>
+          <p class="text-xs text-zinc-500 mt-1 max-w-[240px] text-center leading-relaxed"> Evaluation becomes
+            available once the training status moves to <span class="text-blue-500 font-bold">Completed</span>. </p>
+        </div>
+        <div v-else>
+          <EvaluationComponent :program-id="route.params.id" />
         </div>
       </div>
       <Transition enter-active-class="duration-300 ease-out" enter-from-class="opacity-0" enter-to-class="opacity-100"
@@ -366,8 +385,9 @@ import { useRoute, useRouter } from 'vue-router';
 import AttendanceComponent from "../../../../components/trainingTabs/AttendanceComponent.vue";
 import CertificateComponent from '../../../../components/trainingTabs/CertificateComponent.vue';
 import EnrollmentComponent from "../../../../components/trainingTabs/EnrollmentComponent.vue";
+import EvaluationComponent from '../../../../components/trainingTabs/EvaluationComponent.vue';
 import Materials from '../../../../components/trainingTabs/Materials.vue';
-import ReleaseOrder from "../../../../components/trainingTabs/ReleaseOrderComponent.vue";
+import ReleaseOrderComponent from "../../../../components/trainingTabs/ReleaseOrderComponent.vue";
 import BaseInput from '../../../../components/ui/BaseInput.vue';
 import SearchSelect from '../../../../components/ui/SearchSelect.vue';
 import { useAlertStore } from '../../../../store/alertStore';
@@ -420,6 +440,11 @@ const tabs = [
   {
     id: 'certificate',
     label: 'Certificate',
+    icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
+  },
+  {
+    id: 'evaluation',
+    label: 'Evaluation',
     icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
   }
 ];

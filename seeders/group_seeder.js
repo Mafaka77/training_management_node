@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const Group=require("../models/group_model");
+const Group = require("../models/group_model");
 const bcrypt = require("bcryptjs");
 
 // Define role data

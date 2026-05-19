@@ -52,12 +52,17 @@ const trainingProgramSchema = new mongoose.Schema({
         enum: ["Draft", "Upcoming", "Ongoing", "Completed"],
         default: "Draft"
     },
-    t_room: {
+    t_room: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'TrainingRoom',
         required: true
-    },
+    }],
     t_director: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: false,
+    },
+    t_coordinator: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: false,

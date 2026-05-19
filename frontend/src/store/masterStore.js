@@ -101,6 +101,26 @@ export const useMasterStore = defineStore('master', {
                 return { success: false, message: err.response?.data?.message || "Deletion failed" };
             }
         },
+        async fetchCategory(id) {
+            try {
+                const response = await api.get(`/training-category/${id}`);
+                if (response.status === 200 && response.data.status === 200) {
+                    return { success: true, data: response.data.category }
+                } else {
+                    return { success: false, data: null, message: response.data.message || "Failed to fetch category" }
+                }
+            } catch (ex) {
+                return { success: false, data: null, message: ex.message }
+            }
+        },
+        async updateCategory(id, data) {
+            try {
+                const response = await api.put(`/training-category/${id}`, data);
+                return { success: true, message: response.data.message };
+            } catch (err) {
+                return { success: false, message: err.response?.data?.message || "Update failed" };
+            }
+        },
         async fetchDocuments() {
             this.isCatLoading = true;
             try {

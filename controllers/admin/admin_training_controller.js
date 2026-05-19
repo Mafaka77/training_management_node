@@ -149,10 +149,17 @@ exports.updateTrainingProgram = async (req, res) => {
             // Flatten in case it's nested like [['id1', 'id2']]
             trainingProgram.t_eligibility = Array.isArray(eligibility) ? eligibility.flat() : [eligibility];
         }
+        if (updateData.t_room) {
+            let room = updateData.t_room;
+            // Parse if it's a stringified JSON array from FormData
+            if (typeof room === 'string') room = JSON.parse(room);
+            // Flatten in case it's nested like [['id1', 'id2']]
+            trainingProgram.t_room = Array.isArray(room) ? room.flat() : [room];
+        }
         if (req.file) {
             trainingProgram.t_banner = `/uploads/${req.file.filename}`;
         }
-        const simpleFields = ['t_name', 't_description', 't_duration', 't_category', 't_capacity', 't_organizer', 't_room', 't_director', 't_status'];
+        const simpleFields = ['t_name', 't_description', 't_duration', 't_category', 't_capacity', 't_organizer', 't_director', 't_status'];
         simpleFields.forEach(field => {
             if (updateData[field] !== undefined) trainingProgram[field] = updateData[field];
         });
@@ -173,7 +180,6 @@ exports.getTrainingById = async (req, res) => {
     try {
         const { programId } = req.params;
         const trainingProgram = await TrainingProgram.findById(programId)
-            .populate("t_room")
             .populate("trainingCourse")
             .populate("t_director")
             .populate("t_category");

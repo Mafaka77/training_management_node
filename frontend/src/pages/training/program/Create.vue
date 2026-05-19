@@ -55,9 +55,11 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <BaseInput v-model="form.t_organizer" label="Organizer / Department" placeholder="e.g. HR Department"
-                type="text" />
-
+              <!-- <BaseInput v-model="form.t_organizer" label="Organizer / Department" placeholder="e.g. HR Department"
+                type="text" /> -->
+              <SearchSelect v-if="userRole.some(role => ['Admin', 'Course Director', 'Director'].includes(role))"
+                v-model="form.t_coordinator" :options="directors" label="Training Coordinator"
+                placeholder="e.g. Coordinator Name" type="text" />
               <SearchSelect v-if="userRole.some(role => ['Admin', 'Course Director', 'Director'].includes(role))"
                 v-model="form.t_director" :options="directors" label="Training Director"
                 placeholder="e.g. Director Name" type="text" />
@@ -72,7 +74,10 @@
               <SingleSelect v-model="form.t_category" :options="categories" track-by="_id" option-label="name"
                 label="Category" placeholder="Select Type" />
             </div>
-            <SingleSelect v-model="form.t_room" :options="rooms" track-by="_id" option-label="room_name"
+            <!-- <SingleSelect v-model="form.t_room" :options="rooms" track-by="_id" option-label="room_name"
+              label="Assigned Room / Venue" placeholder="Select Venue" /> -->
+
+            <MultiSelect v-model="form.t_room" :options="rooms" track-by="_id" option-label="room_name"
               label="Assigned Room / Venue" placeholder="Select Venue" />
           </div>
         </div>
@@ -95,6 +100,7 @@
 <script setup>
 import { storeToRefs } from "pinia";
 import { computed, onMounted, reactive, ref } from "vue";
+import { useRouter } from "vue-router";
 import BaseInput from "../../../components/ui/BaseInput.vue";
 import Breadcrumbs from "../../../components/ui/Breadcrumbs.vue";
 import ImagePicker from "../../../components/ui/ImagePicker.vue";
@@ -104,6 +110,7 @@ import SingleSelect from "../../../components/ui/SingleSelect.vue";
 import { useAlertStore } from "../../../store/alertStore.js";
 import { useAuthStore } from "../../../store/authStore.js";
 import { useTrainingStore } from "../../../store/trainingStore.js";
+const router = useRouter();
 const alert = useAlertStore();
 const store = useTrainingStore();
 const authStore = useAuthStore();
@@ -117,11 +124,12 @@ const form = reactive({
   t_end_date: "",
   t_duration: 0,
   t_eligibility: [],
-  t_organizer: "",
+  t_organizer: "ATI",
   t_capacity: 0,
   t_category: "",
-  t_room: "",
+  t_room: [],
   t_director: "",
+  t_coordinator: "",
 })
 const breadcrumbs = [
   { label: "Training", to: "/admin/training/program" },
@@ -137,22 +145,22 @@ const userRole = computed(() => {
   return [roles]; // Wrap string roles in array so .some works
 });
 const submitForm = async () => {
-  // 1. Basic Validation
-  if (!form.t_name || !form.t_start_date || !form.t_category) {
+  if (!form.t_name || !form.t_start_date || !form.t_category || !form.t_room || !form.t_eligibility || !form.t_capacity || !form.t_end_date || !form.t_director) {
     alert.error("Please fill in the required fields.");
     return;
   }
-
   isLoading.value = true;
   const formData = new FormData();
-
-  // 2. Build FormData
   Object.keys(form).forEach((key) => {
     if (key === 't_eligibility') {
-      // If it's an array of objects from MultiSelect, send only the IDs
       form[key].forEach((item) => {
         const id = typeof item === 'object' ? item._id : item;
         formData.append('t_eligibility', id);
+      });
+    } else if (key === 't_room') {
+      form[key].forEach((item) => {
+        const id = typeof item === 'object' ? item._id : item;
+        formData.append('t_room', id);
       });
     } else if (key === 't_banner') {
       // Only append if a file actually exists
@@ -174,6 +182,7 @@ const submitForm = async () => {
 
     if (response.success) {
       alert.success("Training program created successfully!");
+      router.back();
       // router.push("/admin/training/program");
     } else {
       alert.error(response.message || "Failed to create training.");

@@ -174,6 +174,13 @@ exports.generateAndStoreCertificate = async (req, res) => {
 
         await certificate.save();
 
+        const training = await TrainingProgram.findById(trainingId).populate('t_category');
+        if (training.t_category?.name === 'Mandatory') {
+            const user = await User.findById(traineeId).exec();
+            user.mandatory_completion = true;
+            await user.save();
+        }
+
         return res.status(STATUS.OK).json({
             status: STATUS.OK,
             message: "Certificate generated and saved successfully!",
@@ -189,17 +196,74 @@ exports.generateAndStoreCertificate = async (req, res) => {
     }
 };
 
+
 exports.fetchCertificates = async (req, res) => {
     const { trainingId } = req.params;
+
+    // 1. Extract query parameters with defaults
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
+
+    // 2. Map frontend sort keys to database fields
+    // 'full_name' belongs to the populated user document, so we map it to our joined field
+    const sortKey = req.query.sortKey === 'full_name' ? 'userDetails.full_name' : req.query.sortKey || 'createdAt';
+
     try {
-        const certificates = await Certificate.find({ training_program: trainingId })
-            .populate('user')
-            .sort({ is_signed: 1 })
-            .lean();
+        // 3. Use an Aggregation Pipeline to allow sorting on populated/joined fields
+        const pipeline = [
+            // Match the specific training program
+            { $match: { training_program: new mongoose.Types.ObjectId(trainingId) } },
+
+            // Join the 'users' collection (Ensure 'users' matches your actual MongoDB collection name!)
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'user',
+                    foreignField: '_id',
+                    as: 'userDetails'
+                }
+            },
+
+            // Deconstruct the array created by $lookup
+            { $unwind: { path: '$userDetails', preserveNullAndEmptyArrays: true } },
+
+            // Sort the documents
+            {
+                $sort: {
+                    is_signed: 1, // Keep unsigned certificates at the top
+                    [sortKey]: sortOrder // Then apply the user's chosen sort
+                }
+            },
+
+            // Execute pagination and count in parallel
+            {
+                $facet: {
+                    metadata: [{ $count: 'total' }],
+                    data: [{ $skip: (page - 1) * limit }, { $limit: limit }]
+                }
+            }
+        ];
+
+        const result = await Certificate.aggregate(pipeline);
+
+        // 4. Format the data back to match what your Vue frontend expects
+        const certificatesData = result[0].data.map(doc => {
+            doc.user = doc.userDetails;
+            delete doc.userDetails;
+            return doc;
+        });
+
+        const totalItems = result[0].metadata[0] ? result[0].metadata[0].total : 0;
+
         return res.status(STATUS.OK).json({
             status: STATUS.OK,
-            data: certificates
+            data: certificatesData,
+            total: totalItems,
+            currentPage: page,
+            totalPages: Math.ceil(totalItems / limit)
         });
+
     } catch (ex) {
         console.error("Fetch Certificates Error:", ex);
         return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
@@ -212,14 +276,19 @@ exports.prepareForESign = async (req, res) => {
     const PUBLIC_KEY_PATH = path.join(__dirname, '../../cert', 'cert.cer')
     // const SERVER_URL = 'https://parchment-unabashed-urging.ngrok-free.dev';
     const SERVER_URL = 'https://atimz.mizoram.gov.in';
+    let signCoordinate = "400 300 120 300";
     try {
         const { id } = req.params;
         console.log(id);
         const certificate = await Certificate.findById(id).populate('user').populate('training_program');
-        // console.log(certificate);
-
+        const training = await TrainingProgram.findById(certificate.training_program).populate('t_category');
+        if (training.t_category.name == 'Mandatory') {
+            signCoordinate = "120,100,320,180";
+        } else {
+            signCoordinate = "120,100,320,180";
+        }
+        console.log(signCoordinate);
         const user = await User.findById(req.user.user.id);
-        console.log(user);
         const sessionKey = crypto.randomBytes(32);
         const pdfFilePath = certificate.certificate_url;
         const localFilePath = path.join(__dirname, '../../', pdfFilePath)
@@ -231,11 +300,11 @@ exports.prepareForESign = async (req, res) => {
             "File": fileBase64,
             "SignatureMode": "3",
             "SelectPage": "1",
-            "SignaturePosition": "Bottom-Right",
+            "SignaturePosition": "Bottom-Left",
             "PageNumber": "1",
             "PreviewRequired": true,
             "PagelevelCoordinates": "",
-            "CustomizeCoordinates": "",
+            "CustomizeCoordinates": signCoordinate,
             "SUrl": `${SERVER_URL}/admin-api/certificate/${certificate._id}/training/${certificate.training_program._id}/success`,
             "FUrl": `${SERVER_URL}/admin-api/emSignerFailureResponse/${certificate.training_program._id}`,
             "CUrl": `${SERVER_URL}/admin-api/emSignerResponse`,
@@ -303,8 +372,9 @@ exports.certificateSuccessResponse = async (req, res) => {
             { _id: certificateId },
             {
                 $set: {
+                    file_name: newFileName,
                     is_signed: true,
-                    certificate_url: `/uploads/certificate/${newFileName}`
+                    certificate_url: `/uploads/certificate/${newFileName}`,
                 }
             }
         );
@@ -328,4 +398,26 @@ function decryptBinaryAES(encryptedBuffer, key) {
     const chunk1 = decipher.update(encryptedBuffer);
     const chunk2 = decipher.final();
     return Buffer.concat([chunk1, chunk2]);
+}
+exports.deleteCertificate = async (req, res) => {
+    const { certificateId } = req.params;
+    try {
+        const certificate = await Certificate.findByIdAndDelete(certificateId);
+        if (!certificate) {
+            return res.status(STATUS.OK).json({
+                status: STATUS.NOT_FOUND,
+                message: "Certificate not found"
+            });
+        }
+        const filePath = path.join(__dirname, "../../", certificate.certificate_url);
+        try {
+            await require('fs').promises.unlink(filePath);
+        } catch (err) {
+            console.error("File deletion error (disk):", err.message);
+        }
+        res.status(STATUS.OK).json({ status: STATUS.OK, message: "Certificate deleted successfully." });
+    } catch (ex) {
+        console.error("Delete Certificate Error:", ex);
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({ status: STATUS.INTERNAL_SERVER_ERROR, message: ex.message });
+    }
 }
