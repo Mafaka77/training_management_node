@@ -152,7 +152,7 @@
                             <div class="flex justify-between font-bold mb-3 text-sm">
                                 <p contenteditable="true" spellcheck="false">Memo No. A.33029/2/2024-ATI :</p>
                                 <p contenteditable="true" spellcheck="false">Dated Aizawl, the {{ currentFormattedDate
-                                    }}</p>
+                                }}</p>
                             </div>
                             <div class="space-y-1 pl-4">
                                 <p class="font-bold italic" contenteditable="true" spellcheck="false">Copy to:-</p>
@@ -160,9 +160,9 @@
                                     <li v-for="(recipient, index) in copyToRecipients" :key="index"
                                         class="flex items-start gap-2">
                                         <span class="min-w-[20px] font-bold" contenteditable="true">{{ index + 1
-                                            }}.</span>
+                                        }}.</span>
                                         <span contenteditable="true" spellcheck="false">{{ recipient.designation
-                                            }}</span>
+                                        }}</span>
                                     </li>
                                 </ol>
                             </div>

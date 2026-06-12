@@ -201,31 +201,31 @@ exports.generateSelectedTraineesOrder = async (req, res) => {
             training_program: trainingId,
             status: 'Approved'
         }).populate('user')
-        if (enrollments.length === 1) {
-            const singleRecord = enrollments[0];
-            const fakeEnrollments = [];
+        // if (enrollments.length === 1) {
+        //     const singleRecord = enrollments[0];
+        //     const fakeEnrollments = [];
 
-            for (let i = 1; i <= 50; i++) {
-                // Deep copy the object so we can modify it safely
-                const copy = JSON.parse(JSON.stringify(singleRecord));
+        //     for (let i = 1; i <= 50; i++) {
+        //         // Deep copy the object so we can modify it safely
+        //         const copy = JSON.parse(JSON.stringify(singleRecord));
 
-                // Make the IDs unique so Vue's v-for :key doesn't crash
-                copy._id = singleRecord._id + '_mock_' + i;
+        //         // Make the IDs unique so Vue's v-for :key doesn't crash
+        //         copy._id = singleRecord._id + '_mock_' + i;
 
-                // Modify the user data slightly so you can tell them apart in the UI
-                if (copy.user) {
-                    copy.user._id = singleRecord.user._id + '_mock_' + i;
-                    copy.user.full_name = `${singleRecord.user.full_name} (Clone ${i})`;
-                    copy.user.email = `clone${i}@example.com`;
-                }
+        //         // Modify the user data slightly so you can tell them apart in the UI
+        //         if (copy.user) {
+        //             copy.user._id = singleRecord.user._id + '_mock_' + i;
+        //             copy.user.full_name = `${singleRecord.user.full_name} (Clone ${i})`;
+        //             copy.user.email = `clone${i}@example.com`;
+        //         }
 
-                fakeEnrollments.push(copy);
-            }
+        //         fakeEnrollments.push(copy);
+        //     }
 
-            // Replace the real array with your massive fake array
-            enrollments = fakeEnrollments;
-        }
-        console.log(enrollments.length)
+        //     // Replace the real array with your massive fake array
+        //     enrollments = fakeEnrollments;
+        // }
+        // console.log(enrollments.length)
         return res.status(STATUS.OK).json({
             status: STATUS.OK,
             enrollments,
@@ -337,8 +337,8 @@ exports.storeSelectedListOrder = async (req, res) => {
 exports.prepareForESign = async (req, res) => {
     const { trainingId, id } = req.params;
     const PUBLIC_KEY_PATH = path.join(__dirname, '../../cert', 'cert.cer')
-    // const SERVER_URL = 'https://parchment-unabashed-urging.ngrok-free.dev';
-    const SERVER_URL = 'https://atimz.mizoram.gov.in';
+    const SERVER_URL = 'https://parchment-unabashed-urging.ngrok-free.dev';
+    // const SERVER_URL = 'https://atimz.mizoram.gov.in';
     try {
         const enrolledOrder = await EnrolledOrder.findById(id);
         if (!enrolledOrder) {
@@ -415,8 +415,8 @@ exports.prepareForESign = async (req, res) => {
     }
 }
 exports.enrolledOrderSuccessResponse = async (req, res) => {
-    const SERVER_URL = 'https://atimz.mizoram.gov.in';
-    // const SERVER_URL = 'http://localhost:5173';
+    // const SERVER_URL = 'https://atimz.mizoram.gov.in';
+    const SERVER_URL = 'http://localhost:5173';
     const { trainingId, id } = req.params;
     try {
 
@@ -468,7 +468,7 @@ function decryptBinaryAES(encryptedBuffer, key) {
 exports.fetchEnrolledOrdersByTraining = async (req, res) => {
     try {
         const { trainingId } = req.params;
-        const enrolledOrders = await EnrolledOrder.find({ training_program: trainingId });
+        const enrolledOrders = await EnrolledOrder.find({ training_program: trainingId }).sort({ created_at: 1 });
         if (!enrolledOrders) {
             return res.status(STATUS.NOT_FOUND).json({ status: STATUS.NOT_FOUND, message: "No enrolled orders found" });
         }

@@ -274,8 +274,8 @@ exports.fetchCertificates = async (req, res) => {
 }
 exports.prepareForESign = async (req, res) => {
     const PUBLIC_KEY_PATH = path.join(__dirname, '../../cert', 'cert.cer')
-    // const SERVER_URL = 'https://parchment-unabashed-urging.ngrok-free.dev';
-    const SERVER_URL = 'https://atimz.mizoram.gov.in';
+    const SERVER_URL = 'https://parchment-unabashed-urging.ngrok-free.dev';
+    // const SERVER_URL = 'https://atimz.mizoram.gov.in';
     let signCoordinate = "400 300 120 300";
     try {
         const { id } = req.params;
@@ -349,8 +349,8 @@ exports.prepareForESign = async (req, res) => {
 }
 
 exports.certificateSuccessResponse = async (req, res) => {
-    const SERVER_URL = 'https://atimz.mizoram.gov.in';
-    // const SERVER_URL = 'http://localhost:5173';
+    // const SERVER_URL = 'https://atimz.mizoram.gov.in';
+    const SERVER_URL = 'http://localhost:5173';
     const { trainingId, certificateId } = req.params;
     try {
 

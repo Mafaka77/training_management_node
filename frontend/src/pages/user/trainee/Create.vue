@@ -21,6 +21,8 @@
             label="Gender" />
           <SingleSelect :options="districts" v-model="form.district" track-by="_id" label="District" />
           <DatePicker label="Date of Birth" v-model="form.dob" format="dd/MM/yyyy" />
+          <SingleSelect label="Category" :options="categoryOptions" v-model="form.category" track-by="name"
+            option-label="name" placeholder="Select category..." />
         </div>
         <div class="flex items-start gap-3 p-4 mt-5 rounded-xl border transition-all" :class="form.mandatory_completion
           ? 'bg-emerald-50/50 border-emerald-200 dark:bg-emerald-500/5 dark:border-emerald-500/20'
@@ -52,8 +54,12 @@
 
             <SingleSelect label="Confirmation" :options="confirmationOptions" v-model="form.confirmation"
               track-by="name" option-label="name" placeholder="Select confirmation..." />
-
+            <BaseInput v-model="form.qualification" type="text" label="Qualification" placeholder="e.g. BA/MA" />
+            <SingleSelect label="Service" :options="serviceOptions" v-model="form.service" track-by="name"
+              option-label="name" placeholder="Select service..." />
             <BaseInput label="Service Cadre (if applicable)" v-model="form.service_cadre" />
+
+
 
             <div class="md:col-span-2 space-y-4">
               <div class="flex items-start gap-3 p-4 rounded-xl border transition-all" :class="form.mandatory_completion
@@ -66,11 +72,10 @@
                 <label for="mandatory-check" class="flex flex-col cursor-pointer">
                   <span class="text-sm font-bold transition-colors"
                     :class="form.mandatory_completion ? 'text-emerald-700 dark:text-emerald-400' : 'text-zinc-700 dark:text-zinc-200'">
-                    I have completed the Mandatory Foundation Training
+                    Mandatory Foundation Training ka attend tawh e
                   </span>
                   <span class="text-xs text-zinc-500 mt-0.5">
-                    Check this box only if you have already received your certification for the government service
-                    prerequisite course.
+                    Mandatory Foundation Training i attend tawh chuan Tick la,i la attend loh chuan Tick suh
                   </span>
                 </label>
               </div>
@@ -137,6 +142,21 @@ const confirmationOptions = [
   { name: "Confirmed" },
   { name: "Not Confirmed" }
 ];
+const serviceOptions = [
+  {
+    name: 'State',
+  },
+  { name: 'Central' },
+  { name: 'Others' }
+];
+const categoryOptions = [
+  { name: 'ST' },
+  { name: 'SC' },
+  { name: 'General' },
+  { name: 'OBC' },
+  { name: 'Others' }
+];
+
 const form = reactive({
   full_name: '',
   email: '',
@@ -157,6 +177,9 @@ const form = reactive({
   service_cadre: '',
   dob: null,
   disclaimer: true,
+  qualification: '',
+  service: '',
+  category: '',
 });
 
 const breadcrumbs = [

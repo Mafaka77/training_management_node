@@ -57,12 +57,13 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <!-- <BaseInput v-model="form.t_organizer" label="Organizer / Department" placeholder="e.g. HR Department"
                 type="text" /> -->
+
               <SearchSelect v-if="userRole.some(role => ['Admin', 'Course Director', 'Director'].includes(role))"
-                v-model="form.t_coordinator" :options="directors" label="Training Coordinator"
+                v-model="form.t_director" :options="directors" label="Course Director" placeholder="e.g. Director Name"
+                type="text" />
+              <SearchSelect v-if="userRole.some(role => ['Admin', 'Course Director', 'Director'].includes(role))"
+                v-model="form.t_coordinator" :options="directors" label="Course Coordinator"
                 placeholder="e.g. Coordinator Name" type="text" />
-              <SearchSelect v-if="userRole.some(role => ['Admin', 'Course Director', 'Director'].includes(role))"
-                v-model="form.t_director" :options="directors" label="Training Director"
-                placeholder="e.g. Director Name" type="text" />
             </div>
 
             <MultiSelect v-model="form.t_eligibility" :options="groups" track-by="_id" option-label="group_name"

@@ -64,9 +64,33 @@
           </thead>
 
           <tbody v-if="isTraineeLoading">
-            <tr v-for="i in 5" :key="i" class="border-b border-zinc-100 dark:border-white/5">
-              <td colspan="5" class="px-6 py-4">
-                <div class="h-8 w-full bg-zinc-100 dark:bg-white/5 animate-pulse rounded-lg"></div>
+            <tr v-for="i in 5" :key="i" class="border-b border-zinc-100 dark:border-white/5 last:border-0">
+              <td class="px-6 py-4 animate-pulse">
+                <div class="flex flex-col gap-2">
+                  <div class="h-4.5 w-36 bg-zinc-200 dark:bg-zinc-800 rounded-md"></div>
+                  <div class="h-3.5 w-16 bg-zinc-150 dark:bg-zinc-800/60 rounded"></div>
+                </div>
+              </td>
+              <td class="px-6 py-4 animate-pulse">
+                <div class="flex flex-col gap-2">
+                  <div class="h-4 w-28 bg-zinc-200 dark:bg-zinc-800 rounded-md"></div>
+                  <div class="h-3 w-20 bg-zinc-100 dark:bg-zinc-850 rounded"></div>
+                </div>
+              </td>
+              <td class="px-6 py-4 animate-pulse">
+                <div class="flex flex-col gap-2">
+                  <div class="h-3.5 w-40 bg-zinc-100 dark:bg-zinc-850 rounded"></div>
+                  <div class="h-3.5 w-28 bg-zinc-100 dark:bg-zinc-850 rounded"></div>
+                </div>
+              </td>
+              <td class="px-6 py-4 animate-pulse">
+                <div class="h-5.5 w-16 bg-zinc-200 dark:bg-zinc-800 rounded-md"></div>
+              </td>
+              <td class="px-6 py-4 text-right animate-pulse">
+                <div class="flex items-center justify-end gap-2">
+                  <div class="w-8 h-8 bg-zinc-200 dark:bg-zinc-800 rounded-lg"></div>
+                  <div class="w-8 h-8 bg-zinc-200 dark:bg-zinc-800 rounded-lg"></div>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -209,24 +233,26 @@
     </div>
 
     <!-- Delete Modal -->
-    <BaseModal v-if="isDeleteModalOpen" title="Delete Trainee" @close="isDeleteModalOpen = false">
-      <div class="p-6">
-        <h3 class="text-lg font-bold text-zinc-900 dark:text-white mb-2">Are you sure?</h3>
-        <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
-          Do you really want to delete <span class="font-semibold text-zinc-900 dark:text-zinc-200">{{
-            traineeToDelete?.full_name }}</span>? This action cannot be undone.
-        </p>
-        <div class="flex justify-end gap-3">
-          <button @click="isDeleteModalOpen = false"
-            class="px-4 py-2 text-sm font-medium text-zinc-600 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 rounded-lg transition-all">
-            Cancel
-          </button>
-          <button @click="confirmDelete"
-            class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-all shadow-sm shadow-red-500/20">
-            Delete Trainee
-          </button>
+    <BaseModal
+        :show="isDeleteModalOpen"
+        confirmVariant="danger"
+        :confirmLoading="isDeleting"
+        @close="isDeleteModalOpen = false"
+        @confirm="confirmDelete"
+    >
+      <template #icon>
+        <div class="w-14 h-14 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-500 rounded-2xl flex items-center justify-center mb-4">
+          <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
         </div>
-      </div>
+      </template>
+      <template #title>Delete Trainee</template>
+      <template #content>
+        Are you sure you want to remove <span class="font-bold text-zinc-900 dark:text-zinc-100">{{ traineeToDelete?.full_name }}</span>?
+        This action cannot be undone.
+      </template>
+      <template #confirm-text>Delete Trainee</template>
     </BaseModal>
   </div>
 </template>
@@ -255,6 +281,7 @@ const {
 const searchQuery = ref("");
 const isDeleteModalOpen = ref(false);
 const traineeToDelete = ref(null);
+const isDeleting = ref(false);
 
 // Pagination Logic
 const pageNumbers = computed(() => {
@@ -288,8 +315,9 @@ const openDeleteModal = (trainee) => {
 
 const confirmDelete = async () => {
   if (!traineeToDelete.value) return;
-
+  isDeleting.value = true;
   const response = await store.deleteTrainee(traineeToDelete.value._id);
+  isDeleting.value = false;
   if (response.success) {
     alert.success(response.message || 'Trainee deleted successfully');
     isDeleteModalOpen.value = false;

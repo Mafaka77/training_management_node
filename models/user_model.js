@@ -104,6 +104,20 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: false,
     },
+    qualification: {
+        type: String,
+        required: false,
+    },
+    service: {
+        type: String,
+        required: false,
+        enums: ['State', 'Central', 'Others']
+    },
+    category: {
+        type: String,
+        required: false,
+        enums: ['General', 'SC', 'ST', 'OBC']
+    },
     roles: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Role',

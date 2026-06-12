@@ -178,8 +178,6 @@ exports.sendOtp = async (req, res) => {
 
 
 
-
-
 }
 exports.verifyOtp = async (req, res) => {
     const { mobile, otp } = req.body;

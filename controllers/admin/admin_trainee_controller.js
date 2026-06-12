@@ -59,7 +59,7 @@ exports.getAllTrainee = async (req, res) => {
 exports.createTrainee = async (req, res) => {
     try {
         // 1. Destructure groups from req.body
-        const { full_name, email, mobile, password, department, district, group, gender, designation, mandatory_completion, dob, date_of_entry, date_of_entry_in_present_grade, date_of_superannuation, recruitment, confirmation, service_cadre, disclaimer, is_govt_employee } = req.body;
+        const { full_name, email, mobile, password, department, district, group, gender, designation, mandatory_completion, dob, date_of_entry, date_of_entry_in_present_grade, date_of_superannuation, recruitment, confirmation, service_cadre, disclaimer, is_govt_employee, service, category, qualification } = req.body;
 
         // Basic validation
         if (!full_name || !email || !mobile || !password) {
@@ -111,6 +111,9 @@ exports.createTrainee = async (req, res) => {
             service_cadre,
             disclaimer: disclaimer || false,
             is_govt_employee: is_govt_employee || false,
+            service,
+            category,
+            qualification
         });
 
         await newTrainee.save();

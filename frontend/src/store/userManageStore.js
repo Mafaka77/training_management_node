@@ -5,6 +5,9 @@ export const useUserManageStore = defineStore('userManageStore', {
     state: () => ({
         trainers: [],
         isLoading: true,
+        trainerPage: 1,
+        trainerTotalPages: 1,
+        trainersTotal: 0,
         districts: [],
         trainees: [],
         isTraineeLoading: true,
@@ -13,14 +16,33 @@ export const useUserManageStore = defineStore('userManageStore', {
         traineeTotalPages: 1,
         traineesTotal: 0,
         employees: [],
+        employeePage: 1,
+        employeeTotalPages: 1,
+        employeesTotal: 0,
 
     }),
     actions: {
-        async fetchTrainers() {
+        async fetchTrainers(page = 1, search = '') {
             try {
                 this.isLoading = true;
-                const response = await api.get('/trainers');
-                this.trainers = response.data.trainers;
+                const response = await api.get('/trainers', {
+                    params: {
+                        page: page,
+                        search: search,
+                        limit: 5
+                    }
+                });
+                if (response.data.status === 404 || !response.data.trainers) {
+                    this.trainers = [];
+                    this.trainerPage = 1;
+                    this.trainerTotalPages = 1;
+                    this.trainersTotal = 0;
+                } else {
+                    this.trainers = response.data.trainers;
+                    this.trainerPage = response.data.pagination?.page || 1;
+                    this.trainerTotalPages = response.data.pagination?.totalPages || 1;
+                    this.trainersTotal = response.data.pagination?.total || 0;
+                }
                 this.isLoading = false;
             } catch (e) {
                 this.isLoading = false;
@@ -219,12 +241,27 @@ export const useUserManageStore = defineStore('userManageStore', {
                 return { success: false, message: "Server Error. Please try again later." };
             }
         },
-        async fetchEmployees() {
+        async fetchEmployees(page = 1, search = '') {
             try {
                 this.isLoading = true;
-                const response = await api.get('/employees');
-                this.employees = response.data.employees;
-                console.log(response.data.employees);
+                const response = await api.get('/employees', {
+                    params: {
+                        page: page,
+                        search: search,
+                        limit: 5
+                    }
+                });
+                if (response.data.status === 404 || !response.data.employees) {
+                    this.employees = [];
+                    this.employeePage = 1;
+                    this.employeeTotalPages = 1;
+                    this.employeesTotal = 0;
+                } else {
+                    this.employees = response.data.employees;
+                    this.employeePage = response.data.pagination?.page || 1;
+                    this.employeeTotalPages = response.data.pagination?.totalPages || 1;
+                    this.employeesTotal = response.data.pagination?.total || 0;
+                }
                 this.isLoading = false;
             } catch (e) {
                 this.isLoading = false;

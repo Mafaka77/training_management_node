@@ -236,8 +236,9 @@
                           d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                     </div>
-                    <p class="text-sm text-zinc-700 dark:text-zinc-300 font-bold">{{ order.file_name ||
-                      'Office_Order.pdf' }}</p>
+                    <p class="text-sm text-zinc-700 dark:text-zinc-300 font-bold">
+                      {{ order.file_name || 'Office_Order.pdf' }}
+                    </p>
                   </div>
                 </td>
                 <td class="px-6 py-4 text-sm text-zinc-500 font-medium">
@@ -246,24 +247,37 @@
                 <td class="px-6 py-4 text-right">
                   <div class="flex items-center justify-end gap-2">
 
-                    <!-- <a :href="getFileUrl(order.enrolled_order_url)" target="_blank" title="View Document"
-                      class="p-2 text-zinc-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 dark:hover:text-blue-400 rounded-lg transition-colors">
+                    <!-- eSign Button: Enabled only if NOT signed -->
+                    <button @click="prepareForEsign(order.training_program, order._id)" title="eSign Document"
+                      :disabled="order.is_signed" :class="[
+                        'p-2 rounded-lg transition-colors flex items-center gap-1',
+                        order.is_signed
+                          ? 'text-zinc-300 dark:text-zinc-700 cursor-not-allowed opacity-50'
+                          : 'text-zinc-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 dark:hover:text-blue-400'
+                      ]">
                       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                       </svg>
-                    </a> -->
+                      <span class="text-xs font-semibold px-1">eSign</span>
+                    </button>
 
-                    <a :href="getFileUrl(order.enrolled_order_url)" target="_blank" download title="Download Document"
-                      class="p-2 text-zinc-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-400 rounded-lg transition-colors">
+                    <!-- Download Link: Enabled only IF signed -->
+                    <a :href="!order.is_signed ? '#' : getFileUrl(order.enrolled_order_url)"
+                      :target="!order.is_signed ? '_self' : '_blank'" :download="order.is_signed"
+                      title="Download Document" :class="[
+                        'p-2 rounded-lg transition-colors',
+                        !order.is_signed
+                          ? 'text-zinc-300 dark:text-zinc-700 cursor-not-allowed opacity-50 pointer-events-none'
+                          : 'text-zinc-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-400'
+                      ]">
                       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                       </svg>
                     </a>
 
+                    <!-- Delete Button remains standard -->
                     <button @click="deleteEnrolledOrder(order._id)" title="Delete Document"
                       class="p-2 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 dark:hover:text-rose-400 rounded-lg transition-colors">
                       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -362,7 +376,7 @@
                       </div>
                       <div>
                         <p class="text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-none">{{ user.full_name
-                          }}</p>
+                        }}</p>
                         <p class="text-xs text-zinc-500 mt-1">{{ user.mobile }}</p>
                       </div>
                     </div>
@@ -422,7 +436,7 @@
             class="px-6 py-3 border-t border-zinc-200 dark:border-white/10 bg-white dark:bg-zinc-950 flex items-center justify-between shrink-0">
             <span class="text-xs text-zinc-500">
               Showing page <span class="font-bold text-zinc-700 dark:text-zinc-300">{{ foundationPagination.currentPage
-                }}</span> of {{ foundationPagination.totalPages }}
+              }}</span> of {{ foundationPagination.totalPages }}
             </span>
             <div class="flex items-center gap-2">
               <button @click="changeFoundationPage(foundationPagination.currentPage - 1)"
@@ -447,11 +461,16 @@
     @close="showHistoryModal = false" />
   <EnrollmentDetailsModal :show="showDetailsModal" :enrollment="enrollment" :loading="isLoading"
     :userHistory="userHistory" @close="showDetailsModal = false" @update-status="updateStatus" />
+  <form ref="eMudhraForm" method="post" action="https://demogateway-core.emsigner.com/Secure/index" class="hidden">
+    <input type="hidden" name="Parameter1" :value="store.params?.parameter1" />
+    <input type="hidden" name="Parameter2" :value="store.params?.parameter2" />
+    <input type="hidden" name="Parameter3" :value="store.params?.parameter3" />
+  </form>
 </template>
 
 <script setup>
 import { storeToRefs } from 'pinia';
-import { onMounted, ref, watch } from 'vue';
+import { nextTick, onMounted, ref, watch } from 'vue';
 import { useAlertStore } from '../../store/alertStore';
 import { useAuthStore } from '../../store/authStore';
 import { useEnrollmentStore } from '../../store/enrollmentStore';
@@ -465,7 +484,7 @@ const props = defineProps({
 const authStore = useAuthStore();
 const store = useEnrollmentStore();
 const alert = useAlertStore();
-
+const eMudhraForm = ref(null);
 // --- Tab Navigation State ---
 const activeTab = ref('enrollments');
 
@@ -643,7 +662,21 @@ const deleteEnrolledOrder = async (id) => {
     alert.error(res.message);
   }
 }
-
+const prepareForEsign = async (trainingId, id) => {
+  try {
+    const response = await store.handleSignature(trainingId, id);
+    if (response.success) {
+      await nextTick();
+      eMudhraForm.value.submit();
+      alert.success(response.message || "Please wait while redirecting to eMudhra!");
+    } else {
+      alert.error(response.message);
+    }
+  } catch (ex) {
+    console.error("Server PDF Generation Failed", ex);
+    alert.error("Failed to communicate with the server to generate PDF.");
+  }
+}
 onMounted(async () => {
   await fetchData();
   await fetchEnrolledOrders();

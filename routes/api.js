@@ -68,6 +68,8 @@ router.post('/evaluation/answers', authenticate, authorizeRoles('Trainee'), uplo
 
 //OFFICE ORDER & CERTIFICATE
 router.get('/certificate-and-release-order', authenticate, authorizeRoles('Trainee'), upload.none(), require('../controllers/trainee/trainee_certificate_controller').getCertificateAndReleaseOrder);
+//DOCUMENTS
+router.get('/documents', authenticate, authorizeRoles('Trainee'), upload.none(), require('../controllers/trainee/trainee_document_controller').getDocuments);
 //UNAUTH API
 
 router.get('/programs', upload.none(), require('../controllers/home_controller').getPrograms);

@@ -34,30 +34,30 @@ exports.generateReleaseOrder = async (req, res) => {
                 status: httpStatus.NOT_FOUND
             });
         }
-        if (enrollments.length === 1) {
-            const singleRecord = enrollments[0];
-            const fakeEnrollments = [];
+        // if (enrollments.length === 1) {
+        //     const singleRecord = enrollments[0];
+        //     const fakeEnrollments = [];
 
-            for (let i = 1; i <= 120; i++) {
-                // Deep copy the object so we can modify it safely
-                const copy = JSON.parse(JSON.stringify(singleRecord));
+        //     for (let i = 1; i <= 120; i++) {
+        //         // Deep copy the object so we can modify it safely
+        //         const copy = JSON.parse(JSON.stringify(singleRecord));
 
-                // Make the IDs unique so Vue's v-for :key doesn't crash
-                copy._id = singleRecord._id + '_mock_' + i;
+        //         // Make the IDs unique so Vue's v-for :key doesn't crash
+        //         copy._id = singleRecord._id + '_mock_' + i;
 
-                // Modify the user data slightly so you can tell them apart in the UI
-                if (copy.user) {
-                    copy.user._id = singleRecord.user._id + '_mock_' + i;
-                    copy.user.full_name = `${singleRecord.user.full_name} (Clones ${i})`;
-                    copy.user.email = `clone${i}@example.com`;
-                }
+        //         // Modify the user data slightly so you can tell them apart in the UI
+        //         if (copy.user) {
+        //             copy.user._id = singleRecord.user._id + '_mock_' + i;
+        //             copy.user.full_name = `${singleRecord.user.full_name} (Clones ${i})`;
+        //             copy.user.email = `clone${i}@example.com`;
+        //         }
 
-                fakeEnrollments.push(copy);
-            }
+        //         fakeEnrollments.push(copy);
+        //     }
 
-            // Replace the real array with your massive fake array
-            enrollments = fakeEnrollments;
-        }
+        //     // Replace the real array with your massive fake array
+        //     enrollments = fakeEnrollments;
+        // }
         return res.status(httpStatus.OK).json({
             message: 'Participants retrieved successfully',
             status: httpStatus.OK,
@@ -298,8 +298,8 @@ exports.deleteReleaseOrder = async (req, res) => {
 
 exports.prepareForESign = async (req, res) => {
     const PUBLIC_KEY_PATH = path.join(__dirname, '../../cert', 'cert.cer')
-    // const SERVER_URL = 'https://parchment-unabashed-urging.ngrok-free.dev';
-    const SERVER_URL = 'https://atimz.mizoram.gov.in';
+    const SERVER_URL = 'https://parchment-unabashed-urging.ngrok-free.dev';
+    // const SERVER_URL = 'https://atimz.mizoram.gov.in';
     try {
         const { trainingId } = req.params;
         const releaseOrder = await ReleaseOrder.findOne({ training_program: trainingId });
@@ -312,16 +312,16 @@ exports.prepareForESign = async (req, res) => {
         const incomingData = {
             "Name": user.full_name,
             "FileType": "PDF",
-            "AuthToken": "c49046e1-c3de-4a1b-8024-679f0debadaa",
+            "AuthToken": "b3eac112-fa5c-48ba-9ebe-19aea7b6e48c",
             "File": fileBase64,
-            "SignatureMode": "3",
+            "SignatureMode": "2",
             "SelectPage": "1",
             "SignaturePosition": "Bottom-Right",
             "PageNumber": "1",
             "PreviewRequired": true,
             "PagelevelCoordinates": "",
             "CustomizeCoordinates": "400,50,550,150",
-            "SUrl": `${SERVER_URL}/admin-api/emSignerSuccessResponse/${trainingId}`,
+            "SUrl": `${SERVER_URL}/admin-api/emSignnerSuccessResponse/${trainingId}`,
             "FUrl": `${SERVER_URL}/admin-api/emSignerFailureResponse/${trainingId}`,
             "CUrl": `${SERVER_URL}/admin-api/emSignerResponse`,
             "ReferenceNumber": "ATI-" + Date.now(),
@@ -331,7 +331,7 @@ exports.prepareForESign = async (req, res) => {
             "EnableeSignaturePad": false,
             "IsCompressed": false,
             "IsCosign": false,
-            "Storetodb": false,
+            "Storetodb": true,
             "IsGSTN": false,
             "IsGSTN3B": false,
             "IsCustomized": false,
@@ -364,8 +364,8 @@ exports.prepareForESign = async (req, res) => {
     }
 }
 exports.emSignerSuccessResponse = async (req, res) => {
-    const SERVER_URL = 'https://atimz.mizoram.gov.in';
-    // const SERVER_URL = 'http://localhost:5173';
+    // const SERVER_URL = 'https://atimz.mizoram.gov.in';
+    const SERVER_URL = 'http://localhost:5173';
     const { trainingId } = req.params;
     try {
 
