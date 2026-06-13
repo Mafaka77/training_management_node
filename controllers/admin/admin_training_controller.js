@@ -36,9 +36,9 @@ exports.getTraining = async (req, res) => {
         const user = req.user.user;
         const userRoles = user.roles || [];
         const roleList = Array.isArray(userRoles) ? userRoles : [userRoles];
-        // LOGIC: Filter by Director ID ONLY if they have the Director role 
+        // LOGIC: Filter by Director ID ONLY if they have the Director or Course Director role 
         // AND they don't have the Admin role (who should see everything).
-        if (roleList.includes('Director')) {
+        if ((roleList.includes('Director') || roleList.includes('Course Director')) && !roleList.includes('Admin')) {
             filter.t_director = user.id;
         }
 

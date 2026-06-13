@@ -83,10 +83,10 @@ exports.register = async (req, res) => {
     const roles = await Role.findOne({ name: 'Trainee' });
     const { full_name, email, password, mobile, district, department, gender,
         designation, group, mandatory_completion, dob, recruitment, confirmation,
-        is_govt_employee, date_of_entry, date_of_superannuation, service_cadre, date_of_entry_in_present_grade
+        is_govt_employee, date_of_entry, date_of_superannuation, service_cadre, date_of_entry_in_present_grade, service, category,
     } = req.body;
     try {
-        if (!full_name || !email || !password || !mobile || !designation) {
+        if (!full_name || !email || !mobile || !designation) {
             return res.status(STATUS.OK).json({
                 message: "Please fill all required fields",
                 status: STATUS.BAD_REQUEST
@@ -100,8 +100,11 @@ exports.register = async (req, res) => {
             });
         }
         const ngo = await Group.findOne({ group_name: 'NGO' });
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+        let hashedPassword = null;
+        if (password) {
+            const salt = await bcrypt.genSalt(10);
+            hashedPassword = await bcrypt.hash(password, salt);
+        }
 
         const user = new User({
             full_name,
@@ -123,13 +126,36 @@ exports.register = async (req, res) => {
             service_cadre,
             roles: [roles._id],
             date_of_entry_in_present_grade,
+            service,
+            category,
         });
 
         await user.save();
 
+        const payload = {
+            user: {
+                id: user.id || user._id,
+                mobile: user.mobile,
+                roles: ['Trainee'],
+            },
+        };
+        const token = jwt.sign(
+            payload,
+            process.env.JWT_SECRET,
+            { expiresIn: '1d' }
+        );
+
         return res.status(STATUS.OK).json({
             message: "User created successfully",
-            status: STATUS.CREATED
+            status: STATUS.CREATED,
+            token: token,
+            user: {
+                id: user._id,
+                email: user.email,
+                full_name: user.full_name,
+                mobile: user.mobile,
+                roles: ['Trainee']
+            }
         });
     } catch (e) {
         console.log(e);
@@ -143,10 +169,6 @@ exports.register = async (req, res) => {
 exports.sendOtp = async (req, res) => {
     try {
         const { mobile } = req.body;
-        const user = await User.findOne({ mobile: mobile });
-        if (user) {
-            return res.status(STATUS.OK).json({ message: 'User already exists', status: STATUS.CONFLICT })
-        }
         const otp = generateOTP(mobile);
         try {
             const templateId = '1407177545229547887';
@@ -195,7 +217,33 @@ exports.verifyOtp = async (req, res) => {
         // OTP is valid, remove it from cache to prevent reuse
         otpCache.del(`otp_${mobile}`);
 
-        return res.status(STATUS.OK).json({ message: 'OTP is verified', status: STATUS.OK });
+        // Check if user exists in database
+        const user = await User.findOne({ mobile: mobile }).populate('roles', '-__v');
+        if (user) {
+            const payload = {
+                user: {
+                    id: user.id,
+                    mobile: user.mobile,
+                    roles: user.roles.map(role => role.name),
+                },
+            };
+            const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
+            return res.status(STATUS.OK).json({
+                message: 'OTP is verified',
+                status: STATUS.OK,
+                userExists: true,
+                token: token,
+                user: {
+                    id: user._id,
+                    email: user.email,
+                    full_name: user.full_name,
+                    mobile: user.mobile,
+                    roles: user.roles.map(role => role.name)
+                }
+            });
+        }
+
+        return res.status(STATUS.OK).json({ message: 'OTP is verified', status: STATUS.OK, userExists: false });
     } catch (ex) {
         return res.status(STATUS.OK).json({ message: ex.message, status: 500 });
     }
