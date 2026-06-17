@@ -1,0 +1,1 @@
+import{_ as o,o as r,c as t,b as c,h as n}from"./index-BUzA-P6r.js";const s={},a={class:"page-wrapper"};function _(p,i){const e=n("router-view");return r(),t("div",a,[c(e)])}const d=o(s,[["render",_]]);export{d as default};
