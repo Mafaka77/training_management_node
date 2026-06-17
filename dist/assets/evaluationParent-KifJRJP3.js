@@ -1,0 +1,1 @@
+import{_ as o,o as t,c as r,b as c,h as n}from"./index-Ch3TyLBY.js";const a={},s={class:"page-wrapper"};function _(p,i){const e=n("router-view");return t(),r("div",s,[c(e)])}const d=o(a,[["render",_]]);export{d as default};
