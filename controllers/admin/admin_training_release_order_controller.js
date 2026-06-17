@@ -317,7 +317,7 @@ exports.prepareForESign = async (req, res) => {
             //STAGING
             // "AuthToken": "c49046e1-c3de-4a1b-8024-679f0debadaa",
             "File": fileBase64,
-            "SignatureMode": "3",
+            "SignatureMode": "2",
             "SelectPage": "1",
             "SignaturePosition": "Bottom-Right",
             "PageNumber": "1",
