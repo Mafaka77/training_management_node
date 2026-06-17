@@ -140,11 +140,11 @@ const handleLogout=async ()=>{
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     store.$reset();
-    window.location.href = "/";
+    window.location.href = "/login";
 
   } catch (err) {
     console.error("Logout error:", err);
-    window.location.href = "/";
+    window.location.href = "/login";
   }
 }
 onMounted(()=>{

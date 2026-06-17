@@ -61,4 +61,20 @@ const emit = defineEmits(['close', 'confirm']);
 
 const close = () => emit('close');
 const confirm = () => emit('confirm');
+
+const vClickOutside = {
+  mounted(el, binding) {
+    el.clickOutsideEvent = (event) => {
+      if (!(el === event.target || el.contains(event.target))) {
+        binding.value(event);
+      }
+    };
+    setTimeout(() => {
+      document.addEventListener("click", el.clickOutsideEvent);
+    }, 0);
+  },
+  unmounted(el) {
+    document.removeEventListener("click", el.clickOutsideEvent);
+  },
+};
 </script>

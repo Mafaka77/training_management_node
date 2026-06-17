@@ -49,9 +49,10 @@
           <h2 class="text-lg font-bold tracking-tight">Timeline</h2>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <BaseInput v-model="form.t_start_date" label="Start Date" type="date" />
           <BaseInput v-model="form.t_end_date" label="End Date" type="date" />
+          <BaseInput v-model="form.t_duration" label="Duration (in days)" placeholder="Calculated automatically" type="number" disabled />
         </div>
       </section>
 
@@ -65,12 +66,20 @@
           <h2 class="text-lg font-bold tracking-tight">Training Logistics</h2>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="space-y-6">
-            <BaseInput v-model="form.t_organizer" label="Organizer / Department" placeholder="e.g. HR Department"
+            <BaseInput v-model="form.t_organizer" label="Organizer / Department" placeholder="e.g. ATI"
               type="text" />
-            <SearchSelect v-model="form.t_director" :options="directors" label="Training Director"
-              placeholder="Full Name" type="text" />
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <SearchSelect v-if="userRole.some(role => ['Admin', 'Course Director', 'Director'].includes(role))"
+                v-model="form.t_director" :options="directors" label="Course Director" placeholder="e.g. Director Name"
+                type="text" />
+              <SearchSelect v-if="userRole.some(role => ['Admin', 'Course Director', 'Director'].includes(role))"
+                v-model="form.t_coordinator" :options="directors" label="Course Coordinator"
+                placeholder="e.g. Coordinator Name" type="text" />
+            </div>
+
             <MultiSelect v-model="form.t_eligibility" :options="groups" track-by="_id" option-label="group_name"
               label="Target Eligibility Groups" placeholder="Select allowed groups" />
           </div>
@@ -83,14 +92,7 @@
             </div>
             <SingleSelect v-model="form.t_status" :options="status" track-by="name" option-label="value" label="Status"
               placeholder="Select Status" />
-            <!-- <SingleSelect 
-              v-model="form.t_room" 
-              :options="rooms" 
-              track-by="_id" 
-              option-label="room_name" 
-              label="Assigned Room / Venue" 
-              placeholder="Select Venue" 
-            /> -->
+            
             <MultiSelect v-model="form.t_room" :options="rooms" track-by="_id" option-label="room_name"
               label="Assigned Room / Venue" placeholder="Select Venue" />
           </div>
@@ -153,7 +155,7 @@
 
 <script setup>
 import { storeToRefs } from "pinia";
-import { onMounted, reactive, ref, watch } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import BaseInput from "../../../components/ui/BaseInput.vue";
 import Breadcrumbs from "../../../components/ui/Breadcrumbs.vue";
@@ -162,22 +164,28 @@ import MultiSelect from "../../../components/ui/MultiSelect.vue";
 import SearchSelect from "../../../components/ui/SearchSelect.vue";
 import SingleSelect from "../../../components/ui/SingleSelect.vue";
 import { useAlertStore } from "../../../store/alertStore.js";
+import { useAuthStore } from "../../../store/authStore.js";
 import { useTrainingStore } from "../../../store/trainingStore.js";
+
 const route = useRoute();
 const alert = useAlertStore();
 const store = useTrainingStore();
+const authStore = useAuthStore();
 const { categories, rooms, groups, directors } = storeToRefs(store);
+
 const isLoading = ref(false);
 const isUpdating = ref(false);
 const loading = ref(false);
 const showStatusModal = ref(false);
 const isSubmitting = ref(false);
+
 const status = [
   { name: "Draft", value: "Draft" },
   { name: "Upcoming", value: "Upcoming" },
   { name: "Ongoing", value: "Ongoing" },
   { name: "Completed", value: "Completed" },
 ]
+
 const form = reactive({
   t_name: "",
   t_description: "",
@@ -192,11 +200,37 @@ const form = reactive({
   t_room: [],
   t_status: "",
   t_director: "",
+  t_coordinator: "",
 })
+
 const breadcrumbs = [
   { label: "Training", to: "/admin/training/program" },
   { label: "Edit Program", to: "/admin/training/program/edit/" + route.params.id }
 ];
+
+const userRole = computed(() => {
+  const roles = authStore.roles;
+  if (!roles) return [];
+  if (Array.isArray(roles)) return roles;
+  return [roles];
+});
+
+watch(() => [form.t_start_date, form.t_end_date], () => {
+  if (form.t_start_date && form.t_end_date) {
+    const start = new Date(form.t_start_date);
+    const end = new Date(form.t_end_date);
+    const timeDiff = end.getTime() - start.getTime();
+    if (timeDiff >= 0) {
+      const diffDays = Math.round(timeDiff / (1000 * 3600 * 24)) + 1;
+      form.t_duration = diffDays;
+    } else {
+      form.t_duration = 0;
+    }
+  } else {
+    form.t_duration = 0;
+  }
+});
+
 function handleBanner(file) {
   form.t_banner = file;
 }
@@ -212,10 +246,21 @@ const submitForm = async () => {
   Object.keys(form).forEach((key) => {
     if (form[key] instanceof File) {
       formData.append(key, form[key]);
-    } else if (Array.isArray(form[key])) {
-      formData.append(key, JSON.stringify(form[key]));
-    } else {
-      formData.append(key, form[key]);
+    } else if (key === 't_eligibility') {
+      form[key].forEach((item) => {
+        const id = typeof item === 'object' ? item._id : item;
+        formData.append('t_eligibility', id);
+      });
+    } else if (key === 't_room') {
+      form[key].forEach((item) => {
+        const id = typeof item === 'object' ? item._id : item;
+        formData.append('t_room', id);
+      });
+    } else if (form[key] !== null && form[key] !== undefined) {
+      const value = (typeof form[key] === 'object' && form[key]?._id)
+        ? form[key]._id
+        : form[key];
+      formData.append(key, value);
     }
   });
 
@@ -229,7 +274,6 @@ const submitForm = async () => {
 
     if (response.success) {
       alert.success(isUpdating.value ? "Updated successfully!" : "Created successfully!");
-      // router.push("/admin/training/program");
     } else {
       alert.error(response.message || "Action failed");
     }
@@ -239,6 +283,7 @@ const submitForm = async () => {
     isLoading.value = false;
   }
 };
+
 watch(() => route.params.id, (newId) => {
   if (newId) fetchTraining(newId);
 })
@@ -249,14 +294,15 @@ async function fetchTraining(id) {
     const data = await store.fetchTraining(id);
     if (data.t_start_date) data.t_start_date = data.t_start_date.split('T')[0];
     if (data.t_end_date) data.t_end_date = data.t_end_date.split('T')[0];
-    console.log(data.t_room);
-    console.log(data.t_eligibility);
+    
     const formattedData = {
       ...data,
-      t_category: data.t_category?._id || data.t_category,
+      t_category: data.t_category?._id || data.t_category || "",
       t_room: data.t_room || [],
       t_eligibility: data.t_eligibility || [],
-      t_director: data.t_director._id || data.t_director._id,
+      t_director: data.t_director?._id || data.t_director || "",
+      t_coordinator: data.t_coordinator?._id || data.t_coordinator || "",
+      t_duration: data.t_duration || 0,
     };
     Object.assign(form, formattedData);
   } catch (err) {
@@ -267,10 +313,10 @@ async function fetchTraining(id) {
   }
 }
 
-
 const handleMarkUpcoming = () => {
   showStatusModal.value = true;
 };
+
 const confirmStatusUpdate = async (id) => {
   isSubmitting.value = true;
   try {
@@ -288,8 +334,8 @@ const confirmStatusUpdate = async (id) => {
     isSubmitting.value = false;
   }
 }
+
 onMounted(async () => {
-  // Always fetch dropdown options
   await Promise.all([
     store.fetchCategories(),
     store.fetchRooms(),
@@ -297,7 +343,6 @@ onMounted(async () => {
     store.fetchDirectors()
   ]);
 
-  // Only fetch training data if an ID exists in the route
   const trainingId = route.params.id;
   if (trainingId) {
     isUpdating.value = true;

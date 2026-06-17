@@ -274,8 +274,8 @@ exports.fetchCertificates = async (req, res) => {
 }
 exports.prepareForESign = async (req, res) => {
     const PUBLIC_KEY_PATH = path.join(__dirname, '../../cert', 'cert.cer')
-    const SERVER_URL = 'https://parchment-unabashed-urging.ngrok-free.dev';
-    // const SERVER_URL = 'https://atimz.mizoram.gov.in';
+    // const SERVER_URL = 'https://parchment-unabashed-urging.ngrok-free.dev';
+    const SERVER_URL = 'https://atimz.mizoram.gov.in';
     let signCoordinate = "400 300 120 300";
     try {
         const { id } = req.params;
@@ -296,9 +296,9 @@ exports.prepareForESign = async (req, res) => {
         const incomingData = {
             "Name": user.full_name,
             "FileType": "PDF",
-            "AuthToken": "c49046e1-c3de-4a1b-8024-679f0debadaa",
+            "AuthToken": "b3eac112-fa5c-48ba-9ebe-19aea7b6e48c",
             "File": fileBase64,
-            "SignatureMode": "3",
+            "SignatureMode": "2",
             "SelectPage": "1",
             "SignaturePosition": "Bottom-Left",
             "PageNumber": "1",
@@ -349,8 +349,8 @@ exports.prepareForESign = async (req, res) => {
 }
 
 exports.certificateSuccessResponse = async (req, res) => {
-    // const SERVER_URL = 'https://atimz.mizoram.gov.in';
-    const SERVER_URL = 'http://localhost:5173';
+    const SERVER_URL = 'https://atimz.mizoram.gov.in';
+    // const SERVER_URL = 'http://localhost:5173';
     const { trainingId, certificateId } = req.params;
     try {
 

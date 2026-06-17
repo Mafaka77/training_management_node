@@ -39,9 +39,9 @@
 
           <Transition name="expand">
             <div v-if="props[section.groupKey]"
-              class="mt-1.5 ml-4.5 border-l border-zinc-200 dark:border-zinc-800 pl-3.5 space-y-1.5 overflow-hidden">
+              class="mt-1.5 space-y-1.5 overflow-hidden">
               <SidebarItem v-for="child in section.children" :key="child.to" :to="child.to" :isDark="isDark"
-                :icon="child.icon">
+                :icon="child.icon" :isChild="false">
                 {{ child.label }}
               </SidebarItem>
             </div>

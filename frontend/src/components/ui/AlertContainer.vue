@@ -7,7 +7,7 @@ const alertStore = useAlertStore()
 
 <template>
   <div
-    class="fixed top-4 right-4 sm:top-6 sm:right-6 z-[9999] flex flex-col gap-3 w-full max-w-sm px-4 sm:px-0 pointer-events-none">
+    class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[9999] flex flex-col gap-3 w-full max-w-sm px-4 sm:px-0 pointer-events-none">
     <transition-group name="toast">
       <Alert v-for="alert in alertStore.alerts" :key="alert.id" :id="alert.id" :type="alert.type"
         :message="alert.message" />
@@ -27,16 +27,16 @@ const alertStore = useAlertStore()
   transition: transform 0.4s ease;
 }
 
-/* Entering from the right */
+/* Entering from the bottom */
 .toast-enter-from {
   opacity: 0;
-  transform: translateX(100%) scale(0.95);
+  transform: translateY(20px) scale(0.95);
 }
 
-/* Fading out while shrinking */
+/* Fading out while shrinking down */
 .toast-leave-to {
   opacity: 0;
-  transform: scale(0.95);
+  transform: scale(0.95) translateY(10px);
 }
 
 /* Required for the .toast-move smooth repositioning */

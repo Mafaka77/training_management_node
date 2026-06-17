@@ -74,7 +74,7 @@ exports.getTraining = async (req, res) => {
     }
 };
 exports.submitTrainingProgram = async (req, res) => {
-    const { t_name, t_description, t_start_date, t_end_date, t_duration, t_eligibility, t_category, t_capacity, t_organizer, t_room, t_banner, t_director } = req.body;
+    const { t_name, t_description, t_start_date, t_end_date, t_duration, t_eligibility, t_category, t_capacity, t_organizer, t_room, t_banner, t_director, t_coordinator, release_order, group_photo_url } = req.body;
     const userId = req.user.user.id;
     try {
         if (t_start_date === undefined || t_end_date === undefined || t_start_date === '' || t_end_date === '') {
@@ -110,7 +110,10 @@ exports.submitTrainingProgram = async (req, res) => {
             t_category,
             t_room,
             t_director: t_director || userId,
-            t_banner: `/uploads/${req.file.filename}`
+            t_coordinator: t_coordinator || null,
+            release_order: release_order === 'true' || release_order === true,
+            group_photo_url: group_photo_url || null,
+            t_banner: req.file ? `/uploads/${req.file.filename}` : null
         });
 
         await program.save();
@@ -145,24 +148,38 @@ exports.updateTrainingProgram = async (req, res) => {
         if (updateData.t_eligibility) {
             let eligibility = updateData.t_eligibility;
             // Parse if it's a stringified JSON array from FormData
-            if (typeof eligibility === 'string') eligibility = JSON.parse(eligibility);
+            if (typeof eligibility === 'string' && (eligibility.startsWith('[') || eligibility.startsWith('{'))) {
+                eligibility = JSON.parse(eligibility);
+            }
             // Flatten in case it's nested like [['id1', 'id2']]
             trainingProgram.t_eligibility = Array.isArray(eligibility) ? eligibility.flat() : [eligibility];
         }
         if (updateData.t_room) {
             let room = updateData.t_room;
             // Parse if it's a stringified JSON array from FormData
-            if (typeof room === 'string') room = JSON.parse(room);
+            if (typeof room === 'string' && (room.startsWith('[') || room.startsWith('{'))) {
+                room = JSON.parse(room);
+            }
             // Flatten in case it's nested like [['id1', 'id2']]
             trainingProgram.t_room = Array.isArray(room) ? room.flat() : [room];
         }
         if (req.file) {
             trainingProgram.t_banner = `/uploads/${req.file.filename}`;
         }
-        const simpleFields = ['t_name', 't_description', 't_duration', 't_category', 't_capacity', 't_organizer', 't_director', 't_status'];
+        const simpleFields = ['t_name', 't_description', 't_duration', 't_category', 't_capacity', 't_organizer', 't_director', 't_coordinator', 'group_photo_url', 't_status'];
         simpleFields.forEach(field => {
-            if (updateData[field] !== undefined) trainingProgram[field] = updateData[field];
+            if (updateData[field] !== undefined) {
+                if ((field === 't_director' || field === 't_coordinator') && (updateData[field] === '' || updateData[field] === 'null')) {
+                    trainingProgram[field] = null;
+                } else {
+                    trainingProgram[field] = updateData[field];
+                }
+            }
         });
+
+        if (updateData.release_order !== undefined) {
+            trainingProgram.release_order = updateData.release_order === 'true' || updateData.release_order === true;
+        }
 
         await trainingProgram.save();
         return res.status(STATUS.OK).json({ message: "Updated successfully", status: STATUS.OK });

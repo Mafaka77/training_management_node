@@ -106,9 +106,9 @@ exports.enrollInTraining = async (req, res) => {
                 });
             }
         }
-        if (user.mandatory_completion) {
-            return res.status(STATUS.OK).json({ message: "You have already completed the mandatory training", status: STATUS.BAD_REQUEST })
-        }
+        // if (user.mandatory_completion) {
+        //     return res.status(STATUS.OK).json({ message: "You have already completed the mandatory training", status: STATUS.BAD_REQUEST })
+        // }
         const training = await TrainingProgram.findById(trainingId);
         if (!training) {
             return res.status(STATUS.OK).json({ message: "Training not found", status: STATUS.NOT_FOUND });
