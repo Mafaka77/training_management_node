@@ -296,6 +296,9 @@ exports.prepareForESign = async (req, res) => {
         const incomingData = {
             "Name": user.full_name,
             "FileType": "PDF",
+            //LIVE
+            "AuthToken": "b3eac112-fa5c-48ba-9ebe-19aea7b6e48c",
+            //STAGING
             // "AuthToken": "c49046e1-c3de-4a1b-8024-679f0debadaa",
             "File": fileBase64,
             "SignatureMode": "2",

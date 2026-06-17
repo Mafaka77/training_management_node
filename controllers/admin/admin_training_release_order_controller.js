@@ -298,8 +298,8 @@ exports.deleteReleaseOrder = async (req, res) => {
 
 exports.prepareForESign = async (req, res) => {
     const PUBLIC_KEY_PATH = path.join(__dirname, '../../cert', 'cert.cer')
-    const SERVER_URL = 'https://parchment-unabashed-urging.ngrok-free.dev';
-    // const SERVER_URL = 'https://atimz.mizoram.gov.in';
+    // const SERVER_URL = 'https://parchment-unabashed-urging.ngrok-free.dev';
+    const SERVER_URL = 'https://atimz.mizoram.gov.in';
     try {
         const { trainingId } = req.params;
         const releaseOrder = await ReleaseOrder.findOne({ training_program: trainingId });
@@ -312,7 +312,10 @@ exports.prepareForESign = async (req, res) => {
         const incomingData = {
             "Name": user.full_name,
             "FileType": "PDF",
-            "AuthToken": "c49046e1-c3de-4a1b-8024-679f0debadaa",
+            //LIVE
+            "AuthToken": "b3eac112-fa5c-48ba-9ebe-19aea7b6e48c",
+            //STAGING
+            // "AuthToken": "c49046e1-c3de-4a1b-8024-679f0debadaa",
             "File": fileBase64,
             "SignatureMode": "3",
             "SelectPage": "1",
