@@ -34,8 +34,8 @@ const processCertificate = async (job) => {
         if (!program || !trainee) throw new Error("Program or Trainee not found");
 
         // Generate QR Code
-        // const verifyUrl = `https://atimz.mizoram.gov.in/verify-certificate/${certificateId}`;
-        const verifyUrl = `http://192.168.0.221:5001/verify-certificate/${certificateId}`;
+        const verifyUrl = `https://atimz.mizoram.gov.in/verify-certificate/${certificateId}`;
+        // const verifyUrl = `http://192.168.0.221:5001/verify-certificate/${certificateId}`;
         const qrCodeDataUrl = await QRCode.toDataURL(verifyUrl, {
             margin: 1,
             color: { dark: '#000000', light: '#ffffff' }
