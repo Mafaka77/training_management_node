@@ -481,6 +481,11 @@ const routes = [
                         name: "employee.create",
                         component: () => import("../pages/user/employee/Create.vue"),
                     },
+                    {
+                        path: "edit/:id",
+                        name: "employee.edit",
+                        component: () => import("../pages/user/employee/Edit.vue"),
+                    }
                 ]
             },
             {

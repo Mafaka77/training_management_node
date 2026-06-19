@@ -266,8 +266,63 @@ export const useUserManageStore = defineStore('userManageStore', {
             } catch (e) {
                 this.isLoading = false;
             }
+        },
+        async fetchEmployee(id) {
+            this.isLoading = true;
+            try {
+                const response = await api.get(`/employee/${id}`);
+                if (response.status === 200 && response.data.status === 200) {
+                    return { success: true, data: response.data.employee };
+                }
+                return { success: false, message: response.data.message };
+            } catch (e) {
+                return { success: false, message: "Server Error. Please try again later." };
+            } finally {
+                this.isLoading = false;
+            }
+        },
+        async updateEmployee(employeeData, employeeId) {
+            this.isLoading = true;
+            try {
+                const response = await api.put(`/employee/${employeeId}`, employeeData);
+                if (response.status === 200 && response.data.status === 200) {
+                    return { success: true, message: response.data.message };
+                }
+                return { success: false, message: response.data.message };
+            } catch (e) {
+                return { success: false, message: "Server Error. Please try again later." };
+            } finally {
+                this.isLoading = false;
+            }
+        },
+        async toggleEmployeeStatus(employeeId) {
+            this.isLoading = true;
+            try {
+                const response = await api.put(`/employee/${employeeId}/toggle-status`);
+                if (response.status === 200 && response.data.status === 200) {
+                    return { success: true, message: response.data.message };
+                }
+                return { success: false, message: response.data.message };
+            } catch (e) {
+                return { success: false, message: "Server Error. Please try again later." };
+            } finally {
+                this.isLoading = false;
+            }
+        },
+        async deleteEmployee(employeeId) {
+            this.isLoading = true;
+            try {
+                const response = await api.delete(`/employee/${employeeId}`);
+                if (response.status === 200 && response.data.status === 200) {
+                    return { success: true, message: response.data.message };
+                }
+                return { success: false, message: response.data.message };
+            } catch (e) {
+                return { success: false, message: "Server Error. Please try again later." };
+            } finally {
+                this.isLoading = false;
+            }
         }
-
     }
 
 });

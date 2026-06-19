@@ -91,40 +91,43 @@
 <script setup>
 
 
-import {storeToRefs} from "pinia";
-import {onMounted} from "vue";
-import {CheckCircleIcon, ChevronLeftIcon, Loader2Icon} from "lucide-vue-next";
 import dayjs from "dayjs";
-import {useRoute} from "vue-router";
-import {useAttendanceStore} from "../../../../../store/attendanceStore.js";
+import { CheckCircleIcon, ChevronLeftIcon, Loader2Icon } from "lucide-vue-next";
+import { storeToRefs } from "pinia";
+import { onMounted } from "vue";
+import { useRoute } from "vue-router";
+import { useAttendanceStore } from "../../../../../store/attendanceStore.js";
+import { useAlertStore } from "../../../../../store/alertStore.js";
+
 const route=useRoute();
 const store=useAttendanceStore();
+const alert=useAlertStore();
 const {isAttendanceLoading,trainees,sessionTopic}=storeToRefs(store);
 const formatTime = (date) => {
   return date ? dayjs(date).format('hh:mm A') : '--:--';
 };
-// const handleMarkAttendance = async (trainee) => {
-//   trainee.isProcessing = true;
-//
-//   try {
-//     const formData = new FormData();
-//     formData.append('sessionId', route.params.id);
-//     formData.append('userId', trainee._id);
-//     formData.append('enrollmentId', trainee.enrollmentId);
-//     formData.append('status', 'Present');
-//     const response=await store.markAttendance(formData);
-//     if(response.success){
-//       await store.fetchTrainees(route.params.id);
-//       alert.success(response.message)
-//     }else{
-//       alert.error(response.message)
-//     }
-//   } catch (error) {
-//     alert.error(error);
-//   } finally {
-//     trainee.isProcessing = false;
-//   }
-// };
+const handleMarkAttendance = async (trainee) => {
+  trainee.isProcessing = true;
+
+  try {
+    const formData = new FormData();
+    formData.append('sessionId', route.params.sessionId);
+    formData.append('userId', trainee._id);
+    formData.append('enrollmentId', trainee.enrollmentId);
+    formData.append('status', 'Present');
+    const response=await store.markAttendance(formData);
+    if(response.success){
+      await store.fetchSessionAttendance(route.params.sessionId);
+      alert.success(response.message)
+    }else{
+      alert.error(response.message)
+    }
+  } catch (error) {
+    alert.error(error);
+  } finally {
+    trainee.isProcessing = false;
+  }
+};
 onMounted(()=>{
   store.fetchSessionAttendance(route.params.sessionId)
 })

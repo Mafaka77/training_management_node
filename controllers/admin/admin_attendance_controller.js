@@ -292,3 +292,48 @@ exports.getFullAttendance = async (req, res) => {
             });
         }
     }
+
+exports.markAttendance = async (req, res) => {
+    try {
+        const {userId,sessionId, enrollmentId, status } = req.body;
+        const existingAttendance = await Attendance.findOne({
+            user: userId,
+            sessionId: sessionId
+        });
+
+        if (existingAttendance) {
+            return res.status(STATUS.OK).json({
+                status: STATUS.BAD_REQUEST,
+                message: "Attendance already recorded for this session."
+            });
+        }
+        const session = await TrainingCourse.findById(sessionId);
+        if (!session) return res.status(STATUS.OK).json({ message: "Session not found." ,status:STATUS.NOT_FOUND});
+
+
+        const now = dayjs();
+        const sessionDateStr = dayjs(session.tc_date).format('YYYY-MM-DD');
+        const startTime = dayjs(`${sessionDateStr} ${session.tc_start_time}`, 'YYYY-MM-DD HH:mm');
+        const endTime = dayjs(`${sessionDateStr} ${session.tc_end_time}`, 'YYYY-MM-DD HH:mm');
+
+        const attendance = await Attendance.create({
+            user: userId,
+            enrollmentId: enrollmentId,
+            trainingId: session.t_program,
+            sessionId: sessionId,
+            date: dayjs(session.tc_date).startOf('day').toDate(),
+            status: status,
+            notes: `Session ${session.tc_session} marked at ${now.format('HH:mm')}`
+        });
+
+        return res.status(STATUS.OK).json({
+            status: STATUS.OK,
+            message: "Attendance recorded successfully",
+            data: attendance
+        });
+
+    } catch (error) {
+        console.error('Create Attendance Error:', error);
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({ message: "Server Error" });
+    }
+};

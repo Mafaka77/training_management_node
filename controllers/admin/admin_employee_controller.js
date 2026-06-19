@@ -124,3 +124,105 @@ exports.getEmployees = async function (req, res) {
             .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }
 }
+
+exports.getEmployeeById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const employee = await User.findById(id).populate('district', 'name').populate('roles', 'name');
+        if (!employee) {
+            return res.status(STATUS.OK).json({ message: "Employee not found", status: STATUS.NOT_FOUND });
+        }
+        return res.status(STATUS.OK).json({ employee, status: STATUS.OK });
+    } catch (e) {
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+    }
+};
+
+exports.toggleEmployeeStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(STATUS.OK).json({ message: "Employee not found", status: STATUS.NOT_FOUND });
+        }
+        user.is_active = !user.is_active;
+        await user.save();
+        return res.status(STATUS.OK).json({
+            message: "Employee " + (user.is_active ? "activated" : "deactivated") + " successfully",
+            status: STATUS.OK,
+        });
+    } catch (e) {
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+    }
+};
+
+exports.deleteEmployee = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(STATUS.OK).json({ message: "Employee not found", status: STATUS.NOT_FOUND });
+        }
+        await User.findByIdAndDelete(id);
+        return res.status(STATUS.OK).json({ message: "Employee deleted successfully", status: STATUS.OK });
+    } catch (e) {
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+    }
+};
+
+exports.updateEmployee = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { full_name, email, mobile, password, district, department, designation, trainer, director, course_director } = req.body;
+        
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(STATUS.OK).json({ message: "Employee not found", status: STATUS.NOT_FOUND });
+        }
+
+        const rolesToAssign = [];
+        const baseRole = await Role.findOne({ name: "Employee" });
+        if (baseRole) rolesToAssign.push(baseRole._id);
+
+        if (trainer === true || trainer === 'true') {
+            const trainerRole = await Role.findOne({ name: "Trainer" });
+            if (trainerRole) rolesToAssign.push(trainerRole._id);
+        }
+        if (director === true || director === 'true') {
+            const directorRole = await Role.findOne({ name: "Director" });
+            if (directorRole) rolesToAssign.push(directorRole._id);
+        }
+        if (course_director === true || course_director === 'true') {
+            const courseDirectorRole = await Role.findOne({ name: "Course Director" });
+            if (courseDirectorRole) rolesToAssign.push(courseDirectorRole._id);
+        }
+
+        user.full_name = full_name;
+        user.email = email;
+        user.mobile = mobile;
+        if (password) {
+            const salt = await bcrypt.genSalt(10);
+            user.password = await bcrypt.hash(password, salt);
+        }
+        
+        if (district !== 'null' && district !== undefined && district !== '') {
+            user.district = district;
+        } else {
+            user.district = undefined;
+        }
+        
+        user.department = department;
+        user.designation = designation;
+        user.roles = rolesToAssign;
+
+        if (req.file) {
+            user.signature = `/uploads/${req.file.filename}`;
+        }
+
+        await user.save();
+
+        return res.status(STATUS.OK).json({ message: "Employee updated successfully", employee: user, status: STATUS.OK });
+    } catch (e) {
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+    }
+};

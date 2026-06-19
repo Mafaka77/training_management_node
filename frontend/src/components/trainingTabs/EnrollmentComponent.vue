@@ -39,7 +39,7 @@
         </svg>
         Enrollment Details
       </button>
-      <button @click="activeTab = 'orders'" :class="activeTab === 'orders'
+      <button v-if="false" @click="activeTab = 'orders'" :class="activeTab === 'orders'
         ? 'border-blue-600 text-blue-600 dark:text-blue-400'
         : 'border-transparent text-zinc-500 hover:text-zinc-800 hover:border-zinc-300 dark:hover:text-zinc-300'"
         class="px-6 py-3 border-b-2 font-bold text-sm transition-colors flex items-center gap-2">

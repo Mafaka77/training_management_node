@@ -23,8 +23,8 @@
           <SingleSelect :options="districts" v-model="form.district" track-by="_id" label="Assigned District"
             placeholder="Select District" />
           <div class="md:col-span-1">
-            <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Upload only for
-              Director</label>
+            <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Upload Signature for
+              Certificate</label>
             <SignaturePicker type="file" accept=".png, .jpg, .jpeg" class="h-[188px]" @change="handleBanner" />
           </div>
           <div class="md:col-span-2 flex items-center h-full gap-2">
@@ -143,7 +143,7 @@ const submitForm = async () => {
         director: false,
         signature: null,
       });
-      
+
     }
   } catch (error) {
     alert.error('An error occurred while saving the employee.');

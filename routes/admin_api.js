@@ -96,8 +96,11 @@ router.put('/trainee/:traineeId', authenticate, authorizeRoles('Admin', 'Directo
 router.delete('/trainee/:traineeId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), traineeController.deleteTrainee);
 
 router.post('/employee', authenticate, authorizeRoles('Admin', 'Director'), fileUpload.single('signature'), require('../controllers/admin/admin_employee_controller').submitEmployee);
-router.get('/employees', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_employee_controller').getEmployees)
-
+router.get('/employees', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_employee_controller').getEmployees);
+router.get('/employee/:id', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_employee_controller').getEmployeeById);
+router.put('/employee/:id', authenticate, authorizeRoles('Admin', 'Director'), fileUpload.single('signature'), require('../controllers/admin/admin_employee_controller').updateEmployee);
+router.put('/employee/:id/toggle-status', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_employee_controller').toggleEmployeeStatus);
+router.delete('/employee/:id', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_employee_controller').deleteEmployee);
 //ENROLLMENT
 router.get('/enrollments', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), TrainingEnrollmentController.getAllEnrollment);
 router.get('/enrollment/:enrollmentId', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), TrainingEnrollmentController.getEnrollmentById);
@@ -142,6 +145,7 @@ router.post('/location', authenticate, authorizeRoles('Admin', 'Director'), uplo
 router.delete('/location/:id', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_location_controller').deleteLocation)
 
 //ATTENDANCE
+router.post('/session/attendance', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), require('../controllers/admin/admin_attendance_controller').markAttendance)
 router.get('/session/:sessionId/attendance', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), require('../controllers/admin/admin_attendance_controller').getSessionAttendance)
 router.get('/training/:programId/attendance', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), require('../controllers/admin/admin_attendance_controller').getFullAttendance)
 router.get('/trainee/:traineeId/attendance', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), require('../controllers/admin/admin_attendance_controller').getTraineeAttendanceDetails)

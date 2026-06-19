@@ -34,6 +34,20 @@ export const useAttendanceStore = defineStore('attendance', {
                 this.isAttendanceLoading = false;
             }
         },
+        async markAttendance(data) {
+            this.isAttendanceLoading = true;
+            try {
+                const response = await api.post('/session/attendance', data);
+                if (response.status === 200 && response.data.status === 200) {
+                    return { success: true, message: response.data.message };
+                }
+                return { success: false, message: response.data.message || 'Failed to mark attendance' };
+            } catch (e) {
+                return { success: false, message: e.response?.data?.message || 'Server error' };
+            } finally {
+                this.isAttendanceLoading = false;
+            }
+        },
         // Make sure you add these to your state():
         // totalItems: 0, totalPages: 1, currentPage: 1, averagePercentage: 0, isAttendanceLoading: false
 

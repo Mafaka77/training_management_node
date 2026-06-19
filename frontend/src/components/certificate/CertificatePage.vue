@@ -17,8 +17,8 @@
         </div>
     </div>
 
-    <div v-else class="p-6 max-w-7xl mx-auto print:p-0 print:max-w-none">
-        <div class="flex items-center justify-between mb-6 print:hidden">
+    <div v-else class="p-6 max-w-7xl mx-auto print:p-0 print:max-w-none bg-zinc-50/50 min-h-screen">
+        <div class="flex items-center justify-between mb-8 print:hidden">
             <div class="flex items-center gap-4">
                 <button @click="goBack"
                     class="p-2.5 bg-white border border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-xl transition-all shadow-sm"
@@ -29,7 +29,7 @@
                     </svg>
                 </button>
                 <div>
-                    <h1 class="text-2xl font-bold text-black">Customize & Generate</h1>
+                    <h1 class="text-2xl font-bold text-gray-900">Customize & Generate</h1>
                     <p class="text-gray-500 text-sm mt-1">Select style, click text to edit, then download.</p>
                 </div>
             </div>
@@ -45,35 +45,36 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                {{ isGenerating ? 'Generating PDF...' : 'Download PDF' }}
+                {{ isGenerating ? 'Generating PDF...' : 'Download High-Res PDF' }}
             </button>
         </div>
 
-        <div class="bg-white border border-gray-200 rounded-xl p-4 mb-8 flex flex-wrap gap-6 shadow-sm print:hidden">
-            <div class="flex items-center gap-3">
-                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Base Font</label>
+        <div
+            class="bg-white border border-gray-200 rounded-2xl p-6 mb-8 flex flex-wrap gap-8 shadow-sm print:hidden items-center">
+            <div class="flex flex-col gap-1.5">
+                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Base Font</label>
                 <select v-model="baseFont"
-                    class="text-sm border-gray-200 rounded-lg focus:ring-blue-500 py-1.5 px-3 bg-gray-50 outline-none hover:bg-gray-100 transition-colors cursor-pointer font-sans">
+                    class="text-sm font-semibold border border-gray-200 rounded-lg focus:ring-blue-500 py-2 px-3 bg-white outline-none hover:bg-gray-50 transition-colors cursor-pointer">
                     <option value="'Times New Roman', serif">Times New Roman</option>
                     <option value="'Georgia', serif">Georgia</option>
                     <option value="'Arial', sans-serif">Arial</option>
                     <option value="'Montserrat', sans-serif">Montserrat</option>
                 </select>
             </div>
-            <div class="flex items-center gap-3">
-                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Decorative Font</label>
+            <div class="flex flex-col gap-1.5">
+                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Decorative Font</label>
                 <select v-model="cursiveFont"
-                    class="text-sm border-gray-200 rounded-lg focus:ring-blue-500 py-1.5 px-3 bg-gray-50 outline-none hover:bg-gray-100 transition-colors cursor-pointer font-sans">
+                    class="text-sm font-semibold border border-gray-200 rounded-lg focus:ring-blue-500 py-2 px-3 bg-white outline-none hover:bg-gray-50 transition-colors cursor-pointer">
                     <option value="'Satisfy', cursive">Satisfy</option>
                     <option value="'Pinyon Script', cursive">Pinyon Script</option>
                     <option value="'Great Vibes', cursive">Great Vibes</option>
                     <option value="'Playfair Display', serif">Playfair Display</option>
                 </select>
             </div>
-            <div class="flex items-center gap-3">
-                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Border Style</label>
+            <div class="flex flex-col gap-1.5">
+                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Color Theme</label>
                 <select v-model="selectedBorderPreset"
-                    class="text-sm border-gray-200 rounded-lg focus:ring-blue-500 py-1.5 px-3 bg-gray-50 outline-none hover:bg-gray-100 transition-colors cursor-pointer font-sans">
+                    class="text-sm font-semibold border border-gray-200 rounded-lg focus:ring-blue-500 py-2 px-3 bg-white outline-none hover:bg-gray-50 transition-colors cursor-pointer">
                     <option v-for="opt in borderPresets" :key="opt.value" :value="opt.value">
                         {{ opt.name }}
                     </option>
@@ -81,256 +82,264 @@
             </div>
             <div class="ml-auto flex items-center">
                 <span
-                    class="text-xs text-yellow-600 bg-yellow-50 px-3 py-1.5 rounded-lg font-medium border border-yellow-200">
-                    ✏️ Hover over text to edit
+                    class="text-xs text-amber-700 bg-amber-50 px-4 py-2 rounded-xl font-semibold border border-amber-200 shadow-sm flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z">
+                        </path>
+                    </svg>
+                    Hover over text to edit
                 </span>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 gap-8">
-            <div class="col-span-1 lg:col-span-3 overflow-x-auto pb-8">
+        <div class="flex justify-center overflow-x-auto pb-12">
+            <div class="bg-white shadow-2xl relative print:shadow-none print:m-0 flex-shrink-0 transition-all duration-500"
+                :class="selectedTemplate === 'Mandatory' ? 'w-[210mm] h-[297mm]' : 'w-[297mm] h-[210mm]'">
 
-                <div class="bg-white shadow-2xl relative mx-auto print:shadow-none print:m-0 flex-shrink-0 transition-all duration-300"
-                    :class="selectedTemplate === 'Mandatory' ? 'w-[210mm] h-[297mm]' : 'w-[297mm] h-[210mm]'">
+                <div id="certificate-canvas" class="w-full h-full relative overflow-hidden"
+                    style="background-color: #ffffff; color: #1f2937;">
 
-                    <div id="certificate-canvas" class="w-full h-full relative"
-                        style="background-color: #ffffff; color: #000000;">
+                    <!-- BACKGROUND & BORDER SYSTEM -->
+                    <div class="absolute inset-0 z-0 bg-[#fdfdfd]"></div>
 
-                        <div class="watermark-layer z-0 print:block"></div>
+                    <!-- Modern Geometry Background Layers (Subtle) -->
+                    <div class="absolute top-[-100px] left-[-100px] w-[500px] h-[500px] rounded-full opacity-[0.03] pointer-events-none"
+                        :style="{ backgroundColor: themeColor }"></div>
+                    <div class="absolute bottom-[-150px] right-[-100px] w-[600px] h-[600px] rounded-full opacity-[0.03] pointer-events-none"
+                        :style="{ backgroundColor: themeColor }"></div>
 
-                        <div v-if="selectedTemplate === 'Mandatory'" class="relative z-10 w-full h-full p-[15mm]"
-                            :style="{ fontFamily: baseFont }">
+                    <!-- Complex Borders -->
+                    <div class="absolute inset-[10mm] z-10 transition-all border-solid"
+                        :style="{ borderWidth: '1px', borderColor: themeColor }"></div>
+                    <div class="absolute inset-[11.5mm] z-10 transition-all border-solid"
+                        :style="{ borderWidth: '3px', borderColor: themeColor }"></div>
+                    <div class="absolute inset-[13mm] z-10 transition-all border-solid"
+                        :style="{ borderWidth: '1px', borderColor: themeColor }"></div>
 
-                            <div class="w-full h-full p-[10mm] flex flex-col items-center text-center relative transition-all"
-                                :style="t1ContainerStyle">
+                    <!-- Corner Ornaments -->
+                    <div class="absolute top-[8mm] left-[8mm] w-[15mm] h-[15mm] border-t-[4px] border-l-[4px] z-10"
+                        :style="{ borderColor: themeColor, backgroundColor: '#ffffff' }"></div>
+                    <div class="absolute top-[8mm] right-[8mm] w-[15mm] h-[15mm] border-t-[4px] border-r-[4px] z-10"
+                        :style="{ borderColor: themeColor, backgroundColor: '#ffffff' }"></div>
+                    <div class="absolute bottom-[8mm] left-[8mm] w-[15mm] h-[15mm] border-b-[4px] border-l-[4px] z-10"
+                        :style="{ borderColor: themeColor, backgroundColor: '#ffffff' }"></div>
+                    <div class="absolute bottom-[8mm] right-[8mm] w-[15mm] h-[15mm] border-b-[4px] border-r-[4px] z-10"
+                        :style="{ borderColor: themeColor, backgroundColor: '#ffffff' }"></div>
 
-                                <div class="absolute top-2 left-2 border-t-4 border-l-4 transition-colors"
-                                    :style="t1AccentStyle"></div>
-                                <div class="absolute top-2 right-2 border-t-4 border-r-4 transition-colors"
-                                    :style="t1AccentStyle"></div>
-                                <div class="absolute bottom-2 left-2 border-b-4 border-l-4 transition-colors"
-                                    :style="t1AccentStyle"></div>
-                                <div class="absolute bottom-2 right-2 border-b-4 border-r-4 transition-colors"
-                                    :style="t1AccentStyle"></div>
+                    <!-- Watermark -->
+                    <div class="watermark-layer z-10 print:block"></div>
 
-                                <div class="mt-8 mb-4 relative z-20">
-                                    <h1 class="text-6xl tracking-widest mb-6 editable-text" style="color: #4b5563;"
-                                        contenteditable="true" spellcheck="false" :style="{ fontFamily: cursiveFont }">
-                                        Certificate</h1>
-                                    <img src="../../assets/ati_logo_1.png" alt="ATI Logo"
-                                        class="w-24 h-24 mx-auto mb-4"></img>
-                                    <p class="text-2xl mt-6 uppercase font-extrabold editable-text"
-                                        style="color: #000000;" contenteditable="true" spellcheck="false">Administrative
-                                        Training Institute</p>
-                                    <p class="text-md tracking-[0.3em] mt-2 uppercase font-extrabold editable-text"
-                                        style="color: #000000;" contenteditable="true" spellcheck="false">Mizoram:Aizawl
+                    <!-- CONTENT: MANDATORY (PORTRAIT) -->
+                    <div v-if="selectedTemplate === 'Mandatory'"
+                        class="relative z-20 w-full h-full flex flex-col items-center justify-between text-center pt-[30mm] pb-[25mm] px-[25mm]"
+                        :style="{ fontFamily: baseFont }">
+
+                        <!-- Top Header -->
+                        <div class="flex flex-col items-center">
+                            <img src="../../assets/ati_logo_1.png" alt="ATI Logo" class="w-24 h-24 mb-4 drop-shadow-md">
+                            <h2 class="text-xl font-bold uppercase tracking-[0.3em] editable-text"
+                                style="color: #374151;" contenteditable="true" spellcheck="false">Administrative
+                                Training Institute</h2>
+                            <p class="text-xs font-semibold tracking-[0.4em] mt-1 editable-text" style="color: #6b7280;"
+                                contenteditable="true" spellcheck="false">GOVERNMENT OF MIZORAM</p>
+                        </div>
+
+                        <!-- Main Title -->
+                        <div class="my-6">
+                            <h1 class="text-6xl editable-text leading-tight"
+                                :style="{ color: themeColor, fontFamily: cursiveFont }" contenteditable="true"
+                                spellcheck="false">Certificate of Completion</h1>
+                            <div class="w-24 h-1 mx-auto mt-4" :style="{ backgroundColor: themeColor }"></div>
+                        </div>
+
+                        <!-- Body text -->
+                        <div class="flex flex-col items-center w-full space-y-5">
+                            <p class="text-lg uppercase tracking-[0.2em] font-medium editable-text"
+                                style="color: #6b7280;" contenteditable="true" spellcheck="false">This is proudly
+                                presented to</p>
+
+                            <h2 class="text-3xl font-extrabold editable-text border-b-2 px-12 py-2"
+                                :style="{ borderColor: themeColor }" style="color: #111827;" contenteditable="true"
+                                spellcheck="false">
+                                {{ certificateDetails?.trainee?.full_name || 'Trainee Name' }}
+                            </h2>
+
+                            <p class="text-md font-semibold text-gray-700 editable-text" contenteditable="true"
+                                spellcheck="false">
+                                {{ certificateDetails?.trainee?.designation || 'Designation' }}, {{
+                                    certificateDetails?.trainee?.department || 'Department' }}
+                            </p>
+
+                            <p class="text-lg mt-4 editable-text" style="color: #4b5563; max-width: 80%;"
+                                contenteditable="true" spellcheck="false" :style="{ fontFamily: baseFont }">
+                                For successfully completing the mandatory training program on
+                            </p>
+
+                            <h3 class="text-2xl font-bold editable-text mt-2" :style="{ color: themeColor }"
+                                contenteditable="true" spellcheck="false">
+                                "{{ certificateDetails?.program?.t_name || 'Program Name' }}"
+                            </h3>
+
+                            <p class="text-sm font-medium mt-4 editable-text" style="color: #6b7280;"
+                                contenteditable="true" spellcheck="false">
+                                Conducted from <span class="font-bold text-gray-900">{{
+                                    formatWithOrdinal(certificateDetails?.program?.t_start_date) }}</span> to <span
+                                    class="font-bold text-gray-900">{{
+                                        formatWithOrdinal(certificateDetails?.program?.t_end_date) }}</span>
+                            </p>
+                        </div>
+
+                        <!-- Signatures -->
+                        <div class="flex justify-between items-end w-full mt-10 px-4">
+
+                            <div class="w-1/3 flex flex-col items-center relative">
+                                <img v-if="certificateDetails?.program?.t_director?.signature"
+                                    :src="getImageUrl(certificateDetails?.program?.t_director?.signature)"
+                                    alt="Course Director Signature"
+                                    class="w-32 h-16 object-contain mx-auto absolute bottom-8 z-0 mix-blend-multiply" />
+                                <div class="w-full border-t border-gray-400 pt-2 relative z-10">
+                                    <p class="font-bold text-xs uppercase tracking-wider editable-text"
+                                        style="color: #111827;" contenteditable="true" spellcheck="false">
+                                        {{ certificateDetails?.program?.t_director?.full_name || 'Course Director Name'
+                                        }}
+                                    </p>
+                                    <p class="text-[10px] font-semibold mt-1 uppercase tracking-widest editable-text"
+                                        style="color: #6b7280;" contenteditable="true" spellcheck="false">
+                                        Course Director
                                     </p>
                                 </div>
+                            </div>
 
-                                <div class="my-8 grid w-full relative z-20">
-                                    <p class="text-2xl mb-4 editable-text" style="color: #4b5563;"
-                                        contenteditable="true" spellcheck="false" :style="{ fontFamily: cursiveFont }">
-                                        This Certificate is awarded
-                                        to</p>
+                            <div class="w-1/3 flex justify-center items-end pb-2 relative z-10">
+                                <img src="../../assets/seal.png" alt="Official Seal"
+                                    class="w-24 h-24 object-contain opacity-95" />
+                            </div>
 
-                                    <h2 class="text-2xl font-bold inline-block px-12 pb-2 editable-text"
-                                        contenteditable="true" spellcheck="false">{{
-                                            certificateDetails?.trainee?.full_name
-                                        }}</h2>
-                                    <h3 class="text-2xl font-bold inline-block px-12 pb-2 editable-text"
-                                        contenteditable="true" spellcheck="false">{{
-                                            certificateDetails?.trainee?.designation }}</h3>
-                                    <h3 class="text-2xl font-bold inline-block px-12 pb-2 editable-text"
-                                        contenteditable="true" spellcheck="false">{{
-                                            certificateDetails?.trainee?.department
-                                        }}</h3>
-
-                                    <p class="text-lg leading-relaxed mt-4" style="color: #374151;">
-                                        <span class="text-2xl editable-text" contenteditable="true" spellcheck="false"
-                                            :style="{ fontFamily: cursiveFont }">for successful completion of</span>
-                                        <br>
-                                        <span class="font-bold text-2xl block mt-3 editable-text"
-                                            style="color: #000000;" contenteditable="true" spellcheck="false">"{{
-                                                certificateDetails?.program?.t_name }}"</span>
+                            <div class="w-1/3 flex flex-col items-center relative">
+                                <img v-if="director?.signature" :src="getImageUrl(director.signature)"
+                                    alt="Director Signature"
+                                    class="w-32 h-16 object-contain mx-auto absolute bottom-8 z-0 mix-blend-multiply" />
+                                <div class="w-full border-t border-gray-400 pt-2 relative z-10">
+                                    <p class="font-bold text-xs uppercase tracking-wider editable-text"
+                                        style="color: #111827;" contenteditable="true" spellcheck="false">
+                                        {{ director?.full_name || 'Rita Lalnunmawii Pachuau' }}
                                     </p>
-
-                                    <p class="mt-6 text-2xl editable-text" style="color: #4b5563;"
-                                        contenteditable="true" spellcheck="false" :style="{ fontFamily: cursiveFont }">
-                                        held at the Administrative Training Institute, Mizoram.
+                                    <p class="text-[10px] font-semibold mt-1 uppercase tracking-widest editable-text"
+                                        style="color: #6b7280;" contenteditable="true" spellcheck="false">
+                                        {{ director?.designation || 'Director, ATI' }}
                                     </p>
-
-                                    <div class="text-2xl mt-6 editable-text" style="color: #000000;"
-                                        contenteditable="true" spellcheck="false">
-                                        from <span class="font-bold">{{
-                                            formatWithOrdinal(certificateDetails?.program?.t_start_date) }}</span>
-                                        to <span class="font-bold">{{
-                                            formatWithOrdinal(certificateDetails?.program?.t_end_date) }}</span>
-                                    </div>
-                                </div>
-
-                                <div class="mt-auto flex justify-between items-end w-full">
-
-                                    <div class="w-1/3 text-center flex flex-col items-center">
-                                        <div class="w-56 pt-2 relative">
-
-                                            <p class="font-bold text-[12px] uppercase tracking-wider editable-text"
-                                                style="color: #000000;" contenteditable="true" spellcheck="false">
-                                                ( {{ certificateDetails?.program?.t_director?.full_name }} )
-                                            </p>
-                                            <p class="text-[9px] font-medium mt-1 uppercase tracking-widest editable-text"
-                                                style="color: #6b7280;" contenteditable="true" spellcheck="false">
-                                                {{ certificateDetails?.program?.t_director?.designation }} &amp; Course
-                                                Director
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div class="w-1/3 flex justify-center items-center pb-2">
-                                        <img src="../../assets/seal.png" alt="Official Seal"
-                                            class="w-24 h-24 object-contain" />
-                                    </div>
-
-                                    <div class="w-1/3 text-center flex flex-col items-center">
-                                        <div class="w-56 pt-2 relative">
-
-
-                                            <img v-if="director?.signature" :src="getImageUrl(director.signature)"
-                                                alt="Director Signature"
-                                                class="w-40 h-16 object-contain mx-auto absolute bottom-8 left-1/2 -translate-x-1/2" />
-
-                                            <p class="font-bold text-[12px] uppercase tracking-wider editable-text relative z-10"
-                                                style="color: #000000;" contenteditable="true" spellcheck="false">
-                                                ( {{ director?.full_name || 'Rita Lalnunmawii Pachuau' }} )
-                                            </p>
-                                            <p class="text-[9px] font-medium mt-1 uppercase tracking-widest editable-text"
-                                                style="color: #6b7280;" contenteditable="true" spellcheck="false">
-                                                {{ director?.designation || 'Director, ATI' }}
-                                            </p>
-                                        </div>
-                                    </div>
-
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div v-else class="w-full h-full relative overflow-hidden p-[15mm] flex flex-col"
-                            :style="{ fontFamily: baseFont, backgroundColor: '#ffffff', borderWidth: '12px', borderStyle: 'solid', borderColor: '#f9fafb' }">
+                    <!-- CONTENT: STANDARD (LANDSCAPE) -->
+                    <div v-else
+                        class="relative z-20 w-full h-full flex flex-col items-center justify-between text-center pt-[25mm] pb-[20mm] px-[35mm]"
+                        :style="{ fontFamily: baseFont }">
 
-                            <div class="absolute inset-[15mm] z-0 transition-all" :style="t2OuterBorderStyle"></div>
-                            <div class="absolute inset-[16.5mm] z-0 transition-all" :style="t2InnerBorderStyle"></div>
+                        <!-- Top Header -->
+                        <div class="flex items-center justify-center gap-8 w-full">
+                            <img src="../../assets/ati_logo_1.png" alt="ATI Logo" class="w-24 h-24 drop-shadow-md">
+                            <div class="text-left border-l-2 pl-6" :style="{ borderColor: themeColor }">
+                                <h2 class="text-3xl font-bold uppercase tracking-[0.2em] editable-text"
+                                    style="color: #1f2937;" contenteditable="true" spellcheck="false">Administrative
+                                    Training Institute</h2>
+                                <p class="text-sm font-semibold tracking-[0.4em] mt-2 editable-text"
+                                    style="color: #6b7280;" contenteditable="true" spellcheck="false">GOVERNMENT OF
+                                    MIZORAM</p>
+                            </div>
+                        </div>
 
-                            <div class="absolute top-[14.5mm] left-[14.5mm] w-5 h-5 z-0 transition-all"
-                                :style="t2CornerStyle"></div>
-                            <div class="absolute top-[14.5mm] right-[14.5mm] w-5 h-5 z-0 transition-all"
-                                :style="t2CornerStyle"></div>
-                            <div class="absolute bottom-[14.5mm] left-[14.5mm] w-5 h-5 z-0 transition-all"
-                                :style="t2CornerStyle"></div>
-                            <div class="absolute bottom-[14.5mm] right-[14.5mm] w-5 h-5 z-0 transition-all"
-                                :style="t2CornerStyle"></div>
+                        <!-- Main Title -->
+                        <div class="my-6">
+                            <h1 class="text-7xl editable-text" :style="{ color: themeColor, fontFamily: cursiveFont }"
+                                contenteditable="true" spellcheck="false">Certificate of Participation</h1>
+                            <div class="w-32 h-[3px] mx-auto mt-6" :style="{ backgroundColor: themeColor }"></div>
+                        </div>
 
-                            <div class="relative z-20 flex flex-col h-full text-center py-[15mm] px-[25mm]">
+                        <!-- Body text -->
+                        <div class="flex flex-col items-center w-full space-y-5">
+                            <p class="text-xl tracking-[0.2em] uppercase font-medium editable-text"
+                                style="color: #6b7280;" contenteditable="true" spellcheck="false">This certifies that
+                            </p>
 
-                                <div class="mb-4">
-                                    <img src="../../assets/ati_logo_1.png" alt="ATI Logo"
-                                        class="w-16 h-16 mx-auto mb-3" />
-                                    <p class="tracking-widest text-2xl uppercase font-bold editable-text"
-                                        style="color: #000000;" contenteditable="true" spellcheck="false">Administrative
-                                        Training Institute</p>
-                                    <p class="font-bold tracking-[0.2em] text-lg uppercase editable-text"
-                                        style="color: #000000;" contenteditable="true" spellcheck="false">Mizoram :
-                                        Aizawl</p>
-                                </div>
+                            <h2 class="text-4xl font-black editable-text border-b-2 px-16 py-3"
+                                :style="{ borderColor: themeColor }" style="color: #111827;" contenteditable="true"
+                                spellcheck="false">
+                                {{ certificateDetails?.trainee?.full_name || 'Trainee Name' }}
+                            </h2>
 
-                                <div class="flex-1 flex flex-col items-center justify-center">
-                                    <p class="text-2xl mb-3 editable-text" style="color: #6b7280;"
-                                        contenteditable="true" spellcheck="false" :style="{ fontFamily: cursiveFont }">
-                                        This is to certify that</p>
+                            <p class="text-lg font-semibold text-gray-700 editable-text" contenteditable="true"
+                                spellcheck="false">
+                                {{ certificateDetails?.trainee?.designation || 'Designation' }}, {{
+                                    certificateDetails?.trainee?.department || 'Department' }}
+                            </p>
 
-                                    <h2 class="text-2xl font-bold editable-text" style="color: #000000;"
-                                        contenteditable="true" spellcheck="false">
-                                        {{ certificateDetails?.trainee?.full_name }}
-                                    </h2>
-                                    <h2 class="text-xl font-bold editable-text" style="color: #1f2937;"
-                                        contenteditable="true" spellcheck="false">
-                                        {{ certificateDetails?.trainee?.designation }}
-                                    </h2>
-                                    <h2 class="text-xl font-bold editable-text" style="color: #1f2937;"
-                                        contenteditable="true" spellcheck="false">
-                                        {{ certificateDetails?.trainee?.department }}
-                                    </h2>
+                            <p class="text-xl mt-6 editable-text" style="color: #4b5563;" contenteditable="true"
+                                spellcheck="false">
+                                has actively participated in the training program entitled
+                            </p>
 
-                                    <p class="text-2xl leading-relaxed max-w-2xl mx-auto editable-text mt-3"
-                                        style="color: #4b5563;" contenteditable="true" spellcheck="false"
-                                        :style="{ fontFamily: cursiveFont }">
-                                        attended the training on
+                            <h3 class="text-3xl font-bold editable-text mt-3" :style="{ color: themeColor }"
+                                contenteditable="true" spellcheck="false">
+                                "{{ certificateDetails?.program?.t_name || 'Program Name' }}"
+                            </h3>
+
+                            <p class="text-md font-medium mt-6 editable-text" style="color: #6b7280;"
+                                contenteditable="true" spellcheck="false">
+                                Held from <span class="font-bold text-gray-900">{{
+                                    formatWithOrdinal(certificateDetails?.program?.t_start_date) }}</span> to <span
+                                    class="font-bold text-gray-900">{{
+                                        formatWithOrdinal(certificateDetails?.program?.t_end_date) }}</span> at ATI Aizawl.
+                            </p>
+                        </div>
+
+                        <!-- Signatures -->
+                        <div class="flex justify-between items-end w-full mt-12 px-8">
+                            <div class="w-1/3 flex flex-col items-center relative">
+                                <img v-if="certificateDetails?.program?.t_director?.signature"
+                                    :src="getImageUrl(certificateDetails?.program?.t_director?.signature)"
+                                    alt="Course Director Signature"
+                                    class="w-40 h-20 object-contain mx-auto absolute bottom-10 z-0 mix-blend-multiply" />
+                                <div class="w-64 border-t-2 border-gray-400 pt-2 relative z-10">
+                                    <p class="font-bold text-sm uppercase tracking-wider editable-text"
+                                        style="color: #111827;" contenteditable="true" spellcheck="false">
+                                        {{ certificateDetails?.program?.t_director?.full_name || 'Course Director Name'
+                                        }}
                                     </p>
-
-                                    <h3 class="text-2xl font-bold mt-2 mb-3 editable-text" style="color: #000000;"
-                                        contenteditable="true" spellcheck="false">
-                                        "{{ certificateDetails?.program?.t_name }}"
-                                    </h3>
-
-                                    <p class="text-2xl editable-text mb-2" style="color: #4b5563;"
-                                        contenteditable="true" spellcheck="false" :style="{ fontFamily: cursiveFont }">
-                                        conducted by the Administrative Training Institute, Aizawl, Mizoram
+                                    <p class="text-xs font-semibold mt-1 uppercase tracking-widest editable-text"
+                                        style="color: #6b7280;" contenteditable="true" spellcheck="false">
+                                        Course Director
                                     </p>
-
-                                    <div class="text-xl editable-text" style="color: #4b5563;" contenteditable="true"
-                                        spellcheck="false">
-                                        during <span class="font-bold" style="color: #000000;">{{
-                                            formatWithOrdinal(certificateDetails?.program?.t_start_date) }}</span>
-                                        to <span class="font-bold" style="color: #000000;">{{
-                                            formatWithOrdinal(certificateDetails?.program?.t_end_date) }}</span>
-                                    </div>
                                 </div>
+                            </div>
 
-                                <div class="mt-auto flex justify-between items-end w-full">
+                            <div class="w-1/3 flex justify-center items-end pb-2 relative z-10">
+                                <img src="../../assets/seal.png" alt="Official Seal"
+                                    class="w-28 h-28 object-contain opacity-95" />
+                            </div>
 
-                                    <div class="w-1/3 text-center flex flex-col items-center">
-                                        <div class="w-56 pt-2 relative">
-
-                                            <p class="font-bold text-[12px] uppercase tracking-wider editable-text"
-                                                style="color: #000000;" contenteditable="true" spellcheck="false">
-                                                ( {{ certificateDetails?.program?.t_director?.full_name }} )
-                                            </p>
-                                            <p class="text-[9px] font-medium mt-1 uppercase tracking-widest editable-text"
-                                                style="color: #6b7280;" contenteditable="true" spellcheck="false">
-                                                {{ certificateDetails?.program?.t_director?.designation }} &amp; Course
-                                                Director
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div class="w-1/3 flex justify-center items-center pb-2">
-                                        <img src="../../assets/seal.png" alt="Official Seal"
-                                            class="w-24 h-24 object-contain" />
-                                    </div>
-
-                                    <div class="w-1/3 text-center flex flex-col items-center">
-                                        <div class="w-56 pt-2 relative">
-
-
-                                            <img v-if="director?.signature" :src="getImageUrl(director.signature)"
-                                                alt="Director Signature"
-                                                class="w-40 h-16 object-contain mx-auto absolute bottom-8 left-1/2 -translate-x-1/2" />
-
-                                            <p class="font-bold text-[12px] uppercase tracking-wider editable-text relative z-10"
-                                                style="color: #000000;" contenteditable="true" spellcheck="false">
-                                                ( {{ director?.full_name || 'Rita Lalnunmawii Pachuau' }} )
-                                            </p>
-                                            <p class="text-[9px] font-medium mt-1 uppercase tracking-widest editable-text"
-                                                style="color: #6b7280;" contenteditable="true" spellcheck="false">
-                                                {{ director?.designation || 'Director, ATI' }}
-                                            </p>
-                                        </div>
-                                    </div>
-
+                            <div class="w-1/3 flex flex-col items-center relative">
+                                <img v-if="director?.signature" :src="getImageUrl(director.signature)"
+                                    alt="Director Signature"
+                                    class="w-40 h-20 object-contain mx-auto absolute bottom-10 z-0 mix-blend-multiply" />
+                                <div class="w-64 border-t-2 border-gray-400 pt-2 relative z-10">
+                                    <p class="font-bold text-sm uppercase tracking-wider editable-text"
+                                        style="color: #111827;" contenteditable="true" spellcheck="false">
+                                        {{ director?.full_name || 'Rita Lalnunmawii Pachuau' }}
+                                    </p>
+                                    <p class="text-xs font-semibold mt-1 uppercase tracking-widest editable-text"
+                                        style="color: #6b7280;" contenteditable="true" spellcheck="false">
+                                        {{ director?.designation || 'Director, ATI' }}
+                                    </p>
                                 </div>
-
                             </div>
                         </div>
 
                     </div>
+
                 </div>
             </div>
         </div>
@@ -361,81 +370,20 @@ const cursiveFont = ref("'Satisfy', cursive");
 const selectedBorderPreset = ref('classic');
 
 const borderPresets = [
-    { name: 'Classic ATI', value: 'classic' },
-    { name: 'Modern Blue', value: 'indigo' },
-    { name: 'Minimalist Gray', value: 'minimal' },
-    { name: 'No Border', value: 'none' }
+    { name: 'Premium Gold', value: 'classic' },
+    { name: 'Royal Blue', value: 'indigo' },
+    { name: 'Executive Gray', value: 'minimal' },
+    { name: 'Modern Emerald', value: 'emerald' }
 ];
 
-// --- Pure Hex Style Objects (Crash-Proof) ---
-const t1ContainerStyle = computed(() => {
-    const base = { backgroundColor: '#ffffff', borderStyle: 'double', borderWidth: '6px' };
+// --- Theme Color System (Crash-Proof for html2canvas) ---
+const themeColor = computed(() => {
     switch (selectedBorderPreset.value) {
-        case 'classic': return { ...base, borderColor: '#000000' };
-        case 'indigo': return { ...base, borderColor: '#1e3a8a', borderStyle: 'solid', borderWidth: '4px' };
-        case 'minimal': return { ...base, borderColor: '#e5e7eb', borderStyle: 'solid', borderWidth: '2px' };
-        case 'none': return { ...base, border: 'none' };
-        default: return { ...base, borderColor: '#000000' };
-    }
-});
-
-const t1AccentStyle = computed(() => {
-    switch (selectedBorderPreset.value) {
-        case 'classic': return { borderColor: '#000000' };
-        case 'indigo': return { borderColor: '#1e3a8a' };
-        case 'minimal': return { borderColor: '#e5e7eb' };
-        case 'none': return { borderColor: 'transparent' };
-        default: return { borderColor: '#000000' };
-    }
-});
-
-const t2OuterBorderStyle = computed(() => {
-    switch (selectedBorderPreset.value) {
-        case 'classic': return { border: '1px solid #e5e7eb' };
-        case 'indigo': return { border: '3px solid #1e3a8a' };
-        case 'minimal': return { border: '1px dashed #e5e7eb' };
-        case 'none': return { border: 'none' };
-        default: return { border: '1px solid #e5e7eb' };
-    }
-});
-
-const t2InnerBorderStyle = computed(() => {
-    switch (selectedBorderPreset.value) {
-        case 'classic': return { border: '2px solid #1e3a8a' };
-        case 'indigo': return { border: '1px solid #e5e7eb' };
-        case 'minimal': return { border: '1px solid #f3f4f6' };
-        case 'none': return { border: 'none' };
-        default: return { border: '2px solid #1e3a8a' };
-    }
-});
-
-const t2CornerStyle = computed(() => {
-    switch (selectedBorderPreset.value) {
-        case 'classic': return { backgroundColor: '#1e3a8a' };
-        case 'indigo': return { backgroundColor: '#dbeafe', border: '1px solid #bfdbfe' };
-        case 'minimal': return { backgroundColor: '#f3f4f6', border: '1px solid #e5e7eb' };
-        case 'none': return { backgroundColor: 'transparent' };
-        default: return { backgroundColor: '#1e3a8a' };
-    }
-});
-
-const t2DirectorLineStyle = computed(() => {
-    switch (selectedBorderPreset.value) {
-        case 'classic': return { borderTop: '1px solid #000000' };
-        case 'indigo': return { borderTop: '2px solid #1e3a8a' };
-        case 'minimal': return { borderTop: '1px solid #d1d5db' };
-        case 'none': return { borderTop: 'none' };
-        default: return { borderTop: '1px solid #000000' };
-    }
-});
-
-const t2SealStyle = computed(() => {
-    switch (selectedBorderPreset.value) {
-        case 'classic': return { borderColor: 'rgba(234, 179, 8, 0.3)', color: 'rgba(202, 138, 4, 0.5)' };
-        case 'indigo': return { borderColor: '#bfdbfe', backgroundColor: '#eff6ff', color: '#1e40af' };
-        case 'minimal': return { borderColor: '#e5e7eb', color: '#9ca3af' };
-        case 'none': return { borderColor: 'transparent', color: 'transparent' };
-        default: return { borderColor: 'rgba(234, 179, 8, 0.3)', color: 'rgba(202, 138, 4, 0.5)' };
+        case 'classic': return '#b45309'; // Bronze/Gold (amber-700)
+        case 'indigo': return '#1d4ed8'; // Royal Blue (blue-700)
+        case 'minimal': return '#374151'; // Slate Gray (gray-700)
+        case 'emerald': return '#059669'; // Emerald (emerald-600)
+        default: return '#b45309';
     }
 });
 
@@ -467,6 +415,7 @@ const formatWithOrdinal = (dateString) => {
 
     return `${day}${suffix} ${month} ${year}`;
 };
+
 const downloadPDF = async () => {
     isGenerating.value = true;
 
@@ -475,9 +424,8 @@ const downloadPDF = async () => {
         const clonedElement = element.cloneNode(true);
         const originalImages = element.querySelectorAll('img');
         const clonedImages = clonedElement.querySelectorAll('img');
-        // We use a standard 'for' loop so we can use 'await'
+
         for (let i = 0; i < originalImages.length; i++) {
-            // originalImages[i].src gets the absolute URL the browser is currently looking at
             const absoluteUrl = originalImages[i].src;
             const base64Data = await imageToBase64(absoluteUrl);
             clonedImages[i].src = base64Data;
@@ -490,13 +438,13 @@ const downloadPDF = async () => {
             el.style.outline = 'none';
             el.style.backgroundColor = 'transparent';
         });
+
         const finalHtmlString = clonedElement.outerHTML;
         const rawName = certificateDetails.value?.trainee?.full_name || 'Trainee';
         const safeName = rawName.replace(/\s+/g, '_');
-        const rawProgram = certificateDetails.value?.program?.t_name || 'Program';
-        const safeProgram = rawProgram.replace(/[^a-zA-Z0-9]/g, '_');
         const timestamp = Date.now();
         const filename = `certificate_${safeName}_${timestamp}.pdf`;
+
         const payload = {
             traineeId: route.params.traineeId,
             trainingId: route.params.id,
@@ -528,6 +476,7 @@ const fetchTraineeDetails = async () => {
         alert.error('Failed to fetch trainee details');
     }
 }
+
 // Helper to convert an image URL to a Base64 text string
 const imageToBase64 = async (url) => {
     try {
@@ -540,16 +489,17 @@ const imageToBase64 = async (url) => {
         });
     } catch (error) {
         console.warn("Could not convert image to Base64:", url);
-        return url; // Fallback to original URL if it fails
+        return url;
     }
 };
+
 onMounted(() => {
     fetchTraineeDetails();
 });
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Pinyon+Script&family=Satisfy&family=Great+Vibes&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Pinyon+Script&family=Satisfy&family=Great+Vibes&family=Montserrat:wght@400;600;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
 
 .editable-text {
     border-radius: 4px;
@@ -564,7 +514,7 @@ onMounted(() => {
 }
 
 .editable-text:focus {
-    outline: 2px solid #818cf8;
+    outline: 2px solid #3b82f6;
     background-color: rgba(255, 255, 255, 0.8);
     cursor: text;
 }
@@ -578,18 +528,15 @@ onMounted(() => {
 .watermark-layer {
     position: absolute;
     inset: 0;
-    opacity: 0.035;
+    opacity: 0.03;
     pointer-events: none;
-    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='60' viewBox='0 0 80 60'%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-size='14' fill='%2364748b' font-family='Arial, sans-serif' font-weight='bold' transform='rotate(-25 40 30)'%3EATI%3C/text%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='90' viewBox='0 0 120 90'%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-size='24' fill='%2364748b' font-family='Arial, sans-serif' font-weight='bold' transform='rotate(-30 60 45)'%3EATI MIZORAM%3C/text%3E%3C/svg%3E");
     background-repeat: repeat;
     z-index: 50;
 }
 
-/* 🚨 PREFLIGHT OKLCH CRASH FIX 🚨 */
-/* Overrides Tailwind's default global oklch border variables so html2canvas doesn't crash on standard div evaluation */
 #certificate-canvas,
 #certificate-canvas * {
-    border-color: #e5e7eb;
     outline-color: transparent;
     text-decoration-color: transparent;
 }

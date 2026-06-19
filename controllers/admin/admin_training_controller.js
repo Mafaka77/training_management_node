@@ -583,16 +583,16 @@ exports.enrollInTraining = async (req, res) => {
             const templateId = '1407177545223617029';
             const message = `ATI a training turin thlan i ni a, Dt. ${startDate} 09:30 AM ah ATI Reception ah in report tura hriattir i ni e. EGOVMZ`;
 
-            await axios.get("https://sms.msegs.in/api/send-sms", {
+            axios.get("https://sms.msegs.in/api/send-sms", {
                 headers: { 'Authorization': `Bearer ${process.env.SMS_TOKEN}` },
                 params: {
                     template_id: templateId,
                     message: message,
-                    recipient: user.mobile // <-- Fixed: was just 'mobile' previously
+                    recipient: user.mobile
                 }
-            });
+            }).catch(smsError => console.error("Failed to send SMS:", smsError.message));
         } catch (smsError) {
-            console.error("Failed to send SMS:", smsError.message);
+            console.error("Failed to prepare SMS:", smsError.message);
         }
 
         // Admin Notification
@@ -605,23 +605,24 @@ exports.enrollInTraining = async (req, res) => {
                 target_url: `/admin/training/enrollment/${newEnrollment._id}`,
                 is_read: false
             });
-            await adminNotification.save();
+            adminNotification.save().catch(notifError => console.error("Non-fatal error: Failed to save Admin Notification:", notifError.message));
         } catch (notifError) {
-            console.error("Non-fatal error: Failed to save Admin Notification:", notifError.message);
+            console.error("Non-fatal error: Failed to prepare Admin Notification:", notifError.message);
         }
 
         // Push Notification
         try {
-            // Assuming sendPushToUser returns a Promise
-            await sendPushToUser(userId, {
+            sendPushToUser(userId, {
                 title: "Enrollment",
                 body: `You have been enrolled in ${training.t_name}.`,
-            });
+            }).catch(pushError => console.error("Non-fatal error: Failed to send Push Notification:", pushError.message));
         } catch (pushError) {
-            console.error("Non-fatal error: Failed to send Push Notification:", pushError.message);
+            console.error("Non-fatal error: Failed to prepare Push Notification:", pushError.message);
         }
+
         try {
-            await sendEmail(user.email, "Enrollment", `You have been enrolled in ${training.t_name}.`);
+            sendEmail(user.email, "Enrollment", `You have been enrolled in ${training.t_name}.`)
+                .catch(ex => console.error("Non-fatal error: Failed to send Email:", ex.message));
         } catch (ex) { }
 
         // --- 3. RETURN SUCCESS ---
