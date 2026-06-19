@@ -204,6 +204,7 @@ router.post('/certificate/batch-generate/:trainingId', authenticate, authorizeRo
 router.get('/certificates/:trainingId', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), require('../controllers/admin/admin_certificate_controller').fetchCertificates);
 router.get('/certificate/:id/prepare-esign', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), require('../controllers/admin/admin_certificate_controller').prepareForESign);
 router.post('/certificate/:certificateId/training/:trainingId/success', upload.none(), require('../controllers/admin/admin_certificate_controller').certificateSuccessResponse)
+router.get('/verify-certificate/:id', require('../controllers/admin/admin_certificate_controller').verifyCertificate)
 router.delete('/certificate/:certificateId', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), require('../controllers/admin/admin_certificate_controller').deleteCertificate)
 //SELECTED TRAINEE ORDERS
 router.get('/training/:trainingId/enrollment/order', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), TrainingEnrollmentController.generateSelectedTraineesOrder);

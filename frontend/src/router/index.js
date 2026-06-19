@@ -53,6 +53,11 @@ const routes = [
 
 
     {
+        path: '/verify-certificate/:id',
+        name: 'verify.certificate',
+        component: () => import('../pages/VerifyCertificate.vue')
+    },
+    {
         path: "/login",
         name: "login",
         component: () => import("../pages/Login.vue"),

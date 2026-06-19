@@ -527,3 +527,44 @@ exports.batchGenerateCertificates = async (req, res) => {
         return res.status(STATUS.INTERNAL_SERVER_ERROR).json({ status: STATUS.INTERNAL_SERVER_ERROR, message: ex.message });
     }
 };
+
+// Verify Certificate Endpoint (public)
+exports.verifyCertificate = async (req, res) => {
+    const { id } = req.params;
+    console.log(id)
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({
+            status: STATUS.BAD_REQUEST,
+            message: "Invalid certificate ID"
+        });
+    }
+    try {
+        const cert = await Certificate.findById(id)
+            .populate('user')
+            .populate('training_program')
+            .lean();
+        if (!cert) {
+            return res.status(404).json({
+                status: STATUS.NOT_FOUND,
+                message: "Certificate not found"
+            });
+        }
+        return res.status(200).json({
+            status: STATUS.OK,
+            data: {
+                certificateUrl: cert.certificate_url,
+                trainee: cert.user,
+                program: cert.training_program,
+                isSigned: cert.is_signed,
+                createdAt: cert.createdAt
+            },
+            message: "Certificate verified successfully"
+        });
+    } catch (ex) {
+        console.error("Verify Certificate Error:", ex);
+        return res.status(500).json({
+            status: STATUS.INTERNAL_SERVER_ERROR,
+            message: ex.message
+        });
+    }
+};
