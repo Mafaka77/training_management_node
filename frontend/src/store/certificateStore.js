@@ -179,6 +179,20 @@ export const useCertificateStore = defineStore('certificate', {
                 this.isLoading = false;
             }
         },
+        async batchGenerateCertificates(trainingId, options) {
+            this.isLoading = true;
+            try {
+                const response = await api.post(`/certificate/batch-generate/${trainingId}`, { options });
+                if (response.status === 200 && response.data.status === 200) {
+                    return { success: true, message: response.data.message }
+                }
+                return { success: false, message: response.data.message || 'Batch generation failed' }
+            } catch (ex) {
+                return { success: false, message: ex.response?.data?.message || 'Server error' }
+            } finally {
+                this.isLoading = false;
+            }
+        },
         async fetchCertificates(trainingId) {
             this.isCertificateLoading = true;
             try {

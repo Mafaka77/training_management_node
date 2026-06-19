@@ -35,6 +35,11 @@ const certificateSchema = new mongoose.Schema({
         type: String,
         required: false,
     },
+    status: {
+        type: String,
+        enum: ['processing', 'completed', 'failed'],
+        default: 'completed'
+    },
     reference_number: {
         type: String,
         required: false,

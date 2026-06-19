@@ -10,6 +10,11 @@ const fs = require('fs');
 const path = require('path');
 const { readFileSync } = require('fs');
 const crypto = require('crypto');
+const Attendance = require('../../models/attendance_model');
+const Session = require('../../models/training_course_model');
+const Enrollment = require('../../models/enrollment_model');
+const QRCode = require('qrcode');
+const { certificateQueue } = require('../../queues/certificateQueue');
 exports.getTraineeCertificateDetails = async (req, res) => {
     const { traineeId } = req.params;
     const { trainingId } = req.query;
@@ -102,6 +107,16 @@ exports.generateAndStoreCertificate = async (req, res) => {
     }
 
     try {
+        const certificateId = new mongoose.Types.ObjectId();
+        const verifyUrl = `http://192.168.0.221:5001/verify-certificate/${certificateId}`;
+        const qrCodeDataUrl = await QRCode.toDataURL(verifyUrl, {
+            margin: 1,
+            color: { dark: '#000000', light: '#ffffff' }
+        });
+
+        const dummyQrCodeUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJQAAACUCAYAAAB1PADUAAAAAklEQVR4AewaftIAAATCSURBVO3BSY4jSRAEQbUA//9lnT76KYBEOquXMZH4C1VLDlWLDlWLDlWLDlWLDlWLDlWLDlWLDlWLDlWLDlWLDlWLDlWLDlWLDlWLDlWLPryUhJ+ksikJk8pNEm5UpiQ8oTIl4SepvHGoWnSoWnSoWvRhmcqmJGxKwqTyhMpNEiaVTSqbkrDpULXoULXoULXow5cl4QmVJ5Jwo3KThEmlSsKkMiVhUrlJwo3KE0l4QuWbDlWLDlWLDlWLPvzjknCjcqNyozIlYVK5UfmXHKoWHaoWHaoWffjHqLyRhCdUbpLwf3KoWnSoWnSoWvThy1R+pyRMKpuScKNyk4RJ5QmVP8mhatGhatGhatGHZUn4myRhUpmSMKlMSZhUpiRMKm8k4U92qFp0qFp0qFr04SWVP5nKE0mYVKYkTCo3Km+o/E0OVYsOVYsOVYs+vJSESWVKwiaVSeUmCZPKjcqUhEllSsKNypSESeUmCZtUvulQtehQtehQtejDH07lJgmTyqTyhsoTKk8kYVJ5Q+WJJEwqbxyqFh2qFh2qFsVf+EFJuFGZkjCpTEm4UZmScKNyk4RJZUrCpHKThE0qv9OhatGhatGhatGHH6Zyk4RJ5QmVJ1RukjCpTEmYVKYkTCqTypSEJ1SmJEwqUxImlU2HqkWHqkWHqkUfliVhUrlJwqQyJWFSmVRukvCGypSESWVKwiaVN5IwqXzToWrRoWrRoWrRh5eSMKlMSZhUnlD5SUm4UZmS8EQSnkjCEypPJGFSeeNQtehQtehQtSj+wgtJuFF5IwlvqDyRhE0qbyRhk8o3HaoWHaoWHaoWfXhJZUrClIQblRuVJ5Jwk4RJ5UZlSsKkcpOEG5UpCTcqbyRhUtl0qFp0qFp0qFr04ctUpiQ8kYQblU0qUxImlZskTCo3SZhU3kjCjco3HaoWHaoWHaoWfXgpCZPKjcqUhBuV30nlJgk3SXgiCW+oTEm4ScKk8sahatGhatGhatGHL0vCpHKjMiVhUpmSMKlMSZhU3kjCpHKThEllSsKkMiVhUpmS8IbKpkPVokPVokPVog9fpjIl4SYJk8obKjdJmFSmJEwqT6hMSXhCZUrCEypTEiaVTYeqRYeqRYeqRR9+M5UpCVMSblSmJEwqNyo3KlMSnlB5IgmbknCThEnljUPVokPVokPVovgLf7EkTCpvJOFGZUrCEypTEiaVJ5KwSeWNQ9WiQ9WiQ9WiDy8l4SepTCo3SbhReSIJT6hMSXgiCZPKGyrfdKhadKhadKha9GGZyqYk3CRhUplU3lCZknCjMiXhDZUnVJ5IwqTyxqFq0aFq0aFq0YcvS8ITKm8kYVKZknCjMiXhRmVKwo3KlIQpCZuScKOy6VC16FC16FC16MM/RuUJlRuVmyRsUrlJwqQyJeGJJEwqbxyqFh2qFh2qFn34xyThiSS8oTIlYVJ5IglPJOENlU2HqkWHqkWHqkUfvkzlm1RukjCpbErCpHKThJ+kMiXhmw5Viw5Viw5Viz4sS8JPSsIbSZhUpiQ8kYRJ5UbljSRMKlMSJpVvOlQtOlQtOlQtir9QteRQtehQtehQtehQtehQtehQtehQtehQtehQtehQtehQtehQtehQtehQteg/z0g9GjRvuIcAAAAASUVORK5CYII=';
+        const updatedHtmlContent = htmlContent.replace(dummyQrCodeUrl, qrCodeDataUrl);
+
         const isPortrait = templateStyle === 'Mandatory';
         const widthFormat = isPortrait ? '210mm' : '297mm';
         const heightFormat = isPortrait ? '297mm' : '210mm';
@@ -129,7 +144,7 @@ exports.generateAndStoreCertificate = async (req, res) => {
                 </style>
             </head>
             <body>
-                ${htmlContent}
+                ${updatedHtmlContent}
             </body>
             </html>
         `;
@@ -139,7 +154,8 @@ exports.generateAndStoreCertificate = async (req, res) => {
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
         }
-        const filePath = path.join(dir, filename || `cert_${Date.now()}.pdf`);
+        const generatedFilename = filename || `cert_${Date.now()}.pdf`;
+        const filePath = path.join(dir, generatedFilename);
 
         // 3. Launch Puppeteer
         const browser = await puppeteer.launch({
@@ -166,10 +182,12 @@ exports.generateAndStoreCertificate = async (req, res) => {
 
         // 4. Save to MongoDB
         const certificate = new Certificate({
+            _id: certificateId,
             user: traineeId,
             training_program: trainingId,
-            file_name: filename,
-            certificate_url: `/uploads/certificate/${filename}`,
+            file_name: generatedFilename,
+            certificate_url: `/uploads/certificate/${generatedFilename}`,
+            is_signed: true
         });
 
         await certificate.save();
@@ -424,3 +442,88 @@ exports.deleteCertificate = async (req, res) => {
         return res.status(STATUS.INTERNAL_SERVER_ERROR).json({ status: STATUS.INTERNAL_SERVER_ERROR, message: ex.message });
     }
 }
+
+exports.batchGenerateCertificates = async (req, res) => {
+    const { trainingId } = req.params;
+    const { options } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(trainingId)) {
+        return res.status(STATUS.BAD_REQUEST).json({ status: STATUS.BAD_REQUEST, message: "Invalid Training ID format" });
+    }
+
+    try {
+        const sessions = await Session.find({ t_program: trainingId }).lean();
+        const totalSessions = sessions.length;
+
+        if (totalSessions === 0) {
+            return res.status(STATUS.BAD_REQUEST).json({ status: STATUS.BAD_REQUEST, message: "No sessions found for this training." });
+        }
+
+        const enrollments = await Enrollment.find({ training_program: trainingId }).lean();
+        const traineeIds = enrollments.map(e => e.user);
+
+        const attendanceRecords = await Attendance.find({
+            trainingId: trainingId,
+            status: 'Present'
+        }).lean();
+
+        const presentCountMap = {};
+        attendanceRecords.forEach(record => {
+            const uid = record.user.toString();
+            presentCountMap[uid] = (presentCountMap[uid] || 0) + 1;
+        });
+
+        const eligibleTrainees = [];
+        for (const tid of traineeIds) {
+            const present = presentCountMap[tid.toString()] || 0;
+            const percentage = (present / totalSessions) * 100;
+            if (percentage >= 75) {
+                eligibleTrainees.push(tid);
+            }
+        }
+
+        if (eligibleTrainees.length === 0) {
+            return res.status(STATUS.OK).json({ status: STATUS.OK, message: "No trainees have >= 75% attendance." });
+        }
+
+        let addedJobs = 0;
+        for (const traineeId of eligibleTrainees) {
+            const existing = await Certificate.findOne({ user: traineeId, training_program: trainingId });
+            if (!existing) {
+                const certificate = new Certificate({
+                    user: traineeId,
+                    training_program: trainingId,
+                    status: 'processing'
+                });
+                await certificate.save();
+
+                await certificateQueue.add('generate', {
+                    traineeId,
+                    trainingId,
+                    certificateId: certificate._id,
+                    options: options || {}
+                });
+                addedJobs++;
+            } else if (existing.status === 'failed') {
+                existing.status = 'processing';
+                await existing.save();
+                await certificateQueue.add('generate', {
+                    traineeId,
+                    trainingId,
+                    certificateId: existing._id,
+                    options: options || {}
+                });
+                addedJobs++;
+            }
+        }
+
+        return res.status(STATUS.OK).json({
+            status: STATUS.OK,
+            message: `Batch generation started. Added ${addedJobs} new jobs for eligible trainees.`
+        });
+
+    } catch (ex) {
+        console.error("Batch Certificate Error:", ex);
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({ status: STATUS.INTERNAL_SERVER_ERROR, message: ex.message });
+    }
+};

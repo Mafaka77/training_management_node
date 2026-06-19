@@ -1,8 +1,16 @@
 <template>
     <div class="mx-auto">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
-            <div>
+            <div class="flex items-center gap-4">
                 <h1 class="text-2xl font-bold text-slate-800">Certificates</h1>
+                <button @click="showBatchModal = true"
+                    class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all shadow-sm flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    Batch Generate (>75%)
+                </button>
             </div>
 
             <div v-if="!store.isCertificateLoading && store.certificates?.length > 0" class="flex items-center gap-3">
@@ -73,7 +81,7 @@
                     </div>
 
                     <div class="flex items-center gap-3">
-                        <div v-if="!certificate.is_signed">
+                        <!-- <div v-if="!certificate.is_signed">
                             <button @click="handleSignDocument(certificate._id)" :disabled="store.isSigning"
                                 class="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 disabled:bg-slate-300 transition-all shadow-md shadow-indigo-100 active:scale-95">
                                 <svg v-if="store.isSigning" class="animate-spin w-4 h-4" viewBox="0 0 24 24">
@@ -89,21 +97,29 @@
                                 </svg>
                                 {{ store.isSigning ? 'Signing...' : 'Sign Document' }}
                             </button>
-                        </div>
+                        </div> -->
 
-                        <a v-if="certificate.is_signed" :href="certificate.certificate_url" target="_blank"
-                            class="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-all"
-                            title="Preview Signed Document">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <a v-if="certificate.certificate_url" :href="certificate.certificate_url" target="_blank"
+                            class="flex items-center gap-2 px-4 py-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-xl text-sm font-semibold transition-all"
+                            title="View Certificate">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                     d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                     d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
+                            View
                         </a>
+                        <div v-else class="flex items-center gap-2 px-4 py-2 text-amber-600 bg-amber-50 rounded-xl text-sm font-semibold">
+                            <svg class="animate-spin w-4 h-4" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Generating...
+                        </div>
 
                         <div>
-                            <div v-if="!certificate.is_signed">
+                            <div>
                                 <button @click="store.showDeleteConfirm = true"
                                     class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -203,11 +219,94 @@
                 </p>
             </div>
         </div>
+
+        <!-- Batch Generation Modal -->
+        <Transition name="fade">
+            <div v-if="showBatchModal"
+                class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+                <div class="bg-white rounded-[28px] w-full max-w-md p-6 shadow-2xl scale-in">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold text-slate-900">Batch Generate Certificates</h3>
+                        <button @click="showBatchModal = false" class="text-slate-400 hover:text-slate-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="space-y-4 mb-6">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Base
+                                Font</label>
+                            <select v-model="batchOptions.baseFont"
+                                class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                                <option value="'Times New Roman', serif">Times New Roman</option>
+                                <option value="'Georgia', serif">Georgia</option>
+                                <option value="'Arial', sans-serif">Arial</option>
+                                <option value="'Montserrat', sans-serif">Montserrat</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label
+                                class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Decorative
+                                Font</label>
+                            <select v-model="batchOptions.cursiveFont"
+                                class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                                <option value="'Satisfy', cursive">Satisfy</option>
+                                <option value="'Pinyon Script', cursive">Pinyon Script</option>
+                                <option value="'Great Vibes', cursive">Great Vibes</option>
+                                <option value="'Playfair Display', serif">Playfair Display</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Color
+                                Theme</label>
+                            <select v-model="batchOptions.themeColor"
+                                class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                                <option value="#2563eb">Royal Blue</option>
+                                <option value="#059669">Emerald Green</option>
+                                <option value="#dc2626">Crimson Red</option>
+                                <option value="#4f46e5">Indigo</option>
+                                <option value="#ea580c">Burnt Orange</option>
+                                <option value="#d97706">Premium Gold</option>
+                                <option value="#1f2937">Classic Charcoal</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <p class="text-sm text-slate-500 mb-6 bg-blue-50 p-3 rounded-xl border border-blue-100">
+                        This will check attendance for all trainees. Anyone with <strong>75% or higher</strong>
+                        attendance
+                        who doesn't already have a certificate will be added to the background queue.
+                    </p>
+
+                    <div class="flex gap-3">
+                        <button @click="showBatchModal = false"
+                            class="flex-1 px-4 py-2.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">
+                            Cancel
+                        </button>
+                        <button @click="handleBatchGenerate" :disabled="isGenerating"
+                            class="flex-1 px-4 py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 transition-all flex items-center justify-center gap-2">
+                            <svg v-if="isGenerating" class="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4">
+                                </circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+                            Start Job
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Transition>
     </div>
 </template>
 
 <script setup>
-import { nextTick, onMounted, ref } from 'vue';
+import { nextTick, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAlertStore } from '../../store/alertStore';
 import { useCertificateStore } from '../../store/certificateStore';
@@ -220,10 +319,37 @@ const route = useRoute();
 const trainingId = route.params.id;
 const eMudhraForm = ref(null);
 
+const showBatchModal = ref(false);
+const isGenerating = ref(false);
+const batchOptions = ref({
+    baseFont: "'Times New Roman', serif",
+    cursiveFont: "'Satisfy', cursive",
+    themeColor: "#2563eb"
+});
+
 // Core fetch function
-const loadData = () => {
-    store.fetchCertificates(trainingId);
+let pollTimer = null;
+
+const loadData = async () => {
+    await store.fetchCertificates(trainingId);
+    checkPolling();
 };
+
+const checkPolling = () => {
+    if (pollTimer) clearTimeout(pollTimer);
+    
+    // Check if any certificates are still generating
+    const needsPolling = store.certificates.some(c => c.status === 'processing' || !c.certificate_url);
+    if (needsPolling) {
+        pollTimer = setTimeout(() => {
+            loadData();
+        }, 3000);
+    }
+};
+
+onUnmounted(() => {
+    if (pollTimer) clearTimeout(pollTimer);
+});
 
 // Handlers directly mutate the store state
 const changePage = (page) => {
@@ -263,6 +389,25 @@ const confirmDelete = async (certificate) => {
         alert.success(response.message);
     } else {
         alert.error(response.message);
+    }
+}
+
+const handleBatchGenerate = async () => {
+    isGenerating.value = true;
+    try {
+        const res = await store.batchGenerateCertificates(trainingId, batchOptions.value);
+        if (res.success) {
+            alert.success(res.message);
+            showBatchModal.value = false;
+            loadData(); // Refresh to see "processing" statuses if mapped
+        } else {
+            alert.error(res.message);
+        }
+    } catch (e) {
+        console.error(e);
+        alert.error("An error occurred");
+    } finally {
+        isGenerating.value = false;
     }
 }
 
