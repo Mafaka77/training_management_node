@@ -7,8 +7,8 @@
         'group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-300 transform hover:translate-x-1 active:scale-[0.98]',
         isChild ? 'ml-7' : '',
         isActive
-          ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 font-semibold'
-          : (isDark ? 'text-zinc-400 hover:bg-white/5 hover:text-white' : 'text-zinc-600 hover:bg-white hover:text-blue-600 hover:shadow-md hover:shadow-black/5')
+          ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30 font-semibold'
+          : (isDark ? 'text-slate-400 hover:bg-white/5 hover:text-white' : 'text-slate-600 hover:bg-white hover:text-indigo-600 hover:shadow-md hover:shadow-black/5')
       ]"
     >
       <svg 
@@ -21,7 +21,7 @@
         stroke-linecap="round" 
         stroke-linejoin="round"
         class="w-4 h-4 flex-shrink-0 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6"
-        :class="isActive ? 'text-white' : 'text-zinc-400 dark:text-zinc-500 group-hover:text-blue-500'"
+        :class="isActive ? 'text-white' : 'text-slate-400 dark:text-slate-500 group-hover:text-indigo-500'"
       >
         <path :d="icon" />
       </svg>

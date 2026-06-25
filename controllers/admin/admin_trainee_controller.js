@@ -2,7 +2,124 @@ const User = require('../../models/user_model');
 const STATUS = require('../../utils/httpStatus');
 const Role = require("../../models/role_model");
 const Group = require('../../models/group_model');
+const District = require('../../models/district_model');
 const bcrypt = require("bcryptjs");
+
+exports.exportTraineeReport = async (req, res) => {
+    try {
+        const { reportType, completionStatus, groupId } = req.query;
+
+        const traineeRole = await Role.findOne({ name: "Trainee" });
+        if (!traineeRole) {
+            return res.status(STATUS.NOT_FOUND).json({ message: "Trainee role not found" });
+        }
+
+        const query = { roles: traineeRole._id };
+
+        // 1. Group Filter
+        if (groupId && groupId !== 'all') {
+            query.group = groupId;
+        }
+
+        // 2. Report Type Filters
+        if (reportType === 'completion') {
+            query.mandatory_completion = (completionStatus === 'completed');
+        }
+
+        // We fetch the users
+        let users = await User.find(query)
+            .populate('district', 'name')
+            .populate('group', 'group_name')
+            .lean();
+
+        // 3. If "Latest Dues", calculate due date and filter/sort
+        if (reportType === 'dues') {
+            const now = new Date();
+            // Filter to those who have NOT completed mandatory training yet
+            users = users.filter(u => !u.mandatory_completion);
+
+            // Add calculated due date
+            users = users.map(user => {
+                let dueDate = null;
+                if (user.date_of_entry_in_present_grade) {
+                    const entryDate = new Date(user.date_of_entry_in_present_grade);
+                    dueDate = new Date(entryDate);
+                    dueDate.setFullYear(entryDate.getFullYear() + 2);
+                } else if (user.date_of_entry) {
+                     const entryDate = new Date(user.date_of_entry);
+                     dueDate = new Date(entryDate);
+                     dueDate.setFullYear(entryDate.getFullYear() + 2);
+                }
+                return { ...user, mandatoryCourseDueDate: dueDate };
+            });
+
+            // Sort by earliest dues first (most overdue at top)
+            users.sort((a, b) => {
+                if (!a.mandatoryCourseDueDate) return 1;
+                if (!b.mandatoryCourseDueDate) return -1;
+                return a.mandatoryCourseDueDate - b.mandatoryCourseDueDate;
+            });
+        }
+
+        // Create CSV String
+        const headers = [
+            "Name", "Email", "Mobile", "Department", "Designation", 
+            "Group", "Mandatory Completed", "Date of Entry", "Due Date"
+        ];
+        
+        const rows = users.map(u => {
+            const groupName = u.group ? u.group.group_name : 'N/A';
+            const mandatoryCompleted = u.mandatory_completion ? 'Yes' : 'No';
+            let entryDate = 'N/A';
+            if (u.date_of_entry_in_present_grade) {
+                entryDate = new Date(u.date_of_entry_in_present_grade).toLocaleDateString('en-GB');
+            } else if (u.date_of_entry) {
+                entryDate = new Date(u.date_of_entry).toLocaleDateString('en-GB');
+            }
+            
+            let dueDate = 'N/A';
+            if (reportType === 'dues' && u.mandatoryCourseDueDate) {
+                dueDate = new Date(u.mandatoryCourseDueDate).toLocaleDateString('en-GB');
+            } else if (u.date_of_entry_in_present_grade) {
+                const ed = new Date(u.date_of_entry_in_present_grade);
+                ed.setFullYear(ed.getFullYear() + 2);
+                dueDate = ed.toLocaleDateString('en-GB');
+            } else if (u.date_of_entry) {
+                const ed = new Date(u.date_of_entry);
+                ed.setFullYear(ed.getFullYear() + 2);
+                dueDate = ed.toLocaleDateString('en-GB');
+            }
+
+            // Escape quotes and wrap in quotes to handle commas in data
+            const escapeCSV = (str) => `"${(str || '').toString().replace(/"/g, '""')}"`;
+
+            return [
+                escapeCSV(u.full_name),
+                escapeCSV(u.email),
+                escapeCSV(u.mobile),
+                escapeCSV(u.department),
+                escapeCSV(u.designation),
+                escapeCSV(groupName),
+                escapeCSV(mandatoryCompleted),
+                escapeCSV(entryDate),
+                escapeCSV(dueDate)
+            ].join(',');
+        });
+
+        const csvContent = [headers.join(','), ...rows].join('\n');
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename=trainee-report-${Date.now()}.csv`);
+        return res.status(200).send(csvContent);
+
+    } catch (e) {
+        console.error("Export Error: ", e);
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            message: "Failed to export report",
+            status: STATUS.INTERNAL_SERVER_ERROR
+        });
+    }
+};
 
 exports.getAllTrainee = async (req, res) => {
     try {

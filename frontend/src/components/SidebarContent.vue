@@ -4,13 +4,13 @@
       <!-- Section Header -->
       <div class="flex items-center gap-3 mb-4 group/section">
         <div
-          class="h-1.5 w-1.5 rounded-full bg-blue-500/50 dark:bg-blue-500/40 transition-all duration-300 group-hover/section:scale-150 group-hover/section:bg-blue-500">
+          class="h-1.5 w-1.5 rounded-full bg-indigo-500/50 dark:bg-indigo-500/40 transition-all duration-300 group-hover/section:scale-150 group-hover/section:bg-indigo-500">
         </div>
         <span
-          class="text-[9px] font-black uppercase tracking-[0.25em] text-zinc-400 dark:text-zinc-500 transition-colors duration-300 group-hover/section:text-blue-500 dark:group-hover/section:text-blue-400">
+          class="text-[9px] font-black uppercase tracking-[0.25em] text-slate-400 dark:text-slate-500 transition-colors duration-300 group-hover/section:text-indigo-500 dark:group-hover/section:text-indigo-400">
           {{ section.title }}
         </span>
-        <div class="h-px flex-1 bg-gradient-to-r from-blue-500/10 via-zinc-500/5 to-transparent"></div>
+        <div class="h-px flex-1 bg-gradient-to-r from-indigo-500/10 via-slate-500/5 to-transparent"></div>
       </div>
 
       <!-- Navigation Items -->
@@ -22,14 +22,14 @@
             <div class="flex items-center gap-3">
               <svg xmlns="http://www.w3.org/2000/svg"
                 class="h-4 w-4 transition-transform duration-300 group-hover:scale-110"
-                :class="props[section.groupKey] ? 'text-blue-500' : 'opacity-70'" fill="none" viewBox="0 0 24 24"
+                :class="props[section.groupKey] ? 'text-indigo-500' : 'opacity-70'" fill="none" viewBox="0 0 24 24"
                 stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" :d="section.icon" />
               </svg>
               <span class="font-bold tracking-tight">{{ section.label }}</span>
             </div>
             <svg class="h-3 w-3 transition-transform duration-500"
-              :class="props[section.groupKey] ? 'rotate-180 text-blue-500' : 'opacity-40'" viewBox="0 0 20 20"
+              :class="props[section.groupKey] ? 'rotate-180 text-indigo-500' : 'opacity-40'" viewBox="0 0 20 20"
               fill="currentColor">
               <path fill-rule="evenodd"
                 d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08Z"
@@ -84,11 +84,11 @@ const buttonClasses = (isOpen) => [
   'flex w-full items-center justify-between py-2.5 px-3 text-left text-sm rounded-xl transition-all duration-300 group active:scale-[0.98] border border-transparent',
   isOpen
     ? (props.isDark
-      ? 'bg-blue-500/10 text-blue-400 border-blue-500/20 shadow-[0_0_20px_rgba(59,130,246,0.03)] font-semibold'
-      : 'bg-blue-50 text-blue-600 border-blue-500/10 shadow-[0_4px_12px_rgba(59,130,246,0.03)] font-semibold')
+      ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20 shadow-[0_0_20px_rgba(99,102,241,0.03)] font-semibold'
+      : 'bg-indigo-50 text-indigo-600 border-indigo-500/10 shadow-[0_4px_12px_rgba(99,102,241,0.03)] font-semibold')
     : (props.isDark
-      ? 'text-zinc-400 hover:bg-white/5 hover:text-white hover:border-white/5'
-      : 'text-zinc-600 hover:bg-white hover:shadow-md hover:shadow-black/[0.02] hover:text-blue-600 hover:border-zinc-150')
+      ? 'text-slate-400 hover:bg-white/5 hover:text-white hover:border-white/5'
+      : 'text-slate-600 hover:bg-white hover:shadow-md hover:shadow-black/[0.02] hover:text-indigo-600 hover:border-slate-100')
 ]
 
 const filteredMenu = computed(() => {

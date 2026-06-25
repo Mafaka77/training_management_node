@@ -88,6 +88,7 @@ router.put('/trainer/:trainerId/toggle-status', authenticate, authorizeRoles('Ad
 router.put('/trainer/:trainerId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainerController.updateTrainer);
 
 //TRAINEE
+router.get('/trainee/report/export', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), traineeController.exportTraineeReport);
 router.get('/trainees', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), traineeController.getAllTrainee);
 router.post('/trainee', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), traineeController.createTrainee);
 router.get('/trainee/:traineeId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), traineeController.getTraineeById);

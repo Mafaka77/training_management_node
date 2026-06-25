@@ -32,13 +32,13 @@
           <input v-model="searchQuery" type="text" placeholder="Search by name, email, mobile..."
             class="block w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border transition-all bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none" />
         </div>
-        <router-link to="/admin/trainee/create"
+        <button @click="openReportModal"
           class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-blue-500/20 active:scale-95">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
           </svg>
           Generate Report
-        </router-link>
+        </button>
       </div>
     </div>
 
@@ -254,6 +254,69 @@
       </template>
       <template #confirm-text>Delete Trainee</template>
     </BaseModal>
+
+    <!-- Report Modal -->
+    <BaseModal
+        :show="isReportModalOpen"
+        confirmVariant="primary"
+        :confirmLoading="isGeneratingReport"
+        @close="isReportModalOpen = false"
+        @confirm="generateReport"
+    >
+      <template #icon>
+        <div class="w-14 h-14 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-500 rounded-2xl flex items-center justify-center mb-4">
+          <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+      </template>
+      <template #title>Generate Trainee Report</template>
+      <template #content>
+        <div class="space-y-4 mt-4 text-left">
+          
+          <!-- Report Type -->
+          <div>
+            <label class="block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">Report Type</label>
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                <input type="radio" v-model="reportOptions.reportType" value="all" class="text-blue-600 focus:ring-blue-500" />
+                All Trainees
+              </label>
+              <label class="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                <input type="radio" v-model="reportOptions.reportType" value="completion" class="text-blue-600 focus:ring-blue-500" />
+                By Mandatory Completion Status
+              </label>
+              <label class="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                <input type="radio" v-model="reportOptions.reportType" value="dues" class="text-blue-600 focus:ring-blue-500" />
+                Latest Dues (Overdue & Upcoming)
+              </label>
+            </div>
+          </div>
+
+          <!-- Completion Status (Conditionally visible) -->
+          <div v-if="reportOptions.reportType === 'completion'">
+            <label class="block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">Completion Status</label>
+            <select v-model="reportOptions.completionStatus" class="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500/20">
+              <option value="completed">Completed</option>
+              <option value="not_completed">Not Completed</option>
+            </select>
+          </div>
+
+          <!-- Group Filter -->
+          <div>
+            <label class="block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">Filter by Group</label>
+            <select v-model="reportOptions.groupId" class="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500/20">
+              <option value="all">All Groups</option>
+              <option v-for="group in groups" :key="group._id" :value="group._id">
+                {{ group.group_name }}
+              </option>
+            </select>
+          </div>
+          
+        </div>
+      </template>
+      <template #confirm-text>Download CSV</template>
+    </BaseModal>
   </div>
 </template>
 
@@ -274,7 +337,8 @@ const {
   isTraineeLoading,
   traineePage,
   traineeTotalPages,
-  traineesTotal
+  traineesTotal,
+  groups
 } = storeToRefs(store);
 
 // Local State
@@ -282,6 +346,14 @@ const searchQuery = ref("");
 const isDeleteModalOpen = ref(false);
 const traineeToDelete = ref(null);
 const isDeleting = ref(false);
+
+const isReportModalOpen = ref(false);
+const isGeneratingReport = ref(false);
+const reportOptions = ref({
+  reportType: 'all',
+  completionStatus: 'not_completed',
+  groupId: 'all'
+});
 
 // Pagination Logic
 const pageNumbers = computed(() => {
@@ -327,8 +399,26 @@ const confirmDelete = async () => {
   }
 };
 
+const openReportModal = () => {
+  isReportModalOpen.value = true;
+};
+
+const generateReport = async () => {
+  isGeneratingReport.value = true;
+  try {
+    await store.downloadTraineeReport(reportOptions.value);
+    alert.success('Report downloaded successfully');
+  } catch (e) {
+    alert.error('Failed to generate report');
+  } finally {
+    isGeneratingReport.value = false;
+    isReportModalOpen.value = false;
+  }
+};
+
 onMounted(() => {
   store.fetchTrainee();
+  store.fetchGroups();
 });
 </script>
 
