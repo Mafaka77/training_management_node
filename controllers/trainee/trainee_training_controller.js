@@ -9,6 +9,7 @@ const Material = require('../../models/materials_model');
 const Notification = require('../../models/notification_model')
 const { populate } = require("dotenv");
 const { sendPushToUser } = require('../../services/push_service');
+const Group = require('../../models/group_model');
 //TRAINING PROGRAM-----------------------------------------------------------------------------------
 exports.getTraining = async (req, res) => {
     try {
@@ -16,7 +17,12 @@ exports.getTraining = async (req, res) => {
         let { page = 1, limit = 10, search = "", offset } = req.query;
         page = parseInt(page);
         limit = parseInt(limit);
-
+        let userId = req.user.user.id;
+        let ngoGroup = await Group.findOne({
+            group_name: 'NGO'
+        });
+        const user = await User.findById(userId);
+        
         // If offset is provided, calculate page from it
         let skip;
         if (offset !== undefined) {
@@ -32,6 +38,10 @@ exports.getTraining = async (req, res) => {
         };
         if (search) {
             filter.name = { $regex: search, $options: "i" }; // search by program name
+        }
+
+        if (user && ngoGroup && user.group && user.group.equals(ngoGroup._id)) {
+            filter.t_eligibility = ngoGroup._id;
         }
 
         // Get total count for pagination

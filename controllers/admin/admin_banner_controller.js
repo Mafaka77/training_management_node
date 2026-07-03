@@ -1,6 +1,7 @@
 const Banner = require('../../models/banner_model');
 const STATUS = require('../../utils/httpStatus');
 const path = require('path');
+const fs = require('fs');
 exports.uploadBanner = async (req, res) => {
 
     const { title } = req.body;

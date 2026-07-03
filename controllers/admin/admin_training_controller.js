@@ -7,7 +7,7 @@ const Role = require('../../models/role_model');
 const STATUS = require('../../utils/httpStatus');
 const Group = require('../../models/group_model');
 const Notification = require('../../models/notification_model');
-const { sendPushToUser } = require('../../services/push_service');
+const { sendPushToUser, sendPushToMultipleUsers } = require('../../services/push_service');
 const { parse, startOfDay } = require('date-fns');
 const mongoose = require("mongoose");
 const axios = require('axios');
@@ -253,8 +253,41 @@ exports.updateStatus = async (req, res) => {
                 status: STATUS.NOT_FOUND
             });
         }
-        program.t_status = 'Upcoming'
+        program.t_status = 'Upcoming';
         await program.save();
+
+        try {
+            const traineeRole = await Role.findOne({ name: "Trainee" });
+            if (traineeRole) {
+                const trainees = await User.find({ roles: traineeRole._id });
+
+                const notifications = trainees.map(trainee => ({
+                    recipient_id: trainee._id,
+                    sender_id: req.user.user.id,
+                    type: "Training",
+                    title: "New Training Upcoming",
+                    message: `${program.t_name} is now upcoming`,
+                    target_url: `/training-details/${program._id}`,
+                    is_read: false
+                }));
+
+                if (notifications.length > 0) {
+                    await Notification.insertMany(notifications);
+                }
+
+                const traineeIds = trainees.map(t => t._id);
+                
+                // Send push notifications in the background
+                sendPushToMultipleUsers(traineeIds, {
+                    title: "New Training Upcoming",
+                    body: `${program.t_name} is now upcoming`,
+                    url: `/training-details/${program._id}`
+                }).catch(err => console.error("Failed to push to multiple users", err));
+            }
+        } catch (notifError) {
+            console.error("Failed to send notifications to trainees:", notifError.message);
+        }
+
         return res.status(STATUS.OK).json({
             message: "Training status updated successfully",
             status: STATUS.OK

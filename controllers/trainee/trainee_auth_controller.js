@@ -86,7 +86,7 @@ exports.register = async (req, res) => {
         is_govt_employee, date_of_entry, date_of_superannuation, service_cadre, date_of_entry_in_present_grade, service, category,
     } = req.body;
     try {
-        if (!full_name || !email || !mobile || !designation) {
+        if (!full_name || !email || !mobile) {
             return res.status(STATUS.OK).json({
                 message: "Please fill all required fields",
                 status: STATUS.BAD_REQUEST
@@ -204,18 +204,22 @@ exports.sendOtp = async (req, res) => {
 exports.verifyOtp = async (req, res) => {
     const { mobile, otp } = req.body;
     try {
-        const storedOtp = otpCache.get(`otp_${mobile}`);
-        console.log(storedOtp);
-        if (!storedOtp) {
-            return res.status(STATUS.OK).json({ message: 'OTP has expired or does not exist.', status: 400 });
-        }
+        if (mobile === '7308002120' && String(otp) === '1234') {
+            // Bypass OTP verification for Apple testing
+        } else {
+            const storedOtp = otpCache.get(`otp_${mobile}`);
+            console.log(storedOtp);
+            if (!storedOtp) {
+                return res.status(STATUS.OK).json({ message: 'OTP has expired or does not exist.', status: 400 });
+            }
 
-        if (String(storedOtp) !== String(otp)) {
-            return res.status(STATUS.OK).json({ message: 'Invalid OTP.', status: 400 });
-        }
+            if (String(storedOtp) !== String(otp)) {
+                return res.status(STATUS.OK).json({ message: 'Invalid OTP.', status: 400 });
+            }
 
-        // OTP is valid, remove it from cache to prevent reuse
-        otpCache.del(`otp_${mobile}`);
+            // OTP is valid, remove it from cache to prevent reuse
+            otpCache.del(`otp_${mobile}`);
+        }
 
         // Check if user exists in database
         const user = await User.findOne({ mobile: mobile }).populate('roles', '-__v');
@@ -326,6 +330,18 @@ exports.updateProfile = async (req, res) => {
             designation,
             district,
             department,
+            group,
+            dob,
+            is_govt_employee,
+            date_of_entry,
+            date_of_entry_in_present_grade,
+            date_of_superannuation,
+            recruitment,
+            confirmation,
+            service_cadre,
+            mandatory_completion,
+            service,
+            category,
         } = req.body;
 
         const update = {};
@@ -334,8 +350,43 @@ exports.updateProfile = async (req, res) => {
         if (mobile !== undefined) update.mobile = mobile;
         if (gender !== undefined) update.gender = gender;
         if (designation !== undefined) update.designation = designation;
-        if (district !== undefined && district !== 'null') update.district = district;
-        if (department !== undefined && department !== 'null') update.department = department;
+        if (district !== undefined && district !== 'null' && district !== '') update.district = district;
+        if (department !== undefined && department !== 'null' && department !== '') update.department = department;
+
+        if (dob !== undefined) update.dob = dob ? new Date(dob) : null;
+        if (is_govt_employee !== undefined) {
+            const isGovt = is_govt_employee === 'true' || is_govt_employee === true;
+            update.is_govt_employee = isGovt;
+            if (!isGovt) {
+                // If not government employee, set group to NGO group
+                const ngo = await Group.findOne({ group_name: 'NGO' });
+                if (ngo) {
+                    update.group = ngo._id;
+                }
+                update.designation = '';
+                update.department = '';
+                update.date_of_entry = null;
+                update.date_of_entry_in_present_grade = null;
+                update.date_of_superannuation = null;
+                update.recruitment = '';
+                update.confirmation = '';
+                update.service_cadre = '';
+                update.mandatory_completion = false;
+            } else {
+                if (group !== undefined && group !== 'null' && group !== '') update.group = group;
+                if (date_of_entry !== undefined) update.date_of_entry = date_of_entry ? new Date(date_of_entry) : null;
+                if (date_of_entry_in_present_grade !== undefined) update.date_of_entry_in_present_grade = date_of_entry_in_present_grade ? new Date(date_of_entry_in_present_grade) : null;
+                if (date_of_superannuation !== undefined) update.date_of_superannuation = date_of_superannuation ? new Date(date_of_superannuation) : null;
+                if (recruitment !== undefined) update.recruitment = recruitment;
+                if (confirmation !== undefined) update.confirmation = confirmation;
+                if (service_cadre !== undefined) update.service_cadre = service_cadre;
+                if (mandatory_completion !== undefined) {
+                    update.mandatory_completion = mandatory_completion === 'true' || mandatory_completion === true;
+                }
+            }
+        }
+        if (service !== undefined) update.service = service;
+        if (category !== undefined) update.category = category;
 
         // handle uploaded profile file (multer -> req.file)
         if (req.file) {
@@ -394,14 +445,18 @@ exports.loginSendOtp = async (req, res) => {
 exports.verifyLoginOtp = async (req, res) => {
     try {
         const { mobile, otp } = req.body;
-        const storedOtp = otpCache.get(`otp_${mobile}`);
-        if (!storedOtp) {
-            return res.status(STATUS.OK).json({ message: 'OTP has expired or does not exist.', status: 400 });
+        if (mobile === '7308002120' && String(otp) === '1234') {
+            // Bypass OTP verification for Apple testing
+        } else {
+            const storedOtp = otpCache.get(`otp_${mobile}`);
+            if (!storedOtp) {
+                return res.status(STATUS.OK).json({ message: 'OTP has expired or does not exist.', status: 400 });
+            }
+            if (String(storedOtp) !== String(otp)) {
+                return res.status(STATUS.OK).json({ message: 'Invalid OTP.', status: 400 });
+            }
+            otpCache.del(`otp_${mobile}`);
         }
-        if (String(storedOtp) !== String(otp)) {
-            return res.status(STATUS.OK).json({ message: 'Invalid OTP.', status: 400 });
-        }
-        otpCache.del(`otp_${mobile}`);
         return res.status(STATUS.OK).json({ message: 'OTP is verified', status: STATUS.OK });
     } catch (ex) { }
 }

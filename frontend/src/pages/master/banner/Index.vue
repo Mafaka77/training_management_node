@@ -98,7 +98,7 @@
     <template #title>Delete Banner</template>
     <template #content>
       Are you sure you want to delete <span class="font-bold text-zinc-900 dark:text-zinc-100">{{ docToDelete?.title
-      }}</span>?
+        }}</span>?
       This action cannot be undone.
     </template>
     <template #confirm-text>Delete Permanently</template>

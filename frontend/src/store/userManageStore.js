@@ -135,16 +135,16 @@ export const useUserManageStore = defineStore('userManageStore', {
         async downloadTraineeReport(filters) {
             this.isTraineeLoading = true;
             try {
-                const response = await api.get('/trainee/report/export', { 
+                const response = await api.get('/trainee/report/export', {
                     params: filters,
                     responseType: 'blob'
                 });
-                
+
                 // Create blob link to download
                 const url = window.URL.createObjectURL(new Blob([response.data]));
                 const link = document.createElement('a');
                 link.href = url;
-                
+
                 // Use header filename if available, else fallback
                 const contentDisposition = response.headers['content-disposition'];
                 let fileName = 'trainee-report.csv';
@@ -158,7 +158,7 @@ export const useUserManageStore = defineStore('userManageStore', {
                 document.body.appendChild(link);
                 link.click();
                 link.remove();
-                
+
             } catch (error) {
                 console.error("Failed to download trainee report", error);
                 throw error;
@@ -173,7 +173,7 @@ export const useUserManageStore = defineStore('userManageStore', {
                     params: {
                         page: page,
                         search: search,
-                        limit: 3
+                        limit: 10
                     }
                 });
                 console.log(response.data);
