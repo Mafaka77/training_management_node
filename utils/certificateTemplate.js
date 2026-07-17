@@ -45,9 +45,9 @@ exports.generateCertificateHtml = (trainee, program, director, qrCodeDataUrl, op
     const sealBase64 = getBase64Image('frontend/src/assets/seal.png');
     const tDirectorSig = program?.t_director?.signature ? getBase64Image(program.t_director.signature) : '';
     const directorSig = director?.signature ? getBase64Image(director.signature) : '';
-    const landscapeBgBase64 = getBase64Image('frontend/src/assets/Green and Gold Corporate Recognition Certificate.png');
+    const landscapeBgBase64 = getBase64Image('frontend/src/assets/landsape.png');
     const nationalEmblemBase64 = getBase64Image('frontend/src/assets/National-Emblem.png');
-    const portraitBgBase64 = getBase64Image('frontend/src/assets/Green and Yellow Modern School Portrait Certificate.png');
+    const portraitBgBase64 = getBase64Image('frontend/src/assets/portrait.png');
 
     const contentPortrait = `
         <div class="relative z-20 w-full h-full flex flex-col items-center justify-start text-center bg-[#fefefe] overflow-hidden" style="font-family: ${baseFont}">
