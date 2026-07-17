@@ -26,12 +26,12 @@ const seedRoles = async () => {
         const adminRole = insertedRoles.find(role => role.name === "Admin");
 
         // Hash the password
-        const hashedPassword = await bcrypt.hash("password", 10);
+        const hashedPassword = await bcrypt.hash("atimz@2026", 10);
         await User.deleteMany(); // Clear existing users before creating a new one
         // Create the admin user
         const adminUser = new User({
             full_name: "Admin User",
-            email: "admin@email.com",
+            email: "atimizoram@gmail.com",
             password: hashedPassword, // Store hashed password
             mobile: 1234567890, // Example mobile number
             roles: [adminRole._id] // Assign Admin role

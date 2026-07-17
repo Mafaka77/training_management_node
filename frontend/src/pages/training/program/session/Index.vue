@@ -1,6 +1,7 @@
 <template>
   <div class="max-w-6xl mx-auto space-y-8 pb-12">
-    <nav class="flex p-3 bg-white/5 border border-slate-100 dark:border-slate-800 rounded-xl mb-6" aria-label="Breadcrumb">
+    <nav class="flex p-3 bg-white/5 border border-slate-100 dark:border-slate-800 rounded-xl mb-6"
+      aria-label="Breadcrumb">
       <div v-if="isLoading" class="flex items-center space-x-2 w-full animate-pulse">
         <div class="h-4 w-20 bg-slate-200 dark:bg-slate-700 rounded"></div>
         <div class="h-4 w-4 bg-slate-200 dark:bg-slate-700 rounded"></div>
@@ -27,10 +28,13 @@
     </nav>
 
     <!-- Program Details Hero EHMS Card -->
-    <section class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 hover:shadow-md transition-shadow relative overflow-hidden group">
+    <section
+      class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 hover:shadow-md transition-shadow relative overflow-hidden group">
       <!-- EHMS Decorative Circle -->
-      <div class="absolute -right-4 -top-4 w-32 h-32 bg-indigo-50 dark:bg-indigo-900/20 rounded-full group-hover:scale-150 transition-transform duration-500 ease-out z-0"></div>
-      
+      <div
+        class="absolute -right-4 -top-4 w-32 h-32 bg-indigo-50 dark:bg-indigo-900/20 rounded-full group-hover:scale-150 transition-transform duration-500 ease-out z-0">
+      </div>
+
       <div v-if="isLoading" class="relative z-10 flex flex-col md:flex-row items-center gap-6 animate-pulse">
         <div class="w-full md:w-48 h-32 bg-slate-200 dark:bg-slate-800 rounded-2xl"></div>
         <div class="flex-1 space-y-3">
@@ -40,7 +44,8 @@
           </div>
           <div class="h-8 w-40 bg-slate-100 dark:bg-slate-800 rounded-lg"></div>
         </div>
-        <div class="flex gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800/50">
+        <div
+          class="flex gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800/50">
           <div class="h-10 w-16 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
           <div class="h-10 w-16 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
         </div>
@@ -69,7 +74,8 @@
             </span>
           </div>
         </div>
-        <div class="flex gap-6 p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+        <div
+          class="flex gap-6 p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
           <div class="text-center px-2">
             <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-tighter">Capacity</p>
             <p class="text-xl font-bold text-slate-900 dark:text-slate-100">{{ form.t_capacity }}</p>
@@ -135,8 +141,13 @@
 
           <div v-if="Object.keys(groupedSessions).length === 0"
             class="py-16 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
-            <div class="mx-auto w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
-              <svg class="w-8 h-8 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            <div
+              class="mx-auto w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+              <svg class="w-8 h-8 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
             </div>
             <h3 class="text-slate-900 dark:text-slate-100 font-medium text-lg">No sessions scheduled</h3>
             <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Get started by creating your first session.</p>
@@ -184,7 +195,8 @@
                     <tr v-for="session in daySessions" :key="session._id"
                       class="group hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                       <td class="px-6 py-4">
-                        <span class="text-xs font-bold text-slate-400 dark:text-slate-500">{{ session.tc_session }}</span>
+                        <span class="text-xs font-bold text-slate-400 dark:text-slate-500">{{ session.tc_session
+                          }}</span>
                       </td>
                       <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -192,7 +204,8 @@
                         </div>
                       </td>
                       <td class="px-6 py-4">
-                        <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">{{ session.tc_topic }}</span>
+                        <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">{{ session.tc_topic
+                          }}</span>
                       </td>
                       <td class="px-6 py-4">
                         <div v-if="session.trainer" class="flex items-center gap-3">
@@ -200,7 +213,7 @@
                             class="w-7 h-7 rounded-full object-cover border border-slate-200 dark:border-slate-700 shadow-sm" />
                           <span class="text-sm font-medium text-slate-700 dark:text-slate-300">{{
                             session.trainer?.full_name
-                            }}</span>
+                          }}</span>
                         </div>
                         <span v-else class="text-sm italic text-slate-400 dark:text-slate-500">Unassigned</span>
                       </td>
@@ -210,8 +223,7 @@
                             @click="navigateToAttendance(session._id)"
                             class="p-2 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all active:scale-95 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-emerald-800"
                             title="View Attendance">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                              stroke-width="2">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                               <path
                                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
                                 stroke-linecap="round" stroke-linejoin="round" />
@@ -263,8 +275,10 @@
             </svg>
           </div>
           <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">Registry Locked</h2>
-          <p class="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-sm leading-relaxed"> Attendance tracking becomes
-            available once the training status moves to <span class="text-indigo-600 dark:text-indigo-400 font-semibold">Ongoing</span>. </p>
+          <p class="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-sm leading-relaxed"> Attendance tracking
+            becomes
+            available once the training status moves to <span
+              class="text-indigo-600 dark:text-indigo-400 font-semibold">Ongoing</span>. </p>
         </div>
         <div v-else>
           <AttendanceComponent :program-id="route.params.id" />
@@ -283,7 +297,8 @@
           </div>
           <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">Release Order Locked</h2>
           <p class="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-sm leading-relaxed"> Release Order becomes
-            available once the training status moves to <span class="text-indigo-600 dark:text-indigo-400 font-semibold">Completed</span>. </p>
+            available once the training status moves to <span
+              class="text-indigo-600 dark:text-indigo-400 font-semibold">Completed</span>. </p>
         </div>
         <div v-else>
           <ReleaseOrderComponent :program-id="route.params.id" />
@@ -303,8 +318,10 @@
           </div>
           <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">Certificate Generation Locked
           </h2>
-          <p class="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-sm leading-relaxed"> Certificate generation becomes
-            available once the training status moves to <span class="text-indigo-600 dark:text-indigo-400 font-semibold">Completed</span>. </p>
+          <p class="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-sm leading-relaxed"> Certificate generation
+            becomes
+            available once the training status moves to <span
+              class="text-indigo-600 dark:text-indigo-400 font-semibold">Completed</span>. </p>
         </div>
         <div v-else>
           <CertificateComponent :program-id="route.params.id" />
@@ -323,7 +340,8 @@
           <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">Evaluation Locked
           </h2>
           <p class="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-sm leading-relaxed"> Evaluation becomes
-            available once the training status moves to <span class="text-indigo-600 dark:text-indigo-400 font-semibold">Completed</span>. </p>
+            available once the training status moves to <span
+              class="text-indigo-600 dark:text-indigo-400 font-semibold">Completed</span>. </p>
         </div>
         <div v-else>
           <EvaluationComponent :program-id="route.params.id" />
@@ -352,7 +370,8 @@
               <BaseInput v-model="sessionForm.tc_topic" label="Topic" placeholder="e.g. Fundamental Logic" />
               <div class="grid grid-cols-2 gap-5">
                 <div class="col-span-2">
-                  <label class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Date</label>
+                  <label
+                    class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Date</label>
                   <input v-model="sessionForm.tc_date" type="date" required
                     class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-900 dark:text-slate-100" />
                 </div>
@@ -363,7 +382,8 @@
               <SearchSelect v-model="sessionForm.trainer" :options="trainers" label="Trainer"
                 placeholder="Search staff..." />
 
-              <div class="flex items-center justify-end gap-3 pt-5 mt-2 border-t border-slate-100 dark:border-slate-800">
+              <div
+                class="flex items-center justify-end gap-3 pt-5 mt-2 border-t border-slate-100 dark:border-slate-800">
                 <button type="button" @click="closeModal"
                   class="px-5 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all">Cancel</button>
                 <button type="submit" :disabled="isSubmitting"
@@ -395,6 +415,7 @@ import EvaluationComponent from '../../../../components/trainingTabs/EvaluationC
 import Materials from '../../../../components/trainingTabs/Materials.vue';
 import ReleaseOrderComponent from "../../../../components/trainingTabs/ReleaseOrderComponent.vue";
 import BaseInput from '../../../../components/ui/BaseInput.vue';
+import DeleteDialog from '../../../../components/ui/DeleteDialog.vue';
 import SearchSelect from '../../../../components/ui/SearchSelect.vue';
 import { useAlertStore } from '../../../../store/alertStore';
 import { useCertificateStore } from '../../../../store/certificateStore';
@@ -576,7 +597,7 @@ const deleteSession = async (data) => {
   selectionItem.value = data;
   showDeleteModal.value = true;
   sessionForm.id = data._id;
-  sessionForm.t_program = data.t_program._id;
+  sessionForm.t_program = data.t_program?._id || data.t_program || route.params.id;
 
 };
 const onConfirmDelete = async () => {

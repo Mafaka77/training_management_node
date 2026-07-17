@@ -86,14 +86,16 @@
       <!-- Empty State -->
       <div v-else-if="programs.length === 0"
         class="flex flex-col items-center justify-center py-24 bg-slate-50 dark:bg-slate-900/20 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800">
-        <div class="p-5 rounded-full bg-white dark:bg-slate-800 mb-4 text-slate-400 shadow-sm border border-slate-100 dark:border-slate-700">
+        <div
+          class="p-5 rounded-full bg-white dark:bg-slate-800 mb-4 text-slate-400 shadow-sm border border-slate-100 dark:border-slate-700">
           <svg class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
               d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
           </svg>
         </div>
         <h3 class="text-slate-900 dark:text-slate-100 font-bold text-lg">No programs found</h3>
-        <p class="text-slate-500 text-sm mt-1 text-center max-w-xs">Try adjusting your filters or create a new program to
+        <p class="text-slate-500 text-sm mt-1 text-center max-w-xs">Try adjusting your filters or create a new program
+          to
           get started.</p>
       </div>
 
@@ -128,7 +130,8 @@
                 </svg>
                 {{ formatDateRange(program.t_start_date, program.t_end_date) }}
               </div>
-              <div v-if="program.t_duration" class="bg-indigo-600/90 backdrop-blur-sm border border-indigo-500/50 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold">
+              <div v-if="program.t_duration"
+                class="bg-indigo-600/90 backdrop-blur-sm border border-indigo-500/50 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold">
                 {{ program.t_duration }} Days
               </div>
             </div>
@@ -144,7 +147,8 @@
                 </span>
                 <span v-else class="text-slate-400 uppercase tracking-wider">General</span>
 
-                <span class="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 font-semibold bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded-md border border-slate-100 dark:border-slate-700">
+                <span
+                  class="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 font-semibold bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded-md border border-slate-100 dark:border-slate-700">
                   <svg class="w-3.5 h-3.5 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -160,12 +164,15 @@
 
               <!-- Director & Coordinator info if available -->
               <div v-if="program.t_director" class="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                Course Director : <span class="text-slate-700 dark:text-slate-200 font-semibold">{{ program.t_director.full_name || 'Assigned' }}</span>
+                Course Director : <span class="text-slate-700 dark:text-slate-200 font-semibold">{{
+                  program.t_director.full_name || 'Assigned' }}</span>
               </div>
 
               <!-- Eligibility groups info if available -->
-              <div v-if="program.t_eligibility && program.t_eligibility.length" class="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                Group : <span class="text-slate-700 dark:text-slate-200 font-semibold">{{ program.t_eligibility.map(g => g.group_name).join(', ') }}</span>
+              <div v-if="program.t_eligibility && program.t_eligibility.length"
+                class="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                Group : <span class="text-slate-700 dark:text-slate-200 font-semibold">{{program.t_eligibility.map(g =>
+                  g.group_name).join(', ') }}</span>
               </div>
             </div>
 
@@ -227,15 +234,30 @@
         </ul>
       </nav>
     </div>
+
+    <!-- Delete Modal -->
+    <DeleteDialog 
+      :show="showDeleteModal" 
+      :loading="isDeleting" 
+      title="Delete Training Program"
+      :message="`Are you sure you want to delete '${selectedProgram?.t_name}'?`" 
+      confirmText="Yes, Delete Program"
+      @close="showDeleteModal = false" 
+      @confirm="onConfirmDelete" 
+    />
   </div>
 </template>
 
 <script setup>
 import debounce from "lodash.debounce";
 import { storeToRefs } from "pinia";
-import { computed, onMounted, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
+import DeleteDialog from '../../../components/ui/DeleteDialog.vue';
+import { useAlertStore } from '../../../store/alertStore.js';
 import { useAuthStore } from "../../../store/authStore.js";
 import { useTrainingStore } from "../../../store/trainingStore.js";
+
+const alert = useAlertStore();
 
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
@@ -304,7 +326,34 @@ onMounted(() => store.fetchTrainings())
 
 const userRole = computed(() => authStore.roles || 'Guest')
 
+const showDeleteModal = ref(false);
+const isDeleting = ref(false);
+const selectedProgram = ref(null);
+
 const handleDelete = (program) => {
-  console.log("Delete triggered for", program.t_name)
+  selectedProgram.value = program;
+  showDeleteModal.value = true;
+}
+
+const onConfirmDelete = async () => {
+  if (!selectedProgram.value) return;
+  
+  isDeleting.value = true;
+  try {
+    const response = await store.deleteProgram(selectedProgram.value._id);
+    if (response.success) {
+      alert.success(response.message);
+      showDeleteModal.value = false;
+      selectedProgram.value = null;
+      // Refresh the list
+      await store.fetchTrainings();
+    } else {
+      alert.error(response.message);
+    }
+  } catch (error) {
+    alert.error(error.message || 'An error occurred during deletion.');
+  } finally {
+    isDeleting.value = false;
+  }
 }
 </script>

@@ -131,6 +131,18 @@ export const useTrainingStore = defineStore('training', {
                 console.error('Error fetching directors:', error);
             }
         },
+        async deleteProgram(id) {
+            try {
+                const response = await api.delete(`/program/${id}`);
+                const statusCode = response.status === 200 || response.data.status === 200;
+                if (statusCode) {
+                    return { success: true, message: response.data.message };
+                }
+                return { success: false, message: response.data.message };
+            } catch (e) {
+                return { success: false, message: e.message || 'Error Occurred' };
+            }
+        },
     },
 });
 

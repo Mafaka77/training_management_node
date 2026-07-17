@@ -95,7 +95,7 @@ export const useSessionStore = defineStore('session', {
                 if (statusCode) {
                     return { success: true, message: response.data.message }
                 }
-                return { success: false, nessage: response.data.message }
+                return { success: false, message: response.data.message }
             } catch (ex) {
                 return { success: false, message: ex.message }
             }

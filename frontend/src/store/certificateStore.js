@@ -180,13 +180,14 @@ export const useCertificateStore = defineStore('certificate', {
             }
         },
         async batchGenerateCertificates(trainingId, options) {
+            console.log(options);
             this.isLoading = true;
             try {
                 const response = await api.post(`/certificate/batch-generate/${trainingId}`, { options });
                 if (response.status === 200 && response.data.status === 200) {
                     return { success: true, message: response.data.message }
                 }
-                return { success: false, message: response.data.message || 'Batch generation failed' }
+                return { success: false, message: response.data.message || 'Failed to generate certificates' }
             } catch (ex) {
                 return { success: false, message: ex.response?.data?.message || 'Server error' }
             } finally {

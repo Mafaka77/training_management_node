@@ -217,7 +217,7 @@ exports.deleteTrainingProgram = async (req, res) => {
         if (!trainingProgram) {
             return res.status(STATUS.OK).json({ message: "Training Program not found", status: STATUS.NOT_FOUND });
         }
-        await TrainingCourse.deleteMany(programId);
+        await TrainingCourse.deleteMany({ t_program: programId });
         await TrainingProgram.findByIdAndDelete(programId);
         return res.status(STATUS.OK).json({ message: "Training Program deleted successfully", status: STATUS.OK });
     } catch (e) {
@@ -276,7 +276,7 @@ exports.updateStatus = async (req, res) => {
                 }
 
                 const traineeIds = trainees.map(t => t._id);
-                
+
                 // Send push notifications in the background
                 sendPushToMultipleUsers(traineeIds, {
                     title: "New Training Upcoming",

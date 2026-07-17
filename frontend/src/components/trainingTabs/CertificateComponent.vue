@@ -9,7 +9,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                     </svg>
-                    Batch Generate (>75%)
+                    Batch Generate
                 </button>
             </div>
 
@@ -52,12 +52,12 @@
             <!-- STAGING -->
             <!-- <form ref="eMudhraForm" method="post" action="https://demogateway-core.emsigner.com/Secure/index"
                 class="hidden"> -->
-            <form ref="eMudhraForm" method="post" action="https://gateway-core.emsigner.com/Secure/index"
+            <!-- <form ref="eMudhraForm" method="post" action="https://gateway-core.emsigner.com/Secure/index"
                 class="hidden">
                 <input type="hidden" name="Parameter1" :value="store.params?.parameter1" />
                 <input type="hidden" name="Parameter2" :value="store.params?.parameter2" />
                 <input type="hidden" name="Parameter3" :value="store.params?.parameter3" />
-            </form>
+            </form> -->
 
             <div v-if="store.certificates?.length > 0" class="space-y-4">
                 <div v-for="certificate in store.certificates" :key="certificate.id || certificate._id"
@@ -110,10 +110,14 @@
                             </svg>
                             View
                         </a>
-                        <div v-else class="flex items-center gap-2 px-4 py-2 text-amber-600 bg-amber-50 rounded-xl text-sm font-semibold">
+                        <div v-else
+                            class="flex items-center gap-2 px-4 py-2 text-amber-600 bg-amber-50 rounded-xl text-sm font-semibold">
                             <svg class="animate-spin w-4 h-4" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
                             </svg>
                             Generating...
                         </div>
@@ -237,46 +241,22 @@
 
                     <div class="space-y-4 mb-6">
                         <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Base
-                                Font</label>
-                            <select v-model="batchOptions.baseFont"
-                                class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-                                <option value="'Times New Roman', serif">Times New Roman</option>
-                                <option value="'Georgia', serif">Georgia</option>
-                                <option value="'Arial', sans-serif">Arial</option>
-                                <option value="'Montserrat', sans-serif">Montserrat</option>
-                            </select>
-                        </div>
-                        <div>
                             <label
-                                class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Decorative
-                                Font</label>
-                            <select v-model="batchOptions.cursiveFont"
+                                class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Attendance
+                                Percentage</label>
+                            <select v-model="batchOptions.attendancePercentage"
                                 class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-                                <option value="'Satisfy', cursive">Satisfy</option>
-                                <option value="'Pinyon Script', cursive">Pinyon Script</option>
-                                <option value="'Great Vibes', cursive">Great Vibes</option>
-                                <option value="'Playfair Display', serif">Playfair Display</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Color
-                                Theme</label>
-                            <select v-model="batchOptions.themeColor"
-                                class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-                                <option value="#2563eb">Royal Blue</option>
-                                <option value="#059669">Emerald Green</option>
-                                <option value="#dc2626">Crimson Red</option>
-                                <option value="#4f46e5">Indigo</option>
-                                <option value="#ea580c">Burnt Orange</option>
-                                <option value="#d97706">Premium Gold</option>
-                                <option value="#1f2937">Classic Charcoal</option>
+                                <option :value="70">70%</option>
+                                <option :value="80">80%</option>
+                                <option :value="85">85%</option>
+                                <option :value="90">90%</option>
                             </select>
                         </div>
                     </div>
 
                     <p class="text-sm text-slate-500 mb-6 bg-blue-50 p-3 rounded-xl border border-blue-100">
-                        This will check attendance for all trainees. Anyone with <strong>75% or higher</strong>
+                        This will check attendance for all trainees. Anyone with <strong>{{
+                            batchOptions.attendancePercentage }}% or higher</strong>
                         attendance
                         who doesn't already have a certificate will be added to the background queue.
                     </p>
@@ -322,9 +302,7 @@ const eMudhraForm = ref(null);
 const showBatchModal = ref(false);
 const isGenerating = ref(false);
 const batchOptions = ref({
-    baseFont: "'Times New Roman', serif",
-    cursiveFont: "'Satisfy', cursive",
-    themeColor: "#2563eb"
+    attendancePercentage: 70
 });
 
 // Core fetch function
@@ -337,9 +315,9 @@ const loadData = async () => {
 
 const checkPolling = () => {
     if (pollTimer) clearTimeout(pollTimer);
-    
+
     // Check if any certificates are still generating
-    const needsPolling = store.certificates.some(c => c.status === 'processing' || !c.certificate_url);
+    const needsPolling = store.certificates.some(c => c.status === 'processing');
     if (needsPolling) {
         pollTimer = setTimeout(() => {
             loadData();
@@ -393,6 +371,7 @@ const confirmDelete = async (certificate) => {
 }
 
 const handleBatchGenerate = async () => {
+    console.log(batchOptions.value)
     isGenerating.value = true;
     try {
         const res = await store.batchGenerateCertificates(trainingId, batchOptions.value);

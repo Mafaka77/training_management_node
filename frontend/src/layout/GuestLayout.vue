@@ -5,9 +5,9 @@
         <router-link to="/" class="flex items-center gap-3 group">
           <div
             class="w-8 h-8 rounded-lg flex items-center justify-center group-hover:shadow-[0_0_15px_rgba(37,99,235,0.4)] transition-all">
-            <img src="../assets/ati_logo_2.png" alt="ATI Logo" />
+            <img src="../assets/ati_gom.png" alt="ATI Logo" />
           </div>
-          <span class="text-lg font-medium tracking-tight uppercase">ATI GoM <span
+          <span class="text-lg font-medium tracking-tight ">ATI - GoM <span
               class="text-zinc-500 font-light"></span></span>
         </router-link>
 

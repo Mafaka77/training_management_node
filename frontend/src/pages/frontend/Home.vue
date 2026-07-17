@@ -71,10 +71,10 @@
             <!-- Main Campus Card -->
             <div class="relative bg-zinc-900 border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
               <!-- Render Banner Image, fallback to remote if missing -->
-              <img src="../../assets/ati_banner.jpg"
+              <img
+                src="https://ati.mizoram.gov.in/uploads/attachments/2026/06/24550fb8066171d64a946c86c76e4528/front-final-banner.jpeg"
                 class="w-full h-64 object-cover object-center group-hover:scale-105 transition-transform duration-700"
-                alt="ATI Mizoram Campus"
-                @error="$event.target.src = 'https://ati.mizoram.gov.in/uploads/attachments/2025/08/ca901cffabd9f078f3150ffb8e9dc406/ati-1.jpg'" />
+                alt="ATI Mizoram Campus" />
               <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent"></div>
 
               <!-- Floating Location Details -->

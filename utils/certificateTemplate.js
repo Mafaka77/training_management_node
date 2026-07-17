@@ -45,166 +45,202 @@ exports.generateCertificateHtml = (trainee, program, director, qrCodeDataUrl, op
     const sealBase64 = getBase64Image('frontend/src/assets/seal.png');
     const tDirectorSig = program?.t_director?.signature ? getBase64Image(program.t_director.signature) : '';
     const directorSig = director?.signature ? getBase64Image(director.signature) : '';
+    const landscapeBgBase64 = getBase64Image('frontend/src/assets/Green and Gold Corporate Recognition Certificate.png');
+    const nationalEmblemBase64 = getBase64Image('frontend/src/assets/National-Emblem.png');
+    const portraitBgBase64 = getBase64Image('frontend/src/assets/Green and Yellow Modern School Portrait Certificate.png');
 
     const contentPortrait = `
-        <div class="relative w-full h-full bg-white overflow-hidden" style="font-family: ${baseFont}">
+        <div class="relative z-20 w-full h-full flex flex-col items-center justify-start text-center bg-[#fefefe] overflow-hidden" style="font-family: ${baseFont}">
             
-            <!-- Inner Gold Border -->
-            <div class="absolute inset-[15mm] border-[2px] border-[#E4B535] z-10 pointer-events-none"></div>
-
-            <!-- Top Right Accents -->
-            <div class="absolute top-0 right-0 w-0 h-0 border-t-[200px] border-l-[500px] border-t-[#E4B535] border-l-transparent z-20 pointer-events-none"></div>
-            <div class="absolute top-0 right-0 w-0 h-0 border-t-[170px] border-l-[460px] border-t-[#2B3356] border-l-transparent z-20 pointer-events-none"></div>
-
-            <!-- Bottom Left Accents -->
-            <div class="absolute bottom-0 left-0 w-0 h-0 border-b-[180px] border-r-[400px] border-b-[#E4B535] border-r-transparent z-20 pointer-events-none"></div>
-            <div class="absolute bottom-0 left-0 w-0 h-0 border-b-[150px] border-r-[360px] border-b-[#2B3356] border-r-transparent z-20 pointer-events-none"></div>
-
-            <!-- White Logo Box in Top Right (replacing the T logo) -->
-            <div class="absolute top-[18mm] right-[18mm] w-14 h-14 bg-white rounded-lg z-30 flex items-center justify-center shadow-md">
-                <img src="${atiLogoBase64}" alt="ATI Logo" class="w-10 h-10 object-contain mix-blend-multiply" />
+            <!-- Background Image -->
+            <div class="absolute inset-0 z-0 pointer-events-none">
+                <img src="${portraitBgBase64}" class="w-full h-full object-cover" />
             </div>
 
-            <!-- Main Content Container -->
-            <div class="relative z-30 w-full h-full flex flex-col items-center justify-center pt-[45mm] pb-[35mm] px-[35mm] text-center">
+            <!-- Content Container -->
+            <div class="relative z-10 w-full px-16 pt-20 pb-[180px] flex flex-col h-full items-center justify-between">
                 
-                <div class="mb-6 flex flex-col items-center">
-                    <h2 class="text-base font-bold uppercase tracking-[0.2em] text-gray-800">Administrative Training Institute</h2>
-                    <p class="text-[10px] font-semibold tracking-[0.3em] mt-1 text-gray-500">GOVERNMENT OF MIZORAM</p>
-                </div>
-                
-                <div class="mb-8">
-                    <h1 class="text-6xl font-serif font-bold text-black tracking-widest uppercase">Certificate</h1>
-                    <h2 class="text-2xl font-light text-gray-600 tracking-[0.4em] uppercase mt-2">Of Completion</h2>
+                <!-- Top Row: QR Code, National Emblem, ATI Logo -->
+                <div class="w-full flex justify-between items-start mb-6">
+                    <!-- Left: QR Code -->
+                    <div class="flex flex-col items-center">
+                        <div class="bg-white p-1">
+                            <img src="${qrCodeDataUrl}" alt="QR" class="w-14 h-14" />
+                        </div>
+                    </div>
+                    
+                    <!-- Center: National Emblem -->
+                    <div class="flex flex-col items-center pt-2">
+                        <img src="${nationalEmblemBase64}" class="w-16 h-16 object-contain drop-shadow-sm mix-blend-multiply" />
+                    </div>
+
+                    <!-- Right: ATI Logo -->
+                    <div class="flex flex-col items-center">
+                        <img src="${atiLogoBase64}" class="w-16 h-16 object-contain drop-shadow-sm" />
+                    </div>
                 </div>
 
-                <p class="text-lg text-gray-800 mb-5 font-medium">This is proudly presented to</p>
+                <!-- Header -->
+                <div class="flex flex-col items-center w-full">
+                    <h1 class="text-[64px] font-bold tracking-[0.1em] text-[#7a141c] uppercase leading-none mt-4" style="font-family: 'Times New Roman', serif;">Certificate</h1>
+                    <h2 class="text-[20px] font-bold tracking-[0.2em] text-[#7a141c] uppercase mt-2">Of Completion</h2>
+                </div>
 
-                <div class="w-full max-w-md border-b border-black pb-2 mb-5 mx-auto text-center">
-                    <h2 class="text-6xl" style="color: #2B3356; font-family: ${cursiveFont}">
+                <!-- Text block -->
+                <div class="flex flex-col items-center w-full mt-8">
+                    <p class="text-[14px] text-[#333] tracking-[0.15em] uppercase font-medium mb-6">
+                        This certificate is proudly presented to
+                    </p>
+                    
+                    <!-- Trainee Name -->
+                    <h2 class="text-[64px] text-[#cca352] mb-1 px-8 leading-none" style="font-family: 'Great Vibes', cursive; text-shadow: 1px 1px 2px rgba(0,0,0,0.05);">
                         ${trainee?.full_name || 'Trainee Name'}
                     </h2>
+                    
+                    <!-- Line below name -->
+                    <div class="w-full max-w-[80%] h-[1px] bg-[#cca352] mb-6"></div>
+
+                    <!-- Designation -->
+                    <p class="text-[15px] font-bold text-[#7a141c] mb-4 uppercase tracking-wider">
+                        ${trainee?.designation || 'Designation'}
+                    </p>
+                    <p class="text-[15px] font-bold text-[#7a141c] mb-4 uppercase tracking-wider">
+                        ${trainee?.department || 'Department'}
+                    </p>
+                    <!-- Body Text -->
+                    <p class="text-[16px] text-gray-800 leading-relaxed max-w-lg text-center px-4 font-medium">
+                        For successfully completing the mandatory training program on <br/>
+                        <span class="font-bold text-[20px] text-[#2b847f] leading-loose block mt-3">"${program?.t_name || 'Program Name'}"</span>
+                    </p>
+                    <p class="text-[14px] text-gray-700 mt-5 font-medium">
+                        Conducted from ${formatWithOrdinal(program?.t_start_date)} to ${formatWithOrdinal(program?.t_end_date)}
+                    </p>
                 </div>
 
-                <p class="text-base font-semibold text-gray-700 mb-8 uppercase tracking-wide">
-                    ${trainee?.designation || 'Designation'}, ${trainee?.department || 'Department'}
-                </p>
-
-                <p class="text-base text-gray-800 mb-2 max-w-sm leading-relaxed">
-                    For successfully completing the mandatory training program on
-                </p>
-                
-                <h3 class="text-2xl font-bold text-[#2B3356] mb-4 max-w-md mx-auto">
-                    "${program?.t_name || 'Program Name'}"
-                </h3>
-
-                <p class="text-sm text-gray-700 mb-auto">
-                    Conducted from <span class="font-bold text-gray-900">${formatWithOrdinal(program?.t_start_date)}</span> to <span class="font-bold text-gray-900">${formatWithOrdinal(program?.t_end_date)}</span>
-                </p>
-
-                <!-- Signatures Area -->
-                <div class="flex justify-between items-end w-full mt-10 px-2">
+                <!-- Footer (Signatures, Seal) -->
+                <div class="w-full flex justify-between items-end px-4 mt-auto mb-2">
+                    
+                    <!-- Left Signature -->
                     <div class="flex flex-col items-center w-[30%]">
-                        ${tDirectorSig ? `<img src="${tDirectorSig}" class="w-24 h-12 object-contain mix-blend-multiply mb-1" />` : '<div class="h-12 mb-1"></div>'}
-                        <div class="w-full border-t border-black pt-1">
-                            <p class="font-bold text-[11px] uppercase text-black tracking-wider whitespace-nowrap">${program?.t_director?.full_name || 'Course Director Name'}</p>
-                            <p class="text-[9px] text-gray-600 uppercase mt-0.5 tracking-widest">Course Director</p>
+                        ${tDirectorSig ? `<img src="${tDirectorSig}" class="w-36 h-16 object-contain relative z-50 mb-1" />` : '<div class="h-16 mb-1"></div>'}
+                        <div class="w-full border-t-[1.5px] border-[#cca352] pt-2 text-center">
+                            <p class="font-bold text-[10px] text-black tracking-widest uppercase">${program?.t_director?.full_name || 'Course Director Name'}</p>
+                            ${program?.t_director?.designation ? `<p class="font-bold text-[8px] text-gray-700 uppercase tracking-widest mt-0.5">${program?.t_director?.designation}</p>` : ''}
+                            <p class="text-[8px] font-bold text-[#7a141c] mt-1 uppercase tracking-wider">Course Director</p>
                         </div>
                     </div>
-                    <div class="flex justify-center w-[30%] pb-1">
-                        <img src="${sealBase64}" class="w-24 h-24 object-contain opacity-90 drop-shadow-sm mix-blend-multiply" />
-                    </div>
+
+                    <!-- Right Signature -->
                     <div class="flex flex-col items-center w-[30%]">
-                        ${directorSig ? `<img src="${directorSig}" class="w-24 h-12 object-contain mix-blend-multiply mb-1" />` : '<div class="h-12 mb-1"></div>'}
-                        <div class="w-full border-t border-black pt-1">
-                            <p class="font-bold text-[11px] uppercase text-black tracking-wider whitespace-nowrap">${director?.full_name || 'Director Name'}</p>
-                            <p class="text-[9px] text-gray-600 uppercase mt-0.5 tracking-widest">${director?.designation || 'Director, ATI'}</p>
+                        ${directorSig ? `<img src="${directorSig}" class="w-36 h-16 object-contain relative z-50 mb-1" />` : '<div class="h-16 mb-1"></div>'}
+                        <div class="w-full border-t-[1.5px] border-[#cca352] pt-2 text-center">
+                            <p class="font-bold text-[10px] text-black tracking-widest uppercase">${director?.full_name || 'Director Name'}</p>
+                            <p class="text-[8px] font-bold text-[#7a141c] mt-1 uppercase tracking-wider">Director, ATI</p>
                         </div>
                     </div>
+                    
                 </div>
-
             </div>
-
-            <!-- QR Code -->
-            <div class="absolute bottom-[20mm] right-[20mm] w-16 h-16 z-30">
-                <img src="${qrCodeDataUrl}" alt="QR Verification" class="w-full h-full mix-blend-multiply" />
-            </div>
-            
         </div>
     `;
 
     const contentLandscape = `
-        <div class="relative z-20 w-full h-full flex flex-col items-center justify-center text-center bg-[#FAFBFF] overflow-hidden" style="font-family: ${baseFont}">
+        <div class="relative z-20 w-full h-full flex flex-col items-center justify-start text-center bg-[#fefefe] overflow-hidden" style="font-family: ${baseFont}">
             
-            <!-- Geometric Background Shapes -->
+            <!-- Background Image -->
             <div class="absolute inset-0 z-0 pointer-events-none">
-                <!-- Top left pale triangle -->
-                <div class="absolute top-0 left-0 w-0 h-0 border-t-[250px] border-r-[100px] border-t-[#E6EAF5] border-r-transparent"></div>
-                <!-- Top right pale triangle -->
-                <div class="absolute top-0 right-0 w-0 h-0 border-t-[450px] border-l-[180px] border-t-[#DCE1F2] border-l-transparent"></div>
-                <!-- Bottom left accent 1 (pale) -->
-                <div class="absolute bottom-0 left-0 w-0 h-0 border-b-[600px] border-r-[180px] border-b-[#E6EAF5] border-r-transparent"></div>
-                <!-- Bottom left accent 2 (purple) -->
-                <div class="absolute bottom-0 left-0 w-0 h-0 border-b-[450px] border-r-[120px] border-b-[#848CB8] border-r-transparent"></div>
-                <!-- Bottom strip (purple) -->
-                <div class="absolute bottom-[-120px] left-[-100px] w-[150%] h-[160px] bg-[#848CB8] transform rotate-[-3deg]"></div>
+                <img src="${landscapeBgBase64}" class="w-full h-full object-cover" />
             </div>
 
             <!-- Content Container -->
-            <div class="relative z-20 flex flex-col items-center justify-center w-full max-w-5xl px-12 pt-8 pb-12">
+            <div class="relative z-10 w-full px-28 pt-12 pb-[70px] flex flex-col h-full items-center justify-between">
                 
-                <div class="flex items-center gap-4 mb-8">
-                    <img src="${atiLogoBase64}" alt="ATI Logo" class="w-12 h-12 drop-shadow-sm mix-blend-multiply">
-                    <h2 class="text-2xl font-bold text-black tracking-wide">Administrative Training Institute</h2>
-                </div>
-                
-                <h1 class="text-5xl uppercase tracking-[0.15em] font-serif mb-8" style="color: #7A83B4;">Certificate of Participation</h1>
-                <p class="text-lg text-gray-600 mb-6 font-medium tracking-widest uppercase">This certifies that</p>
-                
-                <h2 class="text-5xl font-black text-black mb-4">
-                    ${trainee?.full_name || 'Trainee Name'}
-                </h2>
-                
-                <p class="text-base font-semibold text-gray-700 mb-6">
-                    ${trainee?.designation || 'Designation'}, ${trainee?.department || 'Department'}
-                </p>
-                
-                <p class="text-lg text-gray-700 leading-relaxed max-w-3xl mx-auto mb-2">
-                    has actively participated in the training program entitled
-                </p>
-                <h3 class="text-2xl font-bold text-[#848CB8] mb-4">
-                    "${program?.t_name || 'Program Name'}"
-                </h3>
-                <p class="text-sm font-medium text-gray-600 mb-10">
-                    Held from <span class="font-bold text-gray-800">${formatWithOrdinal(program?.t_start_date)}</span> to <span class="font-bold text-gray-800">${formatWithOrdinal(program?.t_end_date)}</span> at ATI Aizawl.
-                </p>
-
-                <div class="w-full flex justify-between items-end mt-4 px-16">
+                <!-- Top Row: ATI Logo, National Emblem, QR Code -->
+                <div class="w-full flex justify-between items-start mb-2">
+                    <!-- Left: ATI Logo -->
                     <div class="flex flex-col items-center">
-                        ${tDirectorSig ? `<img src="${tDirectorSig}" class="w-32 h-12 object-contain mix-blend-multiply mb-1" />` : '<div class="h-12 mb-1"></div>'}
-                        <div class="w-56 border-t border-gray-500 pt-2">
-                            <p class="font-bold text-xs text-black uppercase tracking-wider">${program?.t_director?.full_name || 'Course Director Name'}</p>
-                            <p class="text-[10px] text-gray-600 uppercase tracking-widest mt-1">Course Director</p>
-                        </div>
+                        <img src="${atiLogoBase64}" class="w-16 h-16 object-contain drop-shadow-sm" />
+                    </div>
+                    
+                    <!-- Center: National Emblem -->
+                    <div class="flex flex-col items-center pt-2">
+                        <img src="${nationalEmblemBase64}" class="w-16 h-16 object-contain drop-shadow-sm mix-blend-multiply" />
                     </div>
 
-                    <div class="flex justify-center pb-2">
-                        <img src="${sealBase64}" class="w-24 h-24 object-contain mix-blend-multiply opacity-80 drop-shadow-sm" />
-                    </div>
-
+                    <!-- Right: QR Code -->
                     <div class="flex flex-col items-center">
-                        ${directorSig ? `<img src="${directorSig}" class="w-32 h-12 object-contain mix-blend-multiply mb-1" />` : '<div class="h-12 mb-1"></div>'}
-                        <div class="w-56 border-t border-gray-500 pt-2">
-                            <p class="font-bold text-xs text-black uppercase tracking-wider">${director?.full_name || 'Director Name'}</p>
-                            <p class="text-[10px] text-gray-600 uppercase tracking-widest mt-1">${director?.designation || 'Director, ATI'}</p>
+                        <div class="bg-white p-1 ">
+                            <img src="${qrCodeDataUrl}" alt="QR" class="w-14 h-14" />
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- QR Code -->
-            <div class="absolute top-[20mm] right-[25mm] w-20 h-20 z-30">
-                <img src="${qrCodeDataUrl}" alt="QR Verification" class="w-full h-full mix-blend-multiply" />
+                <!-- Header -->
+                <div class="flex flex-col items-center w-full">
+                    <h1 class="text-[52px] font-bold tracking-[0.1em] text-[#7a141c] uppercase leading-none" style="font-family: 'Times New Roman', serif;">Certificate</h1>
+                    <h2 class="text-[20px] font-bold tracking-[0.2em] text-[#7a141c] uppercase mt-2">Of Participation</h2>
+                </div>
+
+                <!-- Text block -->
+                <div class="flex flex-col items-center w-full mt-4">
+                    <p class="text-[12px] text-[#333] tracking-[0.15em] uppercase font-medium mb-3">
+                        This certificate is presented to
+                    </p>
+                    
+                    <!-- Trainee Name -->
+                    <h2 class="text-[56px] text-[#cca352] mb-1 px-12 leading-none" style="font-family: 'Great Vibes', cursive; text-shadow: 1px 1px 2px rgba(0,0,0,0.05);">
+                        ${trainee?.full_name || 'Trainee Name'}
+                    </h2>
+                    
+                    <!-- Line below name -->
+                    <div class="w-full max-w-2xl h-[1px] bg-[#cca352] mb-4"></div>
+
+                    <!-- Designation -->
+                    <p class="text-[13px] font-bold text-[#7a141c] mb-2 uppercase tracking-wider">
+                        ${trainee?.designation || 'Designation'}
+                    </p>
+                    <p class="text-[13px] font-bold text-[#7a141c] mb-2 uppercase tracking-wider">
+                        ${trainee?.department || 'Department'}
+                    </p>
+
+                    <!-- Body Text -->
+                    <p class="text-[15px] text-gray-800 leading-relaxed max-w-3xl text-center px-8 font-medium">
+                        Awarded to recognize achievement for successfully completing the training program on <br/>
+                        <span class="font-bold">"${program?.t_name || 'Program Name'}"</span>
+                    </p>
+                    <p class="text-[13px] text-gray-700 mt-1 font-medium">
+                        Conducted from ${formatWithOrdinal(program?.t_start_date)} to ${formatWithOrdinal(program?.t_end_date)}
+                    </p>
+                </div>
+
+                <!-- Footer (Signatures, Seal) -->
+                <div class="w-full flex justify-between items-end px-12 mt-auto mb-6">
+                    
+                    <!-- Left Signature -->
+                    <div class="flex flex-col items-center w-48">
+                        ${tDirectorSig ? `<img src="${tDirectorSig}" class="w-40 h-20 object-contain relative z-50 mb-1" />` : '<div class="h-20 mb-1"></div>'}
+                        <div class="w-full border-t-[1.5px] border-[#cca352] pt-2 text-center">
+                            <p class="font-bold text-[11px] text-black tracking-widest uppercase">${program?.t_director?.full_name || 'Course Director Name'}</p>
+                            ${program?.t_director?.designation ? `<p class="font-bold text-[9px] text-gray-700 uppercase tracking-widest mt-0.5">${program?.t_director?.designation}</p>` : ''}
+                            <p class="text-[9px] font-bold text-[#7a141c] mt-1 uppercase tracking-wider">Course Director</p>
+                        </div>
+                    </div>
+
+                    <!-- Center Seal -->
+                    <div class="flex flex-col items-center">
+                        <img src="${sealBase64}" class="w-20 h-20 object-contain drop-shadow-md relative z-50" />
+                    </div>
+
+                    <!-- Right Signature -->
+                    <div class="flex flex-col items-center w-48">
+                        ${directorSig ? `<img src="${directorSig}" class="w-40 h-20 object-contain relative z-50 mb-1" />` : '<div class="h-20 mb-1"></div>'}
+                        <div class="w-full border-t-[1.5px] border-[#cca352] pt-2 text-center">
+                            <p class="font-bold text-[11px] text-black tracking-widest uppercase">${director?.full_name || 'Director Name'}</p>
+                            <p class="text-[9px] font-bold text-[#7a141c] mt-1 uppercase tracking-wider">Director, ATI</p>
+                        </div>
+                    </div>
+                    
+                </div>
             </div>
         </div>
     `;

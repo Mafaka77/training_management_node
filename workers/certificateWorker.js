@@ -30,7 +30,7 @@ const processCertificate = async (job) => {
             User.findById(traineeId).lean(),
             User.findOne({ roles: directorRole._id }).lean()
         ]);
-
+        // console.log(program);
         if (!program || !trainee) throw new Error("Program or Trainee not found");
 
         // Generate QR Code

@@ -473,17 +473,18 @@ exports.batchGenerateCertificates = async (req, res) => {
             presentCountMap[uid] = (presentCountMap[uid] || 0) + 1;
         });
 
+        const requiredPercentage = options?.attendancePercentage || 75;
         const eligibleTrainees = [];
         for (const tid of traineeIds) {
             const present = presentCountMap[tid.toString()] || 0;
             const percentage = (present / totalSessions) * 100;
-            if (percentage >= 75) {
+            if (percentage >= requiredPercentage) {
                 eligibleTrainees.push(tid);
             }
         }
 
         if (eligibleTrainees.length === 0) {
-            return res.status(STATUS.OK).json({ status: STATUS.OK, message: "No trainees have >= 75% attendance." });
+            return res.status(STATUS.OK).json({ status: STATUS.OK, message: `No trainees have >= ${requiredPercentage}% attendance.` });
         }
 
         let addedJobs = 0;
