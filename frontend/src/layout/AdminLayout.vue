@@ -27,7 +27,7 @@ const handleLogout = async () => {
 };
 
 const sidebarOpen = ref(false); // Controls mobile off-canvas menu
-const isSidebarCollapsed = ref(true); // Controls desktop sidebar collapse
+const isSidebarCollapsed = ref(false); // Controls desktop sidebar collapse (false = expanded by default)
 const trainingOpen = ref(false);
 const masterOpen = ref(false);
 
@@ -68,47 +68,59 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col transition-colors duration-500 font-sansSelection"
-    :class="isDark ? 'bg-[#09090b] text-zinc-100' : 'bg-[#f4f4f5] text-zinc-900'">
+  <div class="min-h-screen flex flex-col transition-colors duration-300 font-sans"
+    :class="isDark ? 'bg-zinc-950 text-zinc-100' : 'bg-zinc-50/80 text-zinc-900'">
 
     <AdminHeader :isDark="isDark" :user="user" @toggleTheme="toggleTheme" @toggleSidebar="handleSidebarToggle" />
 
     <div v-if="loading" class="flex-1 flex items-center justify-center">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div class="flex flex-col items-center gap-3">
+        <div class="animate-spin rounded-full h-9 w-9 border-2 border-emerald-600 border-t-transparent"></div>
+        <span class="text-xs font-semibold text-zinc-500">Loading session...</span>
+      </div>
     </div>
 
-    <div v-else class="flex-1 grid max-w-[90rem] mx-auto w-full relative z-10 transition-all duration-300"
-      :class="!isSidebarCollapsed ? 'grid-cols-1 md:grid-cols-[17rem_1fr]' : 'grid-cols-1'">
+    <div v-else class="flex-1 grid max-w-[96rem] mx-auto w-full relative z-10 transition-all duration-300"
+      :class="!isSidebarCollapsed ? 'grid-cols-1 md:grid-cols-[16rem_1fr]' : 'grid-cols-1 md:grid-cols-[4.5rem_1fr]'">
 
-      <aside v-show="!isSidebarCollapsed" class="hidden md:block border-r transition-colors"
-        :class="isDark ? 'border-white/5 bg-[#09090b]' : 'border-zinc-200 bg-white'">
-        <div class="p-5 sticky top-16 h-[calc(100vh-4rem)] flex flex-col justify-between overflow-hidden">
-          <div class="flex-1 overflow-y-auto custom-scrollbar pr-1">
-            <SidebarContent v-model:trainingOpen="trainingOpen" v-model:masterOpen="masterOpen" :isDark="isDark" />
+      <!-- Desktop Sidebar -->
+      <aside class="hidden md:block border-r transition-all duration-300"
+        :class="isDark ? 'border-white/10 bg-zinc-950/60' : 'border-zinc-200/80 bg-white/70 backdrop-blur-md'">
+        <div class="sticky top-14 h-[calc(100vh-3.5rem)] flex flex-col justify-between overflow-hidden"
+          :class="isSidebarCollapsed ? 'p-2.5' : 'p-4'">
+          <div class="flex-1 overflow-y-auto custom-scrollbar pr-0.5">
+            <SidebarContent 
+              v-model:trainingOpen="trainingOpen" 
+              v-model:masterOpen="masterOpen" 
+              :isDark="isDark" 
+              :isCollapsed="isSidebarCollapsed" 
+            />
           </div>
-          <!-- User Profile Section -->
-          <div class="pt-4 border-t mt-auto" :class="isDark ? 'border-white/5' : 'border-zinc-200'">
+
+          <!-- User Profile Footer -->
+          <div class="pt-3 border-t mt-auto" :class="isDark ? 'border-white/10' : 'border-zinc-200/80'">
             <div
-              class="flex items-center justify-between p-3 rounded-2xl bg-zinc-900/5 dark:bg-white/[0.02] border border-zinc-200/50 dark:border-white/5">
-              <div class="flex items-center gap-3 min-w-0">
+              class="flex items-center rounded-xl bg-zinc-100/80 dark:bg-white/[0.03] border border-zinc-200/60 dark:border-white/5 transition-all"
+              :class="isSidebarCollapsed ? 'p-1.5 justify-center' : 'p-2.5 justify-between'">
+              <div class="flex items-center gap-2.5 min-w-0" :title="user?.email">
                 <!-- Avatar -->
                 <div
-                  class="h-9 w-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-400 flex items-center justify-center text-white font-bold text-xs shadow-sm flex-shrink-0">
+                  class="h-8 w-8 rounded-lg bg-gradient-to-tr from-emerald-800 to-emerald-600 flex items-center justify-center text-white font-bold text-xs shadow-xs flex-shrink-0">
                   {{ user?.email?.charAt(0).toUpperCase() }}
                 </div>
                 <!-- User Details -->
-                <div class="leading-tight min-w-0">
+                <div v-if="!isSidebarCollapsed" class="leading-tight min-w-0">
                   <p class="text-xs font-bold truncate" :class="isDark ? 'text-zinc-200' : 'text-zinc-800'">
-                    {{ user?.email?.split('@')[0] }}
+                    {{ user?.name || user?.email?.split('@')[0] }}
                   </p>
-                  <p class="text-[10px] truncate" :class="isDark ? 'text-zinc-500' : 'text-zinc-500'">
+                  <p class="text-[10px] truncate" :class="isDark ? 'text-zinc-400' : 'text-zinc-500'">
                     {{ user?.email }}
                   </p>
                 </div>
               </div>
               <!-- Logout Button -->
-              <button @click="isLogoutDialog = true"
-                class="p-2 rounded-xl text-zinc-400 hover:text-red-500 hover:bg-red-500/10 active:scale-95 transition-all cursor-pointer flex-shrink-0"
+              <button v-if="!isSidebarCollapsed" @click="isLogoutDialog = true"
+                class="p-1.5 rounded-lg text-zinc-400 hover:text-rose-500 hover:bg-rose-500/10 active:scale-95 transition-all cursor-pointer flex-shrink-0"
                 title="Logout Session">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -120,7 +132,8 @@ onMounted(() => {
         </div>
       </aside>
 
-      <main class="min-w-0 px-4 py-8 sm:px-8">
+      <!-- Main Content Area -->
+      <main class="min-w-0 px-4 py-6 sm:px-8">
         <router-view v-slot="{ Component, route }">
           <transition name="page-fade" mode="out-in">
             <component :is="Component" :key="route.fullPath" />
@@ -129,46 +142,44 @@ onMounted(() => {
       </main>
     </div>
 
+    <!-- Mobile Off-Canvas Drawer -->
     <teleport to="body">
       <Transition name="fade">
         <div v-if="sidebarOpen" class="fixed inset-0 z-[60] flex">
           <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="sidebarOpen = false" />
           <Transition name="slide-right">
-            <aside v-if="sidebarOpen" class="relative w-[260px] h-full flex flex-col shadow-2xl transition-colors"
+            <aside v-if="sidebarOpen" class="relative w-[270px] h-full flex flex-col shadow-2xl transition-colors"
               :class="isDark ? 'bg-zinc-950 border-r border-white/10' : 'bg-white'">
               <div class="p-4 flex justify-between items-center border-b dark:border-white/10">
-                <span class="font-bold text-[10px] uppercase tracking-widest text-zinc-500">Menu</span>
+                <span class="font-bold text-xs uppercase tracking-wider text-zinc-500">Navigation Menu</span>
                 <button @click="sidebarOpen = false"
-                  class="p-1 rounded hover:bg-zinc-500/10 transition-colors">✕</button>
+                  class="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 dark:hover:bg-white/10 transition-colors">✕</button>
               </div>
               <div class="p-4 flex flex-col justify-between flex-1 overflow-hidden">
                 <div class="flex-1 overflow-y-auto custom-scrollbar pr-1">
                   <SidebarContent v-model:trainingOpen="trainingOpen" v-model:masterOpen="masterOpen"
-                    :isDark="isDark" />
+                    :isDark="isDark" :isCollapsed="false" />
                 </div>
-                <!-- User Profile Section -->
-                <div class="pt-4 border-t mt-auto" :class="isDark ? 'border-white/5' : 'border-zinc-200'">
+                <!-- Mobile User Profile Section -->
+                <div class="pt-4 border-t mt-auto" :class="isDark ? 'border-white/10' : 'border-zinc-200'">
                   <div
-                    class="flex items-center justify-between p-3 rounded-2xl bg-zinc-900/5 dark:bg-white/[0.02] border border-zinc-200/50 dark:border-white/5">
+                    class="flex items-center justify-between p-3 rounded-xl bg-zinc-100 dark:bg-white/[0.03] border border-zinc-200/50 dark:border-white/5">
                     <div class="flex items-center gap-3 min-w-0">
-                      <!-- Avatar -->
                       <div
-                        class="h-9 w-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-400 flex items-center justify-center text-white font-bold text-xs shadow-sm flex-shrink-0">
+                        class="h-9 w-9 rounded-lg bg-gradient-to-tr from-emerald-800 to-emerald-600 flex items-center justify-center text-white font-bold text-xs shadow-xs flex-shrink-0">
                         {{ user?.email?.charAt(0).toUpperCase() }}
                       </div>
-                      <!-- User Details -->
                       <div class="leading-tight min-w-0">
                         <p class="text-xs font-bold truncate" :class="isDark ? 'text-zinc-200' : 'text-zinc-800'">
                           {{ user?.email?.split('@')[0] }}
                         </p>
-                        <p class="text-[10px] truncate" :class="isDark ? 'text-zinc-500' : 'text-zinc-500'">
+                        <p class="text-[10px] truncate" :class="isDark ? 'text-zinc-400' : 'text-zinc-500'">
                           {{ user?.email }}
                         </p>
                       </div>
                     </div>
-                    <!-- Logout Button -->
                     <button @click="isLogoutDialog = true"
-                      class="p-2 rounded-xl text-zinc-400 hover:text-red-500 hover:bg-red-500/10 active:scale-95 transition-all cursor-pointer flex-shrink-0"
+                      class="p-2 rounded-lg text-zinc-400 hover:text-rose-500 hover:bg-rose-500/10 active:scale-95 transition-all cursor-pointer flex-shrink-0"
                       title="Logout Session">
                       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -184,7 +195,7 @@ onMounted(() => {
       </Transition>
     </teleport>
 
-    <Dialog :show="isLogoutDialog" title="Logout" message="Are you sure?" confirm-text="Logout"
+    <Dialog :show="isLogoutDialog" title="Logout Session" message="Are you sure you want to end your active session?" confirm-text="Logout"
       @close="isLogoutDialog = false" @confirm="handleLogout" />
   </div>
 </template>

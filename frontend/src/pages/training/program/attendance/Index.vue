@@ -1,325 +1,233 @@
 <template>
-  <div class="max-w-6xl mx-auto space-y-8 pb-12 text-slate-900 dark:text-slate-100">
-
-    <nav class="flex p-3 bg-slate-100/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl"
-      aria-label="Breadcrumb">
-      <ol class="inline-flex items-center space-x-1 md:space-x-2">
-        <li class="inline-flex items-center">
-          <router-link to="/admin/training/program"
-            class="text-sm font-medium text-slate-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-500 flex items-center transition-colors">
-            <svg class="w-4 h-4 me-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="m4 12 8-8 8 8M6 10.5V19a1 1 0 0 0 1 1h3v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h3a1 1 0 0 0 1-1v-8.5" />
-            </svg>
-            Trainings
-          </router-link>
-        </li>
-        <li>
-          <div class="flex items-center">
-            <svg class="w-5 h-5 text-slate-300 dark:text-zinc-600" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 5 7 7-7 7" />
-            </svg>
-            <router-link :to="{ name: 'training.session', params: { id: route.params.id } }"
-              class="ms-1 text-sm font-medium text-slate-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-500">
-              Sessions
-            </router-link>
-          </div>
-        </li>
-        <li aria-current="page" class="flex items-center">
-          <svg class="w-5 h-5 text-slate-300 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 5 7 7-7 7" />
-          </svg>
-          <span class="ms-1 text-sm font-medium text-slate-400 dark:text-zinc-500 tracking-tighter">Attendance
-            Record</span>
-        </li>
-      </ol>
-    </nav>
-
-    <div v-if="isAttendanceLoading" class="space-y-6">
-      <div class="flex items-center justify-between">
-        <div class="space-y-3">
-          <div class="h-8 w-64 bg-slate-200 dark:bg-white/10 rounded animate-pulse"></div>
-          <div class="h-4 w-48 bg-slate-200 dark:bg-white/10 rounded animate-pulse"></div>
-        </div>
-        <div class="h-10 w-32 bg-slate-200 dark:bg-white/10 rounded-2xl animate-pulse"></div>
-      </div>
-
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div v-for="i in 4" :key="i"
-          class="bg-white dark:bg-zinc-900/50 border border-slate-200 dark:border-white/5 p-5 rounded-3xl animate-pulse">
-          <div class="h-3 w-16 bg-slate-200 dark:bg-white/10 rounded mb-4"></div>
-          <div class="h-8 w-20 bg-slate-200 dark:bg-white/10 rounded"></div>
-        </div>
-      </div>
-
-      <div class="space-y-4">
-        <div v-for="i in 3" :key="`row-${i}`"
-          class="h-20 w-full bg-white dark:bg-zinc-900/40 border border-slate-200 dark:border-white/5 rounded-3xl animate-pulse">
-        </div>
-      </div>
-    </div>
-
-    <template v-else>
-      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6" v-if="traineeAttendance">
-        <div class="space-y-1">
-          <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-none">
-            {{ traineeAttendance.programName }}
-          </h1>
-          <div class="flex items-center gap-2">
-            <div class="h-2 w-2 rounded-full bg-blue-600 dark:bg-blue-500 animate-pulse"></div>
-            <p class="text-slate-500 dark:text-zinc-400 text-sm">
-              Trainee: <span class="text-slate-900 dark:text-zinc-100 font-bold underline decoration-blue-500/30">
-                {{ traineeAttendance.traineeName?.full_name || 'N/A' }}
-              </span>
-            </p>
-          </div>
-        </div>
-
-        <div v-if="traineeAttendance.stats?.isEligible" class="flex flex-wrap items-center gap-3">
-
-          <div
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-full text-emerald-600 dark:text-emerald-400">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.64.304 1.24.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
-            </svg>
-            <span class="text-[11px] font-bold uppercase tracking-wider">Qualified</span>
-          </div>
-          <div v-if="!isCertificate">
-            <router-link :to="{
-              name: 'training.certificate',
-              params: {
-                id: route.params.id,
-                traineeId: route.params.traineeId,
-              }
-            }"
-              class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold shadow-sm shadow-blue-500/20 transition-all active:scale-95">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Generate Certificate
-            </router-link>
-          </div>
-
-          <div v-else>
-            <button disabled
-              class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 rounded-lg text-sm font-semibold border border-emerald-200 dark:border-emerald-500/20 cursor-default">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Certificate Generated
-            </button>
-
-          </div>
-
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4" v-if="traineeAttendance?.stats">
-        <div v-for="(val, label) in mappedStats" :key="label"
-          class="bg-white dark:bg-zinc-900/50 border border-slate-200 dark:border-white/5 p-5 rounded-3xl shadow-sm dark:shadow-none relative group hover:ring-2 hover:ring-blue-500/20 transition-all">
-          <p class="text-[10px] font-black text-slate-400 dark:text-zinc-500 uppercase tracking-widest">{{ label }}</p>
-          <p class="text-3xl font-bold mt-2"
-            :class="label === 'Percentage' ? (val >= 75 ? 'text-blue-600 dark:text-blue-400' : 'text-rose-600 dark:text-rose-400') : 'text-slate-900 dark:text-white'">
-            {{ val }}{{ label === 'Percentage' ? '%' : '' }}
-          </p>
-        </div>
-      </div>
-
-      <div class="space-y-6">
-        <div v-for="(sessions, date) in groupedRecords" :key="date"
-          class="border border-slate-200 dark:border-white/5 rounded-3xl bg-white dark:bg-zinc-900/40 shadow-sm overflow-hidden">
-
-          <button @click="toggleDate(date)"
-            class="w-full flex items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors">
-            <div class="flex items-center gap-5">
-              <div class="text-left">
-                <span
-                  class="block text-[10px] font-black text-blue-600 dark:text-blue-500 uppercase tracking-widest mb-1 leading-none">Session
-                  Date</span>
-                <span class="text-sm font-bold text-slate-800 dark:text-zinc-200">{{ date }}</span>
-              </div>
-              <div class="h-8 w-px bg-slate-200 dark:bg-white/10 hidden sm:block"></div>
-              <div class="flex gap-2">
-                <span
-                  class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-zinc-800 text-[10px] font-bold text-slate-600 dark:text-zinc-400">
-                  {{ sessions.length }} Total
-                </span>
-                <span
-                  class="px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-500/10 text-[10px] font-bold text-emerald-700 dark:text-emerald-500">
-                  {{sessions.filter(s => s.status === 'Present').length}} Present
-                </span>
-              </div>
+    <div class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div
+                class="p-4 bg-white text-center dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-sm">
+                <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Registry Size</p>
+                <p class="text-2xl font-black text-slate-900 dark:text-slate-100">{{ store.totalItems || 0 }} Trainees
+                </p>
             </div>
+            <div
+                class="p-4 bg-white text-center dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-sm">
+                <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Program Completion</p>
+                <p class="text-2xl font-black text-indigo-500">{{ store.averagePercentage || 0 }}% Avg</p>
+            </div>
+            <div
+                class="p-4 bg-white text-center dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-sm">
+                <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Total Session</p>
+                <p class="text-2xl text-center font-black text-emerald-500">{{ store.totalSessions || 0 }}</p>
+            </div>
+        </div>
 
-            <svg class="w-5 h-5 text-slate-400 transition-transform duration-500"
-              :class="{ 'rotate-180 text-blue-600': expandedDates.includes(date) }" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
+        <div
+            class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white dark:bg-slate-900 p-4 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-sm">
+            <div class="relative w-full sm:w-96">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input v-model="store.searchQuery" @input="debounceSearch" type="text"
+                    placeholder="Search by trainee name..."
+                    class="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 transition-all dark:text-white" />
+            </div>
+        </div>
 
-          <Transition name="expand">
-            <div v-if="expandedDates.includes(date)"
-              class="border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-black/20">
-              <div class="p-4 space-y-3">
-                <div v-for="record in sessions" :key="record.sessionId"
-                  class="flex flex-col md:flex-row md:items-center justify-between p-4 rounded-2xl bg-white dark:bg-zinc-900/60 border border-slate-200 dark:border-white/5 group hover:border-blue-300 dark:hover:border-white/20 transition-all shadow-sm">
+        <div
+            class="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+            <table class="w-full text-left">
+                <thead class="bg-slate-50 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/5">
+                    <tr>
+                        <th @click="handleSort('user.full_name')"
+                            class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500 w-1/3 cursor-pointer hover:text-indigo-600 transition-colors">
+                            Trainee <span v-if="store.sortBy === 'user.full_name'">{{ store.sortOrder === 'asc' ? '↑' :
+                                '↓' }}</span>
+                        </th>
 
-                  <div class="flex items-center gap-4">
-                    <div
-                      :class="['w-1.5 h-10 rounded-full', record.status === 'Present' ? 'bg-emerald-500' : 'bg-rose-500']">
-                    </div>
-                    <div>
-                      <h4
-                        class="text-sm font-bold text-slate-800 dark:text-zinc-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                        {{ record.sessionTopic }}
-                      </h4>
-                      <div
-                        class="flex items-center gap-3 mt-1 text-[10px] font-semibold text-slate-500 dark:text-zinc-500 uppercase tracking-tighter">
-                        <span>ID: {{ record.sessionId.slice(-6) }}</span>
-                        <span class="text-slate-300 dark:text-zinc-700">•</span>
-                        <span class="flex items-center gap-1">
-                          <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          {{ record.startTime }} - {{ record.endTime }}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                        <th @click="handleSort('attendedCount')"
+                            class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500 cursor-pointer hover:text-indigo-600 transition-colors">
+                            Total Appearance <span v-if="store.sortBy === 'attendedCount'">{{ store.sortOrder === 'asc'
+                                ? '↑' : '↓'
+                                }}</span>
+                        </th>
 
-                  <div class="flex items-center gap-10 mt-4 md:mt-0">
-                    <div class="text-right">
-                      <p class="text-[9px] text-slate-400 dark:text-zinc-600 uppercase font-black tracking-widest">
-                        Status
-                      </p>
-                      <span
-                        :class="['text-xs font-bold uppercase', record.status === 'Present' ? 'text-emerald-600 dark:text-emerald-500' : 'text-rose-600 dark:text-rose-500']">
-                        {{ record.status }}
-                      </span>
-                    </div>
-                    <div class="text-right min-w-[80px]">
-                      <p class="text-[9px] text-slate-400 dark:text-zinc-600 uppercase font-black tracking-widest">
-                        Check-In</p>
-                      <p class="text-xs font-mono text-slate-600 dark:text-zinc-300">
-                        {{ record.signInTime ? formatTime(record.signInTime) : '—' }}
-                      </p>
-                    </div>
-                  </div>
+                        <th @click="handleSort('percentage')"
+                            class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500 cursor-pointer hover:text-indigo-600 transition-colors">
+                            Persistence <span v-if="store.sortBy === 'percentage'">{{ store.sortOrder === 'asc' ? '↑' :
+                                '↓' }}</span>
+                        </th>
+
+                        <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500 text-right">
+                            Action</th>
+                    </tr>
+                </thead>
+
+                <tbody class="divide-y divide-slate-100 dark:divide-white/5">
+                    <tr v-if="store.isAttendanceLoading">
+                        <td colspan="4"
+                            class="px-6 py-8 text-center text-sm font-semibold text-slate-400 animate-pulse">Loading
+                            attendance data...</td>
+                    </tr>
+
+                    <tr v-else-if="!store.attendanceData?.length">
+                        <td colspan="4" class="px-6 py-8 text-center text-sm font-semibold text-slate-400">No trainees
+                            found.</td>
+                    </tr>
+
+                    <tr v-for="trainee in store.attendanceData" :key="trainee._id"
+                        class="group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-700 shrink-0">
+                                    <span class="text-sm font-bold text-slate-500 uppercase">{{
+                                        trainee.user?.full_name?.charAt(0) || '?'
+                                        }}</span>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <p class="text-sm font-bold text-slate-900 dark:text-slate-100">{{
+                                            trainee.user?.full_name }}</p>
+
+                                        <span v-if="trainee.isCertificateGenerated"
+                                            class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] font-black uppercase tracking-wider"
+                                            title="Certificate has been generated">
+                                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                                stroke-width="3">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            GENERATED
+                                        </span>
+                                    </div>
+
+                                    <p class="text-[10px] font-mono text-slate-500 uppercase mt-0.5">UID: {{
+                                        trainee.user?._id?.slice(-6)
+                                        || 'N/A' }}</p>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="px-6 py-4">
+                            <div class="flex items-baseline gap-1 tabular-nums">
+                                <span class="text-sm font-bold text-slate-900 dark:text-slate-100">{{
+                                    trainee.attendedCount }}</span>
+                                <span class="text-xs text-slate-400 font-medium">/ {{ store.totalSessions }}
+                                    Sessions</span>
+                            </div>
+                        </td>
+
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-4">
+                                <div
+                                    class="flex-1 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden min-w-[100px]">
+                                    <div class="h-full transition-all duration-700 bg-indigo-500"
+                                        :style="{ width: trainee.percentage + '%' }"></div>
+                                </div>
+                                <span class="text-[10px] font-bold text-slate-600 dark:text-slate-400 w-8">{{
+                                    trainee.percentage
+                                    }}%</span>
+                            </div>
+                        </td>
+
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <router-link
+                                    :to="{ name: 'training.trainee.attendance', params: { id: props.programId, traineeId: trainee.user?._id } }"
+                                    class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-all active:scale-95 group border border-slate-200 dark:border-slate-700 hover:border-indigo-200 dark:hover:border-indigo-800"
+                                    title="View Trainee Attendance">
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        class="w-4 h-4 transition-transform group-hover:scale-110" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M2.036 12.322a1.012 1.012 0 010-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                </router-link>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div v-if="store.totalPages > 1"
+                class="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p class="text-xs text-slate-500 font-bold uppercase tracking-widest">
+                    Page {{ store.currentPage }} of {{ store.totalPages }}
+                </p>
+                <div class="flex gap-2">
+                    <button @click="changePage(store.currentPage - 1)" :disabled="store.currentPage === 1"
+                        class="px-4 py-2 text-xs font-bold uppercase tracking-widest rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 transition-all">
+                        Prev
+                    </button>
+                    <button @click="changePage(store.currentPage + 1)"
+                        :disabled="store.currentPage === store.totalPages"
+                        class="px-4 py-2 text-xs font-bold uppercase tracking-widest rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 transition-all">
+                        Next
+                    </button>
                 </div>
-              </div>
             </div>
-          </Transition>
         </div>
-      </div>
-    </template>
-  </div>
+    </div>
 </template>
 
 <script setup>
-import { storeToRefs } from "pinia";
-import { computed, onMounted, ref } from 'vue';
-import { useRoute } from 'vue-router';
-import { useAttendanceStore } from '../../../../store/attendanceStore';
+import { onMounted } from "vue";
+import { useRoute } from "vue-router";
+import { useAttendanceStore } from "../../../../store/attendanceStore.js";
 
-const attendanceStore = useAttendanceStore();
-const { traineeAttendance, isAttendanceLoading, isCertificate } = storeToRefs(attendanceStore);
 const route = useRoute();
+const store = useAttendanceStore();
 
-/** * Expansion State
- */
-const expandedDates = ref([]);
-
-const toggleDate = (date) => {
-  const index = expandedDates.value.indexOf(date);
-  if (index > -1) {
-    expandedDates.value.splice(index, 1);
-  } else {
-    expandedDates.value.push(date);
-  }
-};
-
-/**
- * Grouped and Sorted Records Logic
- */
-const groupedRecords = computed(() => {
-  const records = traineeAttendance.value?.records;
-  if (!records) return {};
-
-  // Sort Chronologically
-  const sorted = [...records].sort((a, b) =>
-    new Date(`${a.sessionDate.split('T')[0]}T${a.startTime}`) -
-    new Date(`${b.sessionDate.split('T')[0]}T${b.startTime}`)
-  );
-
-  // Group by Date string
-  const groups = sorted.reduce((acc, record) => {
-    const date = formatDate(record.sessionDate);
-    if (!acc[date]) acc[date] = [];
-    acc[date].push(record);
-    return acc;
-  }, {});
-
-  // Auto-expand the first date if nothing is expanded yet
-  const dates = Object.keys(groups);
-  if (dates.length > 0 && expandedDates.value.length === 0) {
-    expandedDates.value.push(dates[0]);
-  }
-  return groups;
+const props = defineProps({
+    programId: { type: String, required: true }
 });
 
-/**
- * Stats Mapping (Fixed .value access)
- */
-const mappedStats = computed(() => {
-  const stats = traineeAttendance.value?.stats;
-  if (!stats) return {};
-  return {
-    "Total Sessions": stats.totalSessions,
-    "Present": stats.presentCount,
-    "Absent": stats.absentCount,
-    "Percentage": stats.attendancePercentage
-  };
-});
+// Timer stays local to prevent memory leaks!
+let searchTimeout = null;
 
-/**
- * Formatters
- */
-const formatDate = (dateStr) => {
-  if (!dateStr) return '';
-  return new Date(dateStr).toLocaleDateString('en-GB', {
-    day: '2-digit', month: 'short', year: 'numeric'
-  });
+// Core fetch function
+const loadData = () => {
+    store.fetchAttendances(props.programId);
 };
 
-const formatTime = (dateStr) => {
-  if (!dateStr) return '';
-  return new Date(dateStr).toLocaleTimeString('en-GB', {
-    hour: '2-digit', minute: '2-digit', hour12: true
-  });
+// Handlers directly mutate the store state
+const changePage = (newPage) => {
+    if (newPage >= 1 && newPage <= store.totalPages) {
+        store.currentPage = newPage;
+        loadData();
+    }
+};
+
+const handleSort = (key) => {
+    if (store.sortBy === key) {
+        store.sortOrder = store.sortOrder === 'asc' ? 'desc' : 'asc';
+    } else {
+        store.sortBy = key;
+        store.sortOrder = 'asc'; // Reset to asc when changing columns
+    }
+    store.currentPage = 1; // Reset to page 1 on sort change
+    loadData();
+};
+
+const debounceSearch = () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        store.currentPage = 1; // Reset to page 1 on new search
+        loadData();
+    }, 400);
 };
 
 onMounted(() => {
-  attendanceStore.fetchTraineeAttendance(route.params.traineeId, route.params.id);
+    // Check if we switched to a DIFFERENT training program
+    // If so, reset the filters. If it's the same, keep them!
+    if (store.currentProgramId !== props.programId) {
+        store.resetQueryState();
+        store.currentProgramId = props.programId;
+    }
 
+    loadData();
 });
 </script>
-
-<style scoped>
-.expand-enter-active,
-.expand-leave-active {
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  max-height: 2000px;
-}
-
-.expand-enter-from,
-.expand-leave-to {
-  max-height: 0;
-  opacity: 0;
-  transform: translateY(-10px);
-}
-</style>

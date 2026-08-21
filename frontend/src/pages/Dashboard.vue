@@ -1,89 +1,115 @@
 <template>
-  <div class="p-6 lg:p-10 space-y-10 max-w-[1600px] mx-auto">
-    <header class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div>
-        <h1 class="text-3xl font-black tracking-tight text-zinc-900 dark:text-white">Dashboard Overview</h1>
-        <p class="text-zinc-500 dark:text-zinc-400 text-sm mt-1">Monitor your training progress and institutional growth.</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <button class="px-4 py-2 text-sm font-bold bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-xl hover:bg-zinc-50 dark:hover:bg-white/5 transition-all">
-          Generate Report
+  <div class="space-y-8 max-w-[1600px] mx-auto">
+    <PageHeader
+      title="Dashboard Overview"
+      description="Monitor training programs, trainer metrics, and institutional capacity."
+      :breadcrumbs="[{ label: 'Dashboard' }]"
+    >
+      <template #actions>
+        <button class="px-4 py-2 text-xs font-semibold bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-xl hover:bg-zinc-50 dark:hover:bg-white/5 transition-all text-zinc-700 dark:text-zinc-300 shadow-xs">
+          Export Report
         </button>
-        <router-link to="/admin/training/program/create" class="px-4 py-2 text-sm font-black bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-600/20 transition-all active:scale-95">
-          + New Training
+        <router-link to="/admin/training/program/create" class="px-4 py-2 text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl shadow-md shadow-emerald-700/20 transition-all active:scale-95 flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          New Training
         </router-link>
-      </div>
-    </header>
+      </template>
+    </PageHeader>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div v-for="stat in stats" :key="stat.label"
-           class="relative overflow-hidden p-6 rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 group hover:border-blue-500/50 transition-all">
-        <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-600/5 rounded-full blur-2xl group-hover:bg-blue-600/10 transition-all"></div>
-
-        <div class="flex flex-col gap-4">
-          <div :class="`w-12 h-12 rounded-2xl flex items-center justify-center ${stat.colorClass}`">
-            <component :is="iconMap[stat.icon]" class="w-6 h-6" />
-          </div>
-          <div>
-            <p class="text-sm font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{{ stat.label }}</p>
-            <div class="flex items-baseline gap-2">
-              <h2 class="text-3xl font-black text-zinc-900 dark:text-zinc-100">{{ stat.value }}</h2>
-<!--              <span v-if="stat.trend" :class="`text-xs font-bold ${stat.trend > 0 ? 'text-emerald-500' : 'text-rose-500'}`">-->
-<!--                {{ stat.trend > 0 ? '↑' : '↓' }} {{ Math.abs(stat.trend) }}%-->
-<!--              </span>-->
-            </div>
-          </div>
-        </div>
-      </div>
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <StatCard
+        v-for="stat in stats"
+        :key="stat.label"
+        :label="stat.label"
+        :value="stat.value"
+        :icon="iconMap[stat.icon]"
+        :iconBgClass="stat.colorClass"
+      />
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <div class="lg:col-span-2 rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 p-6">
-        <div class="flex items-center justify-between mb-6">
-          <h3 class="text-lg font-bold text-zinc-900 dark:text-zinc-100">Recent Trainings</h3>
-          <router-link to="/admin/training/program" class="text-blue-500 text-xs font-bold hover:underline">View All</router-link>
+    <!-- Main Overview Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Recent Trainings Table Card -->
+      <div class="lg:col-span-2 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-white/10 p-5 sm:p-6 shadow-xs">
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <h3 class="text-base font-bold text-zinc-900 dark:text-zinc-100">Recent Training Programs</h3>
+            <p class="text-xs text-zinc-500 dark:text-zinc-400">Latest active and scheduled training sessions</p>
+          </div>
+          <router-link to="/admin/training/program" class="text-emerald-700 dark:text-emerald-400 text-xs font-bold hover:underline flex items-center gap-1">
+            View All
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </router-link>
         </div>
 
-        <div class="overflow-x-auto">
-          <table class="w-full text-left">
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left border-collapse">
             <thead>
-            <tr class="text-zinc-400 text-[10px] uppercase font-black border-b border-zinc-100 dark:border-white/5">
-              <th class="pb-3 px-2">Topic</th>
-              <th class="pb-3 px-2">Date</th>
-              <th class="pb-3 px-2 text-right">Status</th>
-            </tr>
+              <tr class="text-zinc-400 dark:text-zinc-500 text-[10px] uppercase font-bold border-b border-zinc-200/60 dark:border-white/5">
+                <th class="pb-3 px-3">Topic / Program</th>
+                <th class="pb-3 px-3">Date Range</th>
+                <th class="pb-3 px-3 text-right">Status</th>
+              </tr>
             </thead>
-            <tbody class="divide-y divide-zinc-100 dark:divide-white/5">
-            <tr v-for="training in trainings" :key="i" class="group hover:bg-zinc-50 dark:hover:bg-white/5 transition-all">
-              <td class="py-4 px-2">
-                <div class="font-bold text-sm text-zinc-900 dark:text-zinc-200">{{training.t_name}}</div>
-                <div class="text-[11px] text-zinc-500">{{training.t_organizer}}</div>
-              </td>
-              <td class="py-4 px-2 text-xs text-zinc-500 font-medium">{{formatDateRange(training.t_start_date,training.t_end_date)}}</td>
-              <td class="py-4 px-2 text-right">
-                <span :class="['px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border whitespace-nowrap', getStatusStyle(training.t_status).badge]">{{training.t_status}}</span>
-              </td>
-            </tr>
+            <tbody class="divide-y divide-zinc-100 dark:divide-white/5 text-xs">
+              <tr v-for="(training, index) in trainings" :key="index" class="group hover:bg-zinc-50/80 dark:hover:bg-white/[0.02] transition-colors">
+                <td class="py-3.5 px-3">
+                  <div class="font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">{{ training.t_name }}</div>
+                  <div class="text-[11px] text-zinc-500 dark:text-zinc-400">{{ training.t_organizer || 'ATI Department' }}</div>
+                </td>
+                <td class="py-3.5 px-3 text-zinc-600 dark:text-zinc-400 font-medium">
+                  {{ formatDateRange(training.t_start_date, training.t_end_date) }}
+                </td>
+                <td class="py-3.5 px-3 text-right">
+                  <span :class="['inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border whitespace-nowrap', getStatusStyle(training.t_status).badge]">
+                    <span :class="['w-1.5 h-1.5 rounded-full', getStatusStyle(training.t_status).dot]"></span>
+                    {{ training.t_status }}
+                  </span>
+                </td>
+              </tr>
+              <tr v-if="!trainings || trainings.length === 0">
+                <td colspan="3" class="py-8 text-center text-zinc-400 italic">No recent trainings found</td>
+              </tr>
             </tbody>
           </table>
         </div>
       </div>
 
-      <div class="rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 p-6">
-        <h3 class="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-6">Trainer Performance</h3>
-        <div class="space-y-6">
-          <div v-for="j in 3" :key="j" class="flex items-center gap-4">
-            <div class="w-10 h-10 rounded-full bg-zinc-100 dark:bg-white/5 overflow-hidden shrink-0">
-              <img src="https://ui-avatars.com/api/?name=Trainer+X" class="w-full h-full" />
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="text-sm font-bold text-zinc-900 dark:text-zinc-100 truncate">Lalthan Puia</div>
-              <div class="w-full bg-zinc-100 dark:bg-white/5 h-1.5 rounded-full mt-1.5">
-                <div class="bg-blue-600 h-full rounded-full" :style="{width: (j * 30) + '%'}"></div>
-              </div>
-            </div>
-            <div class="text-xs font-black text-zinc-400">{{ j * 30 }}%</div>
+      <!-- Trainer Performance Widget -->
+      <div class="rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-white/10 p-5 sm:p-6 shadow-xs flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-5">
+            <h3 class="text-base font-bold text-zinc-900 dark:text-zinc-100">Top Faculty & Trainers</h3>
+            <span class="text-[10px] uppercase font-bold text-zinc-400">Activity</span>
           </div>
+
+          <div class="space-y-5">
+            <div v-for="j in 3" :key="j" class="flex items-center gap-3.5 p-2 rounded-xl hover:bg-zinc-50 dark:hover:bg-white/[0.02] transition-colors">
+              <div class="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-white/5 overflow-hidden shrink-0 flex items-center justify-center border border-zinc-200/50 dark:border-white/5">
+                <img :src="`https://ui-avatars.com/api/?name=Faculty+${j}&background=047857&color=fff`" class="w-full h-full object-cover" />
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
+                  {{ j === 1 ? 'Lalthan Puia' : (j === 2 ? 'Zosang Zuala' : 'Vanlal Hruaia') }}
+                </div>
+                <div class="w-full bg-zinc-100 dark:bg-white/10 h-1.5 rounded-full mt-1.5 overflow-hidden">
+                  <div class="bg-emerald-700 h-full rounded-full transition-all duration-500" :style="{ width: (j * 30) + '%' }"></div>
+                </div>
+              </div>
+              <div class="text-xs font-bold text-emerald-700 dark:text-emerald-400">{{ j * 30 }}%</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-zinc-100 dark:border-white/5 text-center">
+          <router-link to="/admin/trainer" class="text-xs font-bold text-emerald-700 dark:text-emerald-400 hover:underline">
+            Manage Faculty Roster →
+          </router-link>
         </div>
       </div>
     </div>
@@ -97,45 +123,52 @@ import {
   BriefcaseIcon,
   ClipboardDocumentCheckIcon
 } from '@heroicons/vue/24/outline';
-import {onMounted} from "vue";
-import {useDashboardStore} from "../store/dashboardStore.js";
-import {storeToRefs} from "pinia";
+import { onMounted } from "vue";
+import { useDashboardStore } from "../store/dashboardStore.js";
+import { storeToRefs } from "pinia";
+import PageHeader from "../components/ui/PageHeader.vue";
+import StatCard from "../components/ui/StatCard.vue";
 
-const store=useDashboardStore()
-const {stats,trainings}=storeToRefs(store)
+const store = useDashboardStore();
+const { stats, trainings } = storeToRefs(store);
+
 const iconMap = {
   AcademicCapIcon,
   UserGroupIcon,
   BriefcaseIcon,
   ClipboardDocumentCheckIcon
 };
+
 const formatDateRange = (start, end) => {
-  if(!start) return "TBA"
-  const opt = { month: "short", day: "numeric" }
-  const s = new Date(start).toLocaleDateString("en-US", opt)
-  const e = new Date(end).toLocaleDateString("en-US", { ...opt, year: "numeric" })
-  return `${s} - ${e}`
-}
-const getStatusStyle = (status) => statusStyles[status] || statusStyles.Upcoming
+  if (!start) return "TBA";
+  const opt = { month: "short", day: "numeric" };
+  const s = new Date(start).toLocaleDateString("en-US", opt);
+  const e = new Date(end).toLocaleDateString("en-US", { ...opt, year: "numeric" });
+  return `${s} - ${e}`;
+};
+
+const getStatusStyle = (status) => statusStyles[status] || statusStyles.Upcoming;
+
 const statusStyles = {
-  Draft:{
-    color: "bg-amber-500",
-    badge: "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-500/20",
+  Draft: {
+    dot: "bg-amber-500",
+    badge: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border-amber-200/60 dark:border-amber-500/20",
   },
   Upcoming: {
-    color: "bg-red-400",
-    badge: "bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border-red-100 dark:border-amber-500/20",
+    dot: "bg-rose-500",
+    badge: "bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 border-rose-200/60 dark:border-rose-500/20",
   },
   Ongoing: {
-    color: "bg-blue-500",
-    badge: "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-500/20",
+    dot: "bg-emerald-600 animate-pulse",
+    badge: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-500/20",
   },
   Completed: {
-    color: "bg-emerald-500",
-    badge: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 border-emerald-100 dark:border-emerald-500/20",
+    dot: "bg-emerald-500",
+    badge: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-500/20",
   },
-}
-onMounted(async ()=>{
+};
+
+onMounted(async () => {
   await store.fetchHomeStats();
-})
+});
 </script>

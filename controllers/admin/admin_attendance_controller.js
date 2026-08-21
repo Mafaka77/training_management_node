@@ -216,11 +216,12 @@ exports.getFullAttendance = async (req, res) => {
         }
         console.log(isCertificate)
         try {
-            const [program, sessions, traineeName, trainingCategory] = await Promise.all([
+            const [program, sessions, trainee, trainingCategory, enrollment] = await Promise.all([
                 TrainingProgram.findById(trainingId).select('t_name').lean(),
                 Session.find({ t_program: trainingId }).sort({ tc_date: 1 }).lean(),
-                User.findById(traineeId).select('full_name').lean(),
+                User.findById(traineeId).select('full_name email mobile').lean(),
                 TrainingProgram.findById(trainingId).populate('t_category').lean(),
+                Enrollment.findOne({ user: traineeId, training_program: trainingId }).lean()
             ]);
 
             if (!program) {
@@ -256,7 +257,8 @@ exports.getFullAttendance = async (req, res) => {
                     // Logic: If no record in Attendance collection, they are "Absent"
                     status: record ? record.status : "Absent",
                     signInTime: record ? record.createdAt : null,
-                    remarks: record ? record.remarks : ""
+                    remarks: record ? record.remarks : "",
+                    isMarked: !!record
                 };
             });
 
@@ -269,9 +271,10 @@ exports.getFullAttendance = async (req, res) => {
                 status: STATUS.OK,
                 data: {
                     traineeId,
-                    traineeName,
+                    traineeName: trainee,
+                    enrollmentId: enrollment?._id || null,
                     programName: program.t_name,
-                    trainingCategory: trainingCategory.t_category.name,
+                    trainingCategory: trainingCategory?.t_category?.name || '',
                     stats: {
                         totalSessions,
                         presentCount,
@@ -295,27 +298,34 @@ exports.getFullAttendance = async (req, res) => {
 
 exports.markAttendance = async (req, res) => {
     try {
-        const {userId,sessionId, enrollmentId, status } = req.body;
+        let { userId, sessionId, enrollmentId, status } = req.body;
+        status = status || 'Present';
+
+        const session = await TrainingCourse.findById(sessionId);
+        if (!session) return res.status(STATUS.OK).json({ message: "Session not found.", status: STATUS.NOT_FOUND });
+
+        if (!enrollmentId && userId) {
+            const enr = await Enrollment.findOne({ user: userId, training_program: session.t_program });
+            if (enr) enrollmentId = enr._id;
+        }
+
         const existingAttendance = await Attendance.findOne({
             user: userId,
             sessionId: sessionId
         });
 
         if (existingAttendance) {
+            existingAttendance.status = status;
+            if (enrollmentId) existingAttendance.enrollmentId = enrollmentId;
+            await existingAttendance.save();
             return res.status(STATUS.OK).json({
-                status: STATUS.BAD_REQUEST,
-                message: "Attendance already recorded for this session."
+                status: STATUS.OK,
+                message: `Attendance updated to ${status}`,
+                data: existingAttendance
             });
         }
-        const session = await TrainingCourse.findById(sessionId);
-        if (!session) return res.status(STATUS.OK).json({ message: "Session not found." ,status:STATUS.NOT_FOUND});
-
 
         const now = dayjs();
-        const sessionDateStr = dayjs(session.tc_date).format('YYYY-MM-DD');
-        const startTime = dayjs(`${sessionDateStr} ${session.tc_start_time}`, 'YYYY-MM-DD HH:mm');
-        const endTime = dayjs(`${sessionDateStr} ${session.tc_end_time}`, 'YYYY-MM-DD HH:mm');
-
         const attendance = await Attendance.create({
             user: userId,
             enrollmentId: enrollmentId,
@@ -323,7 +333,7 @@ exports.markAttendance = async (req, res) => {
             sessionId: sessionId,
             date: dayjs(session.tc_date).startOf('day').toDate(),
             status: status,
-            notes: `Session ${session.tc_session} marked at ${now.format('HH:mm')}`
+            notes: `Session ${session.tc_session || ''} marked at ${now.format('HH:mm')}`
         });
 
         return res.status(STATUS.OK).json({

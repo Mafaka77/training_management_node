@@ -252,6 +252,20 @@ export const useEnrollmentStore = defineStore('enrollment', {
                 this.isLoading = false;
             }
         },
+        async fetchApprovedForExport(programId) {
+            try {
+                const response = await api.get(`/enrollments/${programId}`, {
+                    params: { status: 'Approved', limit: 9999, page: 1 }
+                });
+                if (response.data.status === 200) {
+                    return { success: true, enrollments: response.data.enrollments };
+                }
+                return { success: false, enrollments: [] };
+            } catch (error) {
+                console.error('Export fetch error', error);
+                return { success: false, enrollments: [] };
+            }
+        },
         async deleteEnrolledOrder(id) {
             this.isLoading = true;
             try {

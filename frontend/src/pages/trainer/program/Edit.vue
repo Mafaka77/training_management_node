@@ -179,7 +179,7 @@
       <Materials :program-id="route.params.id"/>
     </div>
     <div v-if="activeTab === 'enrollments'" class="space-y-6">
-        <EnrollmentComponent :program-id="route.params.id"/>
+        <EnrollmentsIndex :program-id="route.params.id"/>
     </div>
     <div v-if="activeTab === 'attendance'" class="space-y-6">
       <div v-if="form.t_status === 'Upcoming' ||form.t_status === 'Draft' "
@@ -265,10 +265,10 @@ import { useSessionStore } from '../../../store/sessionStore';
 import { useDirectorStore } from '../../../store/directorStore';
 import BaseInput from '../../../components/ui/BaseInput.vue';
 import SearchSelect from '../../../components/ui/SearchSelect.vue';
-import Materials from '../../../components/trainingTabs/Materials.vue';
+import Materials from '../../training/program/materials/Index.vue';
 import DeleteDialog from '../../../components/ui/DeleteDialog.vue';
-import AttendanceComponent from "../../../components/trainingTabs/AttendanceComponent.vue";
-import EnrollmentComponent from "../../../components/trainingTabs/EnrollmentComponent.vue";
+import AttendanceComponent from "../../training/program/attendance/Index.vue";
+import EnrollmentsIndex from "../../training/program/enrollments/Index.vue";
 const selectionItem=ref(null);
 // Setup
 const route = useRoute();

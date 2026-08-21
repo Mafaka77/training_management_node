@@ -1,5 +1,5 @@
 <template>
-  <div class="relative w-full" ref="container">
+  <div class="relative w-full" :class="{ 'z-50': isOpen, 'z-10': !isOpen }" ref="container">
     <label v-if="label" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white ml-1">
       {{ label }}
     </label>

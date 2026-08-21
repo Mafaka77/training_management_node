@@ -3,12 +3,14 @@
     <a
       :href="href"
       @click="navigate"
+      :title="isCollapsed ? labelText : undefined"
       :class="[
-        'group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-300 transform hover:translate-x-1 active:scale-[0.98]',
-        isChild ? 'ml-7' : '',
+        'group flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 active:scale-[0.98] relative',
+        isChild && !isCollapsed ? 'ml-6' : '',
+        isCollapsed ? 'justify-center px-2 py-2.5' : '',
         isActive
-          ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30 font-semibold'
-          : (isDark ? 'text-slate-400 hover:bg-white/5 hover:text-white' : 'text-slate-600 hover:bg-white hover:text-indigo-600 hover:shadow-md hover:shadow-black/5')
+          ? (isDark ? 'bg-emerald-700/90 text-white shadow-md shadow-emerald-700/20' : 'bg-emerald-700 text-white shadow-md shadow-emerald-700/25')
+          : (isDark ? 'text-zinc-400 hover:bg-white/5 hover:text-zinc-100' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900')
       ]"
     >
       <svg 
@@ -20,18 +22,32 @@
         stroke-width="2" 
         stroke-linecap="round" 
         stroke-linejoin="round"
-        class="w-4 h-4 flex-shrink-0 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6"
-        :class="isActive ? 'text-white' : 'text-slate-400 dark:text-slate-500 group-hover:text-indigo-500'"
+        class="w-4 h-4 flex-shrink-0 transition-transform duration-200 group-hover:scale-110"
+        :class="isActive ? 'text-white' : (isDark ? 'text-zinc-400 group-hover:text-emerald-400' : 'text-zinc-500 group-hover:text-emerald-700')"
       >
         <path :d="icon" />
       </svg>
 
-      <slot />
+      <span v-if="!isCollapsed" class="truncate">
+        <slot />
+      </span>
+
+      <!-- Active Indicator Dot for Collapsed mode -->
+      <span v-if="isCollapsed && isActive" class="absolute left-1 top-1/2 -translate-y-1/2 w-1 h-4 bg-emerald-500 rounded-full"></span>
     </a>
   </router-link>
 </template>
 
 <script setup>
+import { useSlots, computed } from 'vue';
+
+const slots = useSlots();
+
+const labelText = computed(() => {
+  const defaultSlot = slots.default ? slots.default() : [];
+  return defaultSlot.map(node => node.children).join('');
+});
+
 defineProps({
   to: {
     type: String,
@@ -46,6 +62,10 @@ defineProps({
     default: true
   },
   isChild: {
+    type: Boolean,
+    default: false
+  },
+  isCollapsed: {
     type: Boolean,
     default: false
   }

@@ -180,9 +180,14 @@ const routes = [
                         component: () => import("../pages/training/program/Create.vue"),
                     },
                     {
-                        path: "edit/:id", // This matches "/admin/training/program/create"
+                        path: "edit/:id", // This matches "/admin/training/program/edit/:id"
                         name: "training.program.edit",
                         component: () => import("../pages/training/program/Edit.vue"),
+                    },
+                    {
+                        path: "view/:id", // This matches "/admin/training/program/view/:id"
+                        name: "training.program.view",
+                        component: () => import("../pages/training/program/View.vue"),
                     }
                 ]
             },
@@ -197,17 +202,17 @@ const routes = [
                     {
                         path: ":id/session",
                         name: "training.session",
-                        component: () => import("../pages/training/program/session/Index.vue"),
+                        component: () => import("../pages/training/program/View.vue"),
                     },
                     {
                         path: ':id/session/:sessionId/attendance',
                         name: 'training.session.attendance',
-                        component: () => import("../pages/training/program/session/attendance/Index.vue"),
+                        component: () => import("../pages/training/program/session/ViewAttendance.vue"),
                     },
                     {
                         path: ':id/trainee/:traineeId/attendance',
                         name: 'training.trainee.attendance',
-                        component: () => import('../pages/training/program/attendance/Index.vue')
+                        component: () => import('../pages/training/program/attendance/View.vue')
                     },
                     {
                         path: ':id/session/release-order',
@@ -238,6 +243,26 @@ const routes = [
                         path: ':id/certificate/selected-order',
                         name: 'certificate.selected-order',
                         component: () => import('../components/certificate/SelectedListOrder.vue')
+                    },
+                    {
+                        path: ':id/enrollments',
+                        name: 'training.program.enrollments',
+                        component: () => import('../pages/training/program/enrollments/Index.vue')
+                    },
+                    {
+                        path: ':id/materials',
+                        name: 'training.program.materials',
+                        component: () => import('../pages/training/program/materials/Index.vue')
+                    },
+                    {
+                        path: ':id/certificates',
+                        name: 'training.program.certificates',
+                        component: () => import('../pages/training/program/certificate/Index.vue')
+                    },
+                    {
+                        path: ':id/release-orders',
+                        name: 'training.program.release-orders',
+                        component: () => import('../pages/training/program/release_order/Index.vue')
                     }
                 ]
             },

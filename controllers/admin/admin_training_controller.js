@@ -336,6 +336,24 @@ exports.getEnrollmentsByProgram = async (req, res) => {
             { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
             {
                 $lookup: {
+                    from: 'districts',
+                    localField: 'user.district',
+                    foreignField: '_id',
+                    as: 'user.district'
+                }
+            },
+            { $unwind: { path: '$user.district', preserveNullAndEmptyArrays: true } },
+            {
+                $lookup: {
+                    from: 'groups',
+                    localField: 'user.group',
+                    foreignField: '_id',
+                    as: 'user.group'
+                }
+            },
+            { $unwind: { path: '$user.group', preserveNullAndEmptyArrays: true } },
+            {
+                $lookup: {
                     from: 'trainingprograms',
                     localField: 'training_program',
                     foreignField: '_id',

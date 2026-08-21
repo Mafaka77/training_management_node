@@ -38,10 +38,10 @@ async function login() {
   <div class="relative min-h-screen flex items-center justify-center bg-zinc-950 text-zinc-50 px-4 overflow-hidden">
     <!-- Ambient blurred background blobs for premium feel -->
     <div
-      class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-blue-600/10 blur-[120px] pointer-events-none animate-pulse duration-4000">
+      class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-emerald-600/10 blur-[120px] pointer-events-none animate-pulse duration-4000">
     </div>
     <div
-      class="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-indigo-600/10 blur-[120px] pointer-events-none animate-pulse duration-4000 delay-2000">
+      class="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-emerald-700/10 blur-[120px] pointer-events-none animate-pulse duration-4000 delay-2000">
     </div>
 
     <!-- Card -->
@@ -50,12 +50,16 @@ async function login() {
 
       <!-- Header -->
       <div class="text-center mb-8">
+        <div class="mx-auto w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-800 to-emerald-600 p-0.5 shadow-md flex items-center justify-center mb-3">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/1/17/Ashoka_Chakra.svg" alt="ATI Logo"
+            class="h-full w-full object-contain filter invert brightness-200" />
+        </div>
         <h1
-          class="text-3xl font-bold tracking-tight bg-gradient-to-r from-zinc-50 via-zinc-100 to-zinc-400 bg-clip-text text-transparent">
-          ATI Admin
+          class="text-2xl font-bold tracking-tight bg-gradient-to-r from-zinc-50 via-zinc-100 to-zinc-400 bg-clip-text text-transparent">
+          ATI Admin Portal
         </h1>
-        <p class="text-sm text-zinc-400 mt-2">
-          Sign in to access the training dashboard
+        <p class="text-xs text-zinc-400 mt-1">
+          Government of Mizoram Training Management System
         </p>
       </div>
 
@@ -80,15 +84,15 @@ async function login() {
         <!-- Email Field -->
         <div class="relative group">
           <label
-            class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2 group-focus-within:text-blue-400 transition-colors duration-200">
+            class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2 group-focus-within:text-emerald-400 transition-colors duration-200">
             Email Address
           </label>
           <div class="relative">
             <input v-model="email" type="email" required autocomplete="email" placeholder="name@example.com"
-              class="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-800 bg-zinc-950/40 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-blue-500/60 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200"
+              class="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-800 bg-zinc-950/40 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-emerald-500/60 focus:ring-4 focus:ring-emerald-500/10 transition-all duration-200"
               :disabled="loading" />
             <div
-              class="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-blue-400 transition-colors duration-200">
+              class="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-emerald-400 transition-colors duration-200">
               <Mail class="w-4 h-4" />
             </div>
           </div>
@@ -97,16 +101,16 @@ async function login() {
         <!-- Password Field -->
         <div class="relative group">
           <label
-            class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2 group-focus-within:text-blue-400 transition-colors duration-200">
+            class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2 group-focus-within:text-emerald-400 transition-colors duration-200">
             Password
           </label>
           <div class="relative">
             <input v-model="password" :type="showPassword ? 'text' : 'password'" required
               autocomplete="current-password" placeholder="••••••••"
-              class="w-full pl-10 pr-10 py-3 rounded-xl border border-zinc-800 bg-zinc-950/40 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-blue-500/60 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200"
+              class="w-full pl-10 pr-10 py-3 rounded-xl border border-zinc-800 bg-zinc-950/40 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-emerald-500/60 focus:ring-4 focus:ring-emerald-500/10 transition-all duration-200"
               :disabled="loading" />
             <div
-              class="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-blue-400 transition-colors duration-200">
+              class="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-emerald-400 transition-colors duration-200">
               <Lock class="w-4 h-4" />
             </div>
 
@@ -122,7 +126,7 @@ async function login() {
 
         <!-- Submit Button -->
         <button type="submit" :disabled="loading"
-          class="w-full mt-6 py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium rounded-xl shadow-lg shadow-blue-500/10 hover:shadow-blue-500/20 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none disabled:active:scale-100">
+          class="w-full mt-6 py-3 px-4 bg-gradient-to-r from-emerald-700 to-emerald-600 hover:from-emerald-600 hover:to-emerald-500 text-white font-semibold rounded-xl shadow-lg shadow-emerald-700/20 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none disabled:active:scale-100">
           <Loader2 v-if="loading" class="animate-spin w-4 h-4" />
           <span>{{ loading ? "Signing in..." : "Sign In" }}</span>
         </button>
@@ -132,7 +136,7 @@ async function login() {
       <!-- Footer -->
       <div class="mt-8 text-center border-t border-zinc-800/60 pt-6">
         <p class="text-xs text-zinc-500">
-          © {{ new Date().getFullYear() }} ATI Training Management. All rights reserved.
+          © {{ new Date().getFullYear() }} Administrative Training Institute. All rights reserved.
         </p>
       </div>
 

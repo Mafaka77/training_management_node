@@ -1,34 +1,33 @@
 <template>
-  <div class="space-y-6">
+  <div class="space-y-5">
     <div v-for="section in filteredMenu" :key="section.title">
       <!-- Section Header -->
-      <div class="flex items-center gap-3 mb-4 group/section">
-        <div
-          class="h-1.5 w-1.5 rounded-full bg-indigo-500/50 dark:bg-indigo-500/40 transition-all duration-300 group-hover/section:scale-150 group-hover/section:bg-indigo-500">
-        </div>
+      <div v-if="!isCollapsed" class="flex items-center gap-2 mb-2 group/section px-1">
         <span
-          class="text-[9px] font-black uppercase tracking-[0.25em] text-slate-400 dark:text-slate-500 transition-colors duration-300 group-hover/section:text-indigo-500 dark:group-hover/section:text-indigo-400">
+          class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 transition-colors duration-300">
           {{ section.title }}
         </span>
-        <div class="h-px flex-1 bg-gradient-to-r from-indigo-500/10 via-slate-500/5 to-transparent"></div>
+        <div class="h-px flex-1 bg-zinc-200/60 dark:bg-white/5"></div>
       </div>
+      <div v-else class="my-2 border-t border-zinc-200/50 dark:border-white/5"></div>
 
       <!-- Navigation Items -->
-      <nav class="space-y-1.5">
+      <nav class="space-y-1">
         <!-- If it's a dropdown group -->
         <template v-if="section.isGroup">
           <button @click="$emit('update:' + section.groupKey, !props[section.groupKey])"
+            :title="isCollapsed ? section.label : undefined"
             :class="buttonClasses(props[section.groupKey])">
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 min-w-0">
               <svg xmlns="http://www.w3.org/2000/svg"
-                class="h-4 w-4 transition-transform duration-300 group-hover:scale-110"
+                class="h-4 w-4 flex-shrink-0 transition-transform duration-300 group-hover:scale-110"
                 :class="props[section.groupKey] ? 'text-indigo-500' : 'opacity-70'" fill="none" viewBox="0 0 24 24"
                 stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" :d="section.icon" />
               </svg>
-              <span class="font-bold tracking-tight">{{ section.label }}</span>
+              <span v-if="!isCollapsed" class="truncate font-semibold text-xs">{{ section.label }}</span>
             </div>
-            <svg class="h-3 w-3 transition-transform duration-500"
+            <svg v-if="!isCollapsed" class="h-3 w-3 flex-shrink-0 transition-transform duration-300"
               :class="props[section.groupKey] ? 'rotate-180 text-indigo-500' : 'opacity-40'" viewBox="0 0 20 20"
               fill="currentColor">
               <path fill-rule="evenodd"
@@ -38,9 +37,9 @@
           </button>
 
           <Transition name="expand">
-            <div v-if="props[section.groupKey]" class="mt-1.5 space-y-1.5 overflow-hidden">
+            <div v-if="props[section.groupKey] || isCollapsed" class="mt-1 space-y-1 overflow-hidden">
               <SidebarItem v-for="child in section.children" :key="child.to" :to="child.to" :isDark="isDark"
-                :icon="child.icon" :isChild="false">
+                :icon="child.icon" :isChild="true" :isCollapsed="isCollapsed">
                 {{ child.label }}
               </SidebarItem>
             </div>
@@ -49,7 +48,7 @@
 
         <!-- Standard Items -->
         <template v-else>
-          <SidebarItem v-for="item in section.items" :key="item.to" :to="item.to" :isDark="isDark" :icon="item.icon">
+          <SidebarItem v-for="item in section.items" :key="item.to" :to="item.to" :isDark="isDark" :icon="item.icon" :isCollapsed="isCollapsed">
             {{ item.label }}
           </SidebarItem>
         </template>
@@ -67,7 +66,8 @@ const store = useAuthStore();
 const props = defineProps({
   trainingOpen: { type: Boolean, default: false },
   masterOpen: { type: Boolean, default: false },
-  isDark: Boolean
+  isDark: Boolean,
+  isCollapsed: { type: Boolean, default: false }
 })
 
 defineEmits(['update:trainingOpen', 'update:masterOpen'])
@@ -76,18 +76,19 @@ const userRole = computed(() => {
   const roles = store.roles;
   if (!roles) return [];
   if (Array.isArray(roles)) return roles;
-  return [roles]; // Wrap string roles in array so .some works
+  return [roles];
 });
 
 const buttonClasses = (isOpen) => [
-  'flex w-full items-center justify-between py-2.5 px-3 text-left text-sm rounded-xl transition-all duration-300 group active:scale-[0.98] border border-transparent',
+  'flex w-full items-center justify-between py-2.5 px-3 text-left text-xs rounded-xl transition-all duration-200 group active:scale-[0.98]',
+  props.isCollapsed ? 'justify-center px-2' : '',
   isOpen
     ? (props.isDark
-      ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20 shadow-[0_0_20px_rgba(99,102,241,0.03)] font-semibold'
-      : 'bg-indigo-50 text-indigo-600 border-indigo-500/10 shadow-[0_4px_12px_rgba(99,102,241,0.03)] font-semibold')
+      ? 'bg-emerald-500/10 text-emerald-400 font-semibold'
+      : 'bg-emerald-50 text-emerald-700 font-semibold')
     : (props.isDark
-      ? 'text-slate-400 hover:bg-white/5 hover:text-white hover:border-white/5'
-      : 'text-slate-600 hover:bg-white hover:shadow-md hover:shadow-black/[0.02] hover:text-indigo-600 hover:border-slate-100')
+      ? 'text-zinc-400 hover:bg-white/5 hover:text-zinc-100'
+      : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900')
 ]
 
 const filteredMenu = computed(() => {

@@ -316,15 +316,39 @@ exports.updateTrainee = async (req, res) => {
                 status: STATUS.NOT_FOUND,
             });
         }
-        trainee.full_name = req.body.full_name;
-        trainee.email = req.body.email;
-        trainee.mobile = req.body.mobile;
+        trainee.full_name = req.body.full_name ?? trainee.full_name;
+        trainee.email = req.body.email ?? trainee.email;
+        trainee.mobile = req.body.mobile ?? trainee.mobile;
         trainee.department = req.body.department;
         trainee.designation = req.body.designation;
         trainee.district = req.body.district;
-        trainee.group = req.body.group;
         trainee.gender = req.body.gender;
-        trainee.mandatory_completion = req.body.mandatory_completion;
+        trainee.dob = req.body.dob;
+        trainee.category = req.body.category;
+        trainee.is_govt_employee = req.body.is_govt_employee !== undefined ? req.body.is_govt_employee : trainee.is_govt_employee;
+
+        if (req.body.is_govt_employee === false) {
+            const ngo = await Group.findOne({ group_name: 'NGO' });
+            if (ngo) trainee.group = ngo._id;
+        } else if (req.body.group) {
+            trainee.group = req.body.group;
+        }
+
+        trainee.date_of_entry = req.body.date_of_entry;
+        trainee.date_of_entry_in_present_grade = req.body.date_of_entry_in_present_grade;
+        trainee.date_of_superannuation = req.body.date_of_superannuation;
+        trainee.recruitment = req.body.recruitment;
+        trainee.confirmation = req.body.confirmation;
+        trainee.qualification = req.body.qualification;
+        trainee.service = req.body.service;
+        trainee.service_cadre = req.body.service_cadre;
+        trainee.mandatory_completion = req.body.mandatory_completion !== undefined ? req.body.mandatory_completion : trainee.mandatory_completion;
+
+        if (req.body.password) {
+            const salt = await bcrypt.genSalt(10);
+            trainee.password = await bcrypt.hash(req.body.password, salt);
+        }
+
         await trainee.save();
         return res.status(STATUS.OK).json({
             message: "Trainee updated successfully",

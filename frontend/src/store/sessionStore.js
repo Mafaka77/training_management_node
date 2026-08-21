@@ -29,6 +29,15 @@ export const useSessionStore = defineStore('session', {
                 this.trainers = response.data.trainers;
             } catch (ex) { }
         },
+        async fetchSessionsByProgram(id) {
+            return await this.fetchSession(id);
+        },
+        async fetchTrainers() {
+            return await this.getTrainers();
+        },
+        async createSession(formData) {
+            return await this.submitSession(formData);
+        },
         async submitSession(formData) {
             console.log(formData);
             try {
@@ -43,7 +52,15 @@ export const useSessionStore = defineStore('session', {
                 return { success: false, message: ex.message }
             }
         },
-        async updateSession(formData, id) {
+        async updateSession(arg1, arg2) {
+            let id, formData;
+            if (typeof arg1 === 'string') {
+                id = arg1;
+                formData = arg2;
+            } else {
+                formData = arg1;
+                id = arg2 || formData?._id;
+            }
             try {
                 const response = await api.put(`/course/${id}`, formData);
                 const statusCode = response.data.status || response.status;
