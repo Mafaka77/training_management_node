@@ -166,7 +166,7 @@ exports.enrollInTraining = async (req, res) => {
 
         const notifTitle = "New Enrollment Request";
         const notifMessage = `${user.full_name} applied for ${training.t_name}`;
-        const targetUrl = `/admin/training/enrollment/${newEnrollment._id}`;
+        const targetUrl = `/admin/training/${trainingId}/enrollments?enrollmentId=${newEnrollment._id}`;
 
         const adminNotification = new Notification({
             sender_id: req.user.user.id,
@@ -174,6 +174,11 @@ exports.enrollInTraining = async (req, res) => {
             title: notifTitle,
             message: notifMessage,
             target_url: targetUrl,
+            training_program: trainingId,
+            extra_data: {
+                enrollment_id: newEnrollment._id.toString(),
+                training_id: trainingId.toString()
+            },
             is_read: false
         });
         await adminNotification.save();

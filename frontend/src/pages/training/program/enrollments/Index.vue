@@ -441,22 +441,37 @@ const updateStatus = async (id, status) => {
 };
 
 const enrollmentDetails = async (item) => {
-  const response = await store.fetchEnrollmentDetails(item._id);
+  const enrollmentId = item?._id || item;
+  if (!enrollmentId) return;
+  const response = await store.fetchEnrollmentDetails(enrollmentId);
   if (response.success) {
-    alert.success(response.message);
     showDetailsModal.value = true;
   } else {
     alert.error(response.message);
   }
 };
 
+const checkAndOpenDetailsModalFromQuery = async () => {
+  const enrollmentId = route.query.enrollmentId;
+  if (enrollmentId) {
+    await enrollmentDetails(enrollmentId);
+  }
+};
+
 onMounted(async () => {
   await fetchData();
+  await checkAndOpenDetailsModalFromQuery();
 });
 
 watch(targetProgramId, async (newId) => {
   if (newId) {
     await fetchData();
+  }
+});
+
+watch(() => route.query.enrollmentId, async (newEnrollmentId) => {
+  if (newEnrollmentId) {
+    await checkAndOpenDetailsModalFromQuery();
   }
 });
 </script>

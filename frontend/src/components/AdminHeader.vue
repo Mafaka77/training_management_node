@@ -316,8 +316,17 @@ const handleNotifClick = async (n) => {
   if (response.success) {
     await store.fetchNotification();
     notifOpen.value = false;
-    if (n.target_url) {
-      router.push(n.target_url);
+    
+    let target = n.target_url;
+    // Normalize target URL if needed
+    if (!target && n.training_program) {
+      const progId = typeof n.training_program === 'object' ? n.training_program._id : n.training_program;
+      const enrollId = n.extra_data?.enrollment_id;
+      target = `/admin/training/${progId}/enrollments` + (enrollId ? `?enrollmentId=${enrollId}` : '');
+    }
+    
+    if (target) {
+      router.push(target);
     }
   } else {
     notifOpen.value = false;

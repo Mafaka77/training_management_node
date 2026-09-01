@@ -1,0 +1,1 @@
+import{_ as o,o as r,c as t,b as n,i as c}from"./index-CT73a9FH.js";const s={},a={class:"page-wrapper"};function _(i,p){const e=c("router-view");return r(),t("div",a,[n(e)])}const f=o(s,[["render",_]]);export{f as default};
