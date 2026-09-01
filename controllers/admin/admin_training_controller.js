@@ -722,8 +722,14 @@ exports.getEnrollmentDetails = async (req, res) => {
     try {
         const { enrollmentId } = req.params;
         const enrollment = await Enrollment.findById(enrollmentId)
-            .populate("training_program", "t_name t_start_date t_end_date")
-            .populate("user")
+            .populate("training_program", "t_name t_start_date t_end_date t_description")
+            .populate({
+                path: "user",
+                populate: [
+                    { path: "district", select: "name" },
+                    { path: "group", select: "group_name name" }
+                ]
+            })
             .lean();
         if (!enrollment) {
             return res.status(STATUS.OK).json({
