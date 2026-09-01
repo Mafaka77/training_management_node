@@ -187,7 +187,8 @@ const showDesktopModal = ref(false);
 
 const PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.msegs.training_apps";
 const APP_STORE_URL = "https://apps.apple.com/in/app/atimiz/id6788260969";
-const APP_SCHEME = "ati://training";
+const PACKAGE_NAME = "com.msegs.training_apps";
+const APP_SCHEME = "ati";
 
 const handleApply = (trainingId) => {
   const userAgent = navigator.userAgent || navigator.vendor || window.opera || "";
@@ -195,27 +196,49 @@ const handleApply = (trainingId) => {
   const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
   const programId = trainingId || "";
 
-  const customSchemeUrl = `${APP_SCHEME}/${programId}`;
-
   if (isAndroid) {
-    const start = Date.now();
-    window.location.href = customSchemeUrl;
+    // Official Android Chrome Intent format with automatic Play Store fallback
+    const intentUrl = `intent://training/${programId}#Intent;scheme=${APP_SCHEME};package=${PACKAGE_NAME};S.browser_fallback_url=${encodeURIComponent(PLAY_STORE_URL)};end`;
 
+    let appOpened = false;
+    const markAppOpened = () => { appOpened = true; };
+    window.addEventListener("pagehide", markAppOpened, { once: true });
+    window.addEventListener("blur", markAppOpened, { once: true });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) appOpened = true;
+    }, { once: true });
+
+    // Navigate to Intent URL (launches installed app or redirects to Play Store)
+    window.location.href = intentUrl;
+
+    // Fallback for third-party Android browsers that don't support intent format
     setTimeout(() => {
-      if (document.visibilityState === "visible" || Date.now() - start < 2000) {
+      if (!appOpened && !document.hidden && document.visibilityState === "visible") {
         window.location.href = PLAY_STORE_URL;
       }
-    }, 1500);
+    }, 1800);
   } else if (isIOS) {
-    const start = Date.now();
+    const customSchemeUrl = `${APP_SCHEME}://training/${programId}`;
+    let appOpened = false;
+    const markAppOpened = () => { appOpened = true; };
+
+    window.addEventListener("pagehide", markAppOpened, { once: true });
+    window.addEventListener("blur", markAppOpened, { once: true });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) appOpened = true;
+    }, { once: true });
+
+    // Try custom scheme
     window.location.href = customSchemeUrl;
 
+    // If app is not installed, user remains in Safari -> redirect to App Store
     setTimeout(() => {
-      if (document.visibilityState === "visible" || Date.now() - start < 2000) {
+      if (!appOpened && !document.hidden && document.visibilityState === "visible") {
         window.location.href = APP_STORE_URL;
       }
-    }, 1500);
+    }, 1800);
   } else {
+    // Desktop / Laptop users
     showDesktopModal.value = true;
   }
 };
