@@ -1,7 +1,10 @@
+const axios = require('axios');
 const User = require('../../models/user_model');
 const Enrollment = require('../../models/enrollment_model');
 const TrainingProgram = require('../../models/training_program_model');
-const Category = require('../../models/training_category_model')
+const Category = require('../../models/training_category_model');
+const Notification = require('../../models/notification_model');
+const { sendPushToUser } = require('../../services/push_service');
 const STATUS = require('../../utils/httpStatus');
 const mongoose = require('mongoose');
 const EnrolledOrder = require('../../models/enrolled_order_model');
@@ -126,10 +129,16 @@ exports.getEnrollmentById = async (req, res) => {
 exports.updateEnrollmentStatus = async (req, res) => {
     try {
         const { enrollmentId } = req.params;
-        // Destructure 'status' directly from req.body
         const { status } = req.body;
-        console.log(status);
-        // 1. Validation: Ensure status exists and is valid
+
+        // 1. Validation: Ensure ID and status are valid
+        if (!mongoose.Types.ObjectId.isValid(enrollmentId)) {
+            return res.status(STATUS.OK).json({
+                status: STATUS.BAD_REQUEST,
+                message: "Invalid enrollment ID"
+            });
+        }
+
         const validStatuses = ["Pending", "Approved", "Rejected", "Waitlisted"];
         if (!status || !validStatuses.includes(status)) {
             return res.status(STATUS.OK).json({
@@ -139,7 +148,10 @@ exports.updateEnrollmentStatus = async (req, res) => {
         }
 
         // 2. Fetch Enrollment with User and Training info
-        const enrollment = await Enrollment.findById(enrollmentId).populate('training_program');
+        const enrollment = await Enrollment.findById(enrollmentId)
+            .populate('training_program')
+            .populate('user');
+
         if (!enrollment) {
             return res.status(STATUS.OK).json({
                 status: STATUS.NOT_FOUND,
@@ -147,33 +159,92 @@ exports.updateEnrollmentStatus = async (req, res) => {
             });
         }
 
-        // 3. Capacity Logic (Only if the admin is trying to Approve)
+        // 3. Capacity Logic (Only if the admin is approving)
         if (status === "Approved") {
             const training = enrollment.training_program;
-
-            // Count currently approved users, excluding THIS user 
-            // (in case they were already approved, we don't want to double count)
-            const approvedCount = await Enrollment.countDocuments({
-                training_program: training._id,
-                status: 'Approved',
-                _id: { $ne: enrollmentId }
-            });
-
-            if (approvedCount >= training.t_capacity) {
-                console.log('a khat');
-                return res.status(STATUS.OK).json({
-                    status: STATUS.BAD_REQUEST,
-                    message: `Training Capacity full (${training.t_capacity}).`
+            if (training) {
+                const approvedCount = await Enrollment.countDocuments({
+                    training_program: training._id,
+                    status: 'Approved',
+                    _id: { $ne: enrollmentId }
                 });
+
+                if (training.t_capacity && approvedCount >= training.t_capacity) {
+                    return res.status(STATUS.OK).json({
+                        status: STATUS.BAD_REQUEST,
+                        message: `Training capacity is full (${training.t_capacity} trainees).`
+                    });
+                }
             }
         }
-        // 4. Save Status
+
+        // 4. Save New Status
         enrollment.status = status;
         await enrollment.save();
-        // 6. Final Response
+
+        // 5. Send SMS if Approved
+        if (status === "Approved" && enrollment.user?.mobile) {
+            try {
+                const templateId = '1407177545223617029';
+                const formattedDate = enrollment.training_program?.t_start_date
+                    ? new Date(enrollment.training_program.t_start_date).toLocaleDateString('en-GB')
+                    : '';
+                const message = `ATI a training turin thlan i ni a, Dt. ${formattedDate} ah ATI Reception ah in report tura hriattir i ni e. EGOVMZ`;
+
+                await axios.get("https://sms.msegs.in/api/send-sms", {
+                    headers: {
+                        'Authorization': `Bearer ${process.env.SMS_TOKEN}`
+                    },
+                    params: {
+                        template_id: templateId,
+                        message: message,
+                        recipient: enrollment.user.mobile
+                    }
+                });
+            } catch (smsError) {
+                console.error("❌ [SMS] Error sending approval SMS:", smsError.message || smsError);
+            }
+        }
+
+        // 6. Notify Trainee (In-app & Push notification)
+        if (enrollment.user?._id) {
+            (async () => {
+                try {
+                    const programName = enrollment.training_program?.t_name || "Training Program";
+                    const notifTitle = `Enrollment ${status}`;
+                    const notifMessage = `Your enrollment for "${programName}" has been marked as ${status.toLowerCase()}.`;
+
+                    const traineeNotif = new Notification({
+                        sender_id: req.user?.user?.id || req.user?._id,
+                        type: "Training",
+                        title: notifTitle,
+                        message: notifMessage,
+                        target_url: `/trainee/trainings`,
+                        is_read: false
+                    });
+                    await traineeNotif.save();
+
+                    await sendPushToUser(enrollment.user._id, {
+                        title: notifTitle,
+                        body: notifMessage,
+                        url: `/trainee/trainings`,
+                        data: {
+                            type: "Training",
+                            enrollment_id: enrollment._id.toString(),
+                            status: status
+                        }
+                    });
+                } catch (notifErr) {
+                    console.error("❌ [Notification] Error notifying trainee:", notifErr.message || notifErr);
+                }
+            })();
+        }
+
+        // 7. Final Response
         return res.status(STATUS.OK).json({
             status: STATUS.OK,
             message: `Enrollment marked as ${status} successfully`,
+            enrollment
         });
 
     } catch (error) {
