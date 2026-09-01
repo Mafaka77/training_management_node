@@ -27,6 +27,19 @@ export const useDashboardStore = defineStore('dashboard', {
                 return { success: false, message: 'Something went wrong!!' }
             }
         },
+        async readAllNotifications() {
+            try {
+                const response = await api.patch('/notifications/read-all');
+                const statusCode = response.status === 200 || response.data.status === 200;
+                if (statusCode) {
+                    this.notifications = [];
+                    return { success: true, message: response.data.message || 'Notifications cleared' };
+                }
+                return { success: false, message: 'Something went wrong!!' };
+            } catch (ex) {
+                return { success: false, message: 'Something went wrong!!' };
+            }
+        },
        async fetchHomeStats() {
             try{
                 const response = await api.get('/stats');

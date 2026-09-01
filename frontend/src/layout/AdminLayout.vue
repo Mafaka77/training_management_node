@@ -7,6 +7,7 @@ import SidebarContent from "../components/SidebarContent.vue";
 import Dialog from "../components/ui/Dialog.vue";
 import { useAuthStore } from "../store/authStore.js";
 import { useDashboardStore } from "../store/dashboardStore.js";
+import { initFCM, deleteFCMToken } from "../services/fcmService.js";
 
 const isLogoutDialog = ref(false);
 const dashboardStore = useDashboardStore();
@@ -16,6 +17,7 @@ const router = useRouter();
 
 const handleLogout = async () => {
   try {
+    await deleteFCMToken();
     authStore.logout();
     dashboardStore.$reset();
     isLogoutDialog.value = false;
@@ -61,9 +63,15 @@ const handleSidebarToggle = () => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
   initTheme();
   window.addEventListener("keydown", (e) => e.key === "Escape" && (sidebarOpen.value = false));
+  // Request notification permission and register FCM device token for web
+  try {
+    await initFCM();
+  } catch (err) {
+    console.error("FCM Init Error:", err);
+  }
 });
 </script>
 
