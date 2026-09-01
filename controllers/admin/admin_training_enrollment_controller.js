@@ -218,15 +218,15 @@ exports.updateEnrollmentStatus = async (req, res) => {
                     const notifTitle = `Enrollment ${status}`;
                     const notifMessage = `Your enrollment for "${programName}" is Approved`;
 
-                    const traineeNotif = new Notification({
-                        sender_id: req.user?.user?.id || req.user?._id,
-                        type: "Training",
-                        title: notifTitle,
-                        message: notifMessage,
-                        target_url: `/trainee/trainings`,
-                        is_read: false
-                    });
-                    await traineeNotif.save();
+                    // const traineeNotif = new Notification({
+                    //     sender_id: req.user?.user?.id || req.user?._id,
+                    //     type: "Training",
+                    //     title: notifTitle,
+                    //     message: notifMessage,
+                    //     target_url: `/trainee/trainings`,
+                    //     is_read: false
+                    // });
+                    // await traineeNotif.save();
 
                     await sendPushToUser(enrollment.user._id, {
                         title: notifTitle,
