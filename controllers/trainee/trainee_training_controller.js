@@ -6,9 +6,10 @@ const STATUS = require('../../utils/httpStatus');
 const Enrollment = require('../../models/enrollment_model');
 const TrainingRatings = require('../../models/training_program_rating_model');
 const Material = require('../../models/materials_model');
-const Notification = require('../../models/notification_model')
+const Notification = require('../../models/notification_model');
+const Role = require('../../models/role_model');
 const { populate } = require("dotenv");
-const { sendPushToUser } = require('../../services/push_service');
+const { sendPushToUser, sendPushToMultipleUsers } = require('../../services/push_service');
 const Group = require('../../models/group_model');
 //TRAINING PROGRAM-----------------------------------------------------------------------------------
 exports.getTraining = async (req, res) => {
@@ -22,7 +23,7 @@ exports.getTraining = async (req, res) => {
             group_name: 'NGO'
         });
         const user = await User.findById(userId);
-        
+
         // If offset is provided, calculate page from it
         let skip;
         if (offset !== undefined) {
@@ -162,20 +163,55 @@ exports.enrollInTraining = async (req, res) => {
             status: 'Pending'
         });
         await newEnrollment.save();
+
+        const notifTitle = "New Enrollment Request";
+        const notifMessage = `${user.full_name} applied for ${training.t_name}`;
+        const targetUrl = `/admin/training/enrollment/${newEnrollment._id}`;
+
         const adminNotification = new Notification({
             sender_id: req.user.user.id,
             type: "Training",
-            title: "New Enrollment Request",
-            message: `${user.full_name} applied for ${training.t_name}`,
-
-            target_url: `/admin/training/enrollment/${newEnrollment._id}`,
+            title: notifTitle,
+            message: notifMessage,
+            target_url: targetUrl,
             is_read: false
         });
         await adminNotification.save();
+
+        // 1. Send push to the applying trainee
         sendPushToUser(req.user.user.id, {
-            title: "Enrollment",
-            body: `Your request is under review. You'll be notified once approved.`,
-        });
+            title: "Enrollment Submitted",
+            body: `Your application for "${training.t_name}" is under review.`,
+        }).catch(err => console.error("Error sending trainee push:", err));
+
+        // 2. Notify Admins and Course Director via FCM Web/App Push
+        (async () => {
+            try {
+                const adminRoles = await Role.find({ name: { $in: ['Admin', 'Director', 'Course Director'] } }).distinct('_id');
+                const adminUserIds = await User.find({ roles: { $in: adminRoles } }).distinct('_id');
+
+                const targetUserIds = new Set(adminUserIds.map(id => id.toString()));
+                if (training.t_director) targetUserIds.add(training.t_director.toString());
+                if (training.t_coordinator) targetUserIds.add(training.t_coordinator.toString());
+
+                const recipientIds = Array.from(targetUserIds);
+                if (recipientIds.length > 0) {
+                    await sendPushToMultipleUsers(recipientIds, {
+                        title: notifTitle,
+                        body: notifMessage,
+                        url: targetUrl,
+                        data: {
+                            type: "Training",
+                            enrollment_id: newEnrollment._id.toString(),
+                            training_id: trainingId.toString(),
+                            url: targetUrl
+                        }
+                    });
+                }
+            } catch (notifyErr) {
+                console.error("❌ [FCM] Error notifying admin/director of enrollment:", notifyErr.message);
+            }
+        })();
 
         return res.status(STATUS.OK).json({ message: "Enrollment request submitted", enrollment: newEnrollment, status: STATUS.CREATED });
 

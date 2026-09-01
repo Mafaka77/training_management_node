@@ -180,6 +180,9 @@ const notificationController = require('../controllers/notification_controller')
 router.get('/notifications/all', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), notificationController.getNotifications);
 router.get('/notifications/stats', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), notificationController.getNotificationStats);
 router.get('/notifications/program/:programId/enrollees-summary', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), notificationController.getProgramEnrolleesSummary);
+const tokenController = require('../controllers/token_controller');
+router.post('/fcm/register-token', authenticate, upload.none(), tokenController.registerToken);
+router.post('/fcm/delete-token', authenticate, upload.none(), tokenController.deleteToken);
 router.post("/fcm/send-notification", authenticate, authorizeRoles('Admin', 'Director'), upload.none(), notificationController.sendToUser);
 router.post("/fcm/send-program-notification", authenticate, authorizeRoles('Admin', 'Director'), upload.none(), notificationController.sendToProgram);
 router.post('/fcm/notify/all-users', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), notificationController.sendToAllUsers);
@@ -188,6 +191,7 @@ router.delete('/notification/:id', authenticate, authorizeRoles('Admin', 'Direct
 //DASHBOARD
 router.get('/notifications', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_dashboard_controller').fetchNotification)
 router.patch('/notification/:id/read', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_dashboard_controller').readNotification)
+router.patch('/notifications/read-all', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_dashboard_controller').readAllNotifications)
 
 //CERTIFICATE AND ORDERS
 router.get('/training/:trainingId/release-order/generate', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), ReleaseOrderController.generateReleaseOrder)

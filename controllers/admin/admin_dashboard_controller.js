@@ -48,6 +48,22 @@ exports.readNotification = async (req, res) => {
     }
 };
 
+exports.readAllNotifications = async (req, res) => {
+    try {
+        await Notification.updateMany({ is_read: false }, { $set: { is_read: true } });
+        return res.status(STATUS.OK).json({
+            message: 'All notifications cleared',
+            status: STATUS.OK
+        });
+    } catch (ex) {
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            message: ex.message,
+            status: STATUS.INTERNAL_SERVER_ERROR
+        });
+    }
+};
+
+
 
 exports.getStats = async (req, res) => {
     try {
