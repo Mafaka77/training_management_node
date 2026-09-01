@@ -182,7 +182,24 @@ exports.enrollInTraining = async (req, res) => {
             is_read: false
         });
         await adminNotification.save();
+        try {
+            const templateId = '1407177545216903701';
+            const message = `ATI a training i dilna kan lo dawng e. Thlan i nih chuan SMS a hriattir leh i ni ang. EGOVMZ`;
+            await axios.get("https://sms.msegs.in/api/send-sms", {
+                headers: {
+                    'Authorization': `Bearer ${process.env.SMS_TOKEN}`
+                },
+                params: {
+                    template_id: templateId,
+                    message: message,
+                    recipient: user.mobile
+                }
+            });
 
+
+        } catch (error) {
+            console.log(error)
+        }
         // 1. Send push to the applying trainee
         sendPushToUser(req.user.user.id, {
             title: "Enrollment Submitted",
