@@ -11,6 +11,7 @@ async function startCronJobs() {
             {
                 t_start_date: { $lte: now },
                 t_end_date: { $gte: now },
+                t_status: { $ne: "Draft" },
             },
             { $set: { t_status: "Ongoing" } }
         );
@@ -19,14 +20,16 @@ async function startCronJobs() {
         await TrainingProgram.updateMany(
             {
                 t_end_date: { $lt: now },
+                t_status: { $ne: "Draft" },
             },
             { $set: { t_status: "Completed" } }
         );
 
-        // ✅ Mark trainings as Upcoming (optional)
+        // ✅ Mark trainings as Upcoming
         await TrainingProgram.updateMany(
             {
                 t_start_date: { $gt: now },
+                t_status: { $ne: "Draft" },
             },
             { $set: { t_status: "Upcoming" } }
         );

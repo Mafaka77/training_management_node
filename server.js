@@ -28,6 +28,7 @@ if (!admin.apps.length) {
 
 const fcm = admin.messaging();
 const userTokens = new Map(); // userId -> Set(tokens)
+
 // Middleware
 app.set("trust proxy", 1);
 

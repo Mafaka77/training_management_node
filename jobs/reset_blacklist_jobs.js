@@ -1,19 +1,26 @@
 const User = require('../models/user_model');
+
 async function startBlacklistCronJobs() {
     try {
-        const users = await User.find({
-            is_blacklisted: true,
-            blacklist_details: { end_date: { $lt: new Date() } }
-        });
-        if (users.length > 0) {
-            users.forEach(async (user) => {
-                user.is_blacklisted = false;
-                user.blacklist_details = null;
-                await user.save();
-            });
-        }
-    } catch (ex) { }
+        console.log("⏳ [CRON] Checking expired blacklists...");
+        const result = await User.updateMany(
+            {
+                is_blacklisted: true,
+                'blacklist_details.end_date': { $lt: new Date() }
+            },
+            {
+                $set: {
+                    is_blacklisted: false,
+                    blacklist_details: null
+                }
+            }
+        );
+        console.log(`✅ [CRON] Blacklist reset completed. Updated ${result.modifiedCount || 0} user(s).`);
+    } catch (ex) {
+        console.error("❌ [CRON] Blacklist reset error:", ex.message);
+    }
 }
+
 module.exports = {
     startBlacklistCronJobs
-}
+};
