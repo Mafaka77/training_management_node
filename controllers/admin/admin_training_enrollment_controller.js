@@ -201,6 +201,7 @@ exports.updateEnrollmentStatus = async (req, res) => {
                         recipient: enrollment.user.mobile
                     }
                 });
+                console.log("✅ [SMS] Approval SMS sent successfully");
             } catch (smsError) {
                 console.error("❌ [SMS] Error sending approval SMS:", smsError.message || smsError);
             }
