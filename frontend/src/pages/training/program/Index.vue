@@ -105,7 +105,8 @@
         </div>
         <h3 class="text-sm font-bold text-zinc-900 dark:text-zinc-100">No Programs Found</h3>
         <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-1 max-w-sm leading-relaxed">
-          {{ search ? `No training programs matched your search query "${search}".` : 'No programs match the selected status filter.' }}
+          {{ search ? `No training programs matched your search query "${search}".` :
+            'No programs match the selected status filter.' }}
         </p>
         <div class="flex gap-2 mt-4">
           <button v-if="search || status !== 'All'" @click="resetFilters"

@@ -551,7 +551,11 @@ const routes = [
                         name: "notification",
                         component: () => import("../pages/notification/Index.vue"),
                     },
-
+                    {
+                        path: "create",
+                        name: "notification.create",
+                        component: () => import("../pages/notification/Create.vue"),
+                    },
                 ]
             },
 

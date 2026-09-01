@@ -1,39 +1,67 @@
-const mongoose=require('mongoose');
-const notificationSchema=new mongoose.Schema({
-    recipient_id:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'User',
-        required:false
+const mongoose = require('mongoose');
+
+const notificationSchema = new mongoose.Schema({
+    recipient_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: false
     },
-    sender_id:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'User',
-        required:true,
+    sender_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: false,
     },
-    type:{
-        type:String,
-        enum:["Training","Ticket"],
-    },
-    title:{
-        type:String,
-        required:false,
-    },
-    message:{
+    type: {
         type: String,
-        required:false,
+        enum: ["Training", "Ticket", "Broadcast", "General", "Announcement", "Reminder"],
+        default: "General"
     },
-    target_url:{
-        type:String,
-        required:true,
+    target_type: {
+        type: String,
+        enum: ["All", "Program", "User"],
+        default: "User"
     },
-    is_read:{
-        type:Boolean,
-        default:false,
+    training_program: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "TrainingProgram",
+        required: false
     },
-    createdAt:{
-        type:Date,
-        default:Date.now
+    title: {
+        type: String,
+        required: true,
+    },
+    message: {
+        type: String,
+        required: true,
+    },
+    target_url: {
+        type: String,
+        default: "",
+    },
+    is_read: {
+        type: Boolean,
+        default: false,
+    },
+    sent_count: {
+        type: Number,
+        default: 0
+    },
+    failed_count: {
+        type: Number,
+        default: 0
+    },
+    recipient_count: {
+        type: Number,
+        default: 1
+    },
+    extra_data: {
+        type: Object,
+        default: {}
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
 });
 
-module.exports=mongoose.model('Notification',notificationSchema);
+module.exports = mongoose.model('Notification', notificationSchema);

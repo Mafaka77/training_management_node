@@ -28,7 +28,7 @@ function parseDateFlexible(val) {
 //TRAINING PROGRAM-----------------------------------------------------------------------------------
 exports.getTraining = async (req, res) => {
     try {
-        let { page = 1, limit = 4, search = "", status = "" } = req.query;
+        let { page = 1, limit = 6, search = "", status = "" } = req.query;
         page = parseInt(page);
         limit = parseInt(limit);
 

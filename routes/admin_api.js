@@ -176,13 +176,14 @@ router.delete('/banner/:id', authenticate, authorizeRoles('Admin', 'Director'), 
 router.get('/stats', authenticate, authorizeRoles('Admin', 'Trainer'), upload.none(), require('../controllers/admin/admin_dashboard_controller').getStats);
 
 //NOTIFICATION
-
-// Tokens
-// router.post("/fcm/register-token", authenticate, authorizeRoles('Admin','Director'), upload.none(), require('../controllers/token_controller').registerToken);
-// router.post("/unregister-token", authenticate, authorizeRoles('Admin','Director'), upload.none(), require('../controllers/token_controller').deleteToken);
-// router.get("/tokens/:userId", authenticate, authorizeRoles('Admin','Director'), upload.none(), require('../controllers/token_controller').listTokens);
-router.post("/fcm/send-notification", authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/notification_controller').sendToUser);
-router.post('/fcm/notify/all-users', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/broadcast_controller').sendToAllUsers);
+const notificationController = require('../controllers/notification_controller');
+router.get('/notifications/all', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), notificationController.getNotifications);
+router.get('/notifications/stats', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), notificationController.getNotificationStats);
+router.get('/notifications/program/:programId/enrollees-summary', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), notificationController.getProgramEnrolleesSummary);
+router.post("/fcm/send-notification", authenticate, authorizeRoles('Admin', 'Director'), upload.none(), notificationController.sendToUser);
+router.post("/fcm/send-program-notification", authenticate, authorizeRoles('Admin', 'Director'), upload.none(), notificationController.sendToProgram);
+router.post('/fcm/notify/all-users', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), notificationController.sendToAllUsers);
+router.delete('/notification/:id', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), notificationController.deleteNotification);
 
 //DASHBOARD
 router.get('/notifications', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_dashboard_controller').fetchNotification)

@@ -67,6 +67,7 @@ exports.generateCertificateHtml = (trainee, program, director, qrCodeDataUrl, op
                         <div class="bg-white p-1">
                             <img src="${qrCodeDataUrl}" alt="QR" class="w-14 h-14" />
                         </div>
+                        <span class="text-[8px] font-semibold text-[#555] tracking-wider mt-1 uppercase">Scan to Verify</span>
                     </div>
                     
                     <!-- Center: National Emblem -->
@@ -172,6 +173,7 @@ exports.generateCertificateHtml = (trainee, program, director, qrCodeDataUrl, op
                         <div class="bg-white p-1 ">
                             <img src="${qrCodeDataUrl}" alt="QR" class="w-14 h-14" />
                         </div>
+                        <span class="text-[8px] font-semibold text-[#555] tracking-wider mt-1 uppercase">Scan to Verify</span>
                     </div>
                 </div>
 
