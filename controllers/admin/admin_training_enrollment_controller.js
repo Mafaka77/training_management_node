@@ -216,7 +216,7 @@ exports.updateEnrollmentStatus = async (req, res) => {
                         ? new Date(enrollment.training_program.t_start_date).toLocaleDateString('en-GB')
                         : '';
                     const notifTitle = `Enrollment ${status}`;
-                    const notifMessage = `Your enrollment for "${programName}" has been marked Approved. Report to the ATI Reception on ${formattedDate} .`;
+                    const notifMessage = `Your enrollment for "${programName}" is Approved`;
 
                     const traineeNotif = new Notification({
                         sender_id: req.user?.user?.id || req.user?._id,
