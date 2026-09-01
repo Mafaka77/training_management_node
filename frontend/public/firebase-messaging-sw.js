@@ -15,10 +15,9 @@ const firebaseConfig = {
 // Initialize Firebase in Service Worker
 firebase.initializeApp(firebaseConfig);
 
-// Retrieve an instance of Firebase Messaging
 const messaging = firebase.messaging();
 
-// Handle background push messages
+// Handle background push messages via Firebase Messaging
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Received background message:', payload);
 
@@ -27,25 +26,61 @@ messaging.onBackgroundMessage((payload) => {
     body: payload.notification?.body || payload.data?.body || 'You have a new update.',
     icon: payload.notification?.icon || '/favicon.ico',
     badge: '/favicon.ico',
-    data: payload.data || {},
+    requireInteraction: true,
+    data: {
+      url: payload.data?.url || payload.fcmOptions?.link || payload.notification?.click_action || '/admin/dashboard',
+      ...payload.data
+    },
   };
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  return self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
-// Handle notification click to focus or open web app
+// Fallback native push event listener (wakes service worker even if Firebase SDK delays)
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+
+  try {
+    const payload = event.data.json();
+    console.log('[firebase-messaging-sw.js] Native push event:', payload);
+
+    const title = payload.notification?.title || payload.data?.title || 'ATI Training Portal';
+    const body = payload.notification?.body || payload.data?.body || '';
+    const targetUrl = payload.data?.url || payload.notification?.click_action || '/admin/dashboard';
+
+    const options = {
+      body,
+      icon: '/favicon.ico',
+      badge: '/favicon.ico',
+      requireInteraction: true,
+      data: { url: targetUrl, ...payload.data }
+    };
+
+    event.waitUntil(self.registration.showNotification(title, options));
+  } catch (err) {
+    console.warn('[firebase-messaging-sw.js] Could not parse push data as JSON:', err);
+  }
+});
+
+// Handle notification click to open or focus the target URL
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  const targetUrl = event.notification.data?.url || '/admin/dashboard';
+
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
       for (let client of windowClients) {
-        if (client.url.includes('/') && 'focus' in client) {
-          return client.focus();
+        if ('focus' in client) {
+          if (client.url.includes('/admin')) {
+            client.navigate(targetUrl);
+            return client.focus();
+          }
         }
       }
       if (clients.openWindow) {
-        return clients.openWindow('/');
+        return clients.openWindow(targetUrl);
       }
     })
   );
 });
+

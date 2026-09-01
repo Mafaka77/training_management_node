@@ -33,7 +33,8 @@ function buildBaseMessage(title, body, icon, url) {
     },
     webpush: {
       headers: {
-        Urgency: "high"
+        Urgency: "high",
+        TTL: "86400"
       },
       notification: {
         title,
