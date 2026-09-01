@@ -34,12 +34,12 @@ exports.submitDocument = async (req, res) => {
             await doc.save();
         }
 
-        const docTitle = title || (req.files[0]?.originalname || "New Document");
+        const docTitle = title || (req.files[0]?.originalname || "Notice");
         const docCount = req.files.length;
-        const notifTitle = "New Document Available";
-        const notifBody = docCount > 1 
-            ? `${docCount} new documents uploaded: ${docTitle}`
-            : `A new document "${docTitle}" has been uploaded.`;
+        const notifTitle = "New Notice Available";
+        const notifBody = docCount > 1
+            ? `${docCount} new notices uploaded: ${docTitle}`
+            : `A new notice "${docTitle}" has been uploaded.`;
 
         // 1. Save in-app notification
         try {
