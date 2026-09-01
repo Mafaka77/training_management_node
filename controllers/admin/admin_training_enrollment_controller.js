@@ -189,7 +189,7 @@ exports.updateEnrollmentStatus = async (req, res) => {
                 const formattedDate = enrollment.training_program?.t_start_date
                     ? new Date(enrollment.training_program.t_start_date).toLocaleDateString('en-GB')
                     : '';
-                const message = `ATI a training turin thlan i ni a, Dt. ${formattedDate} ah ATI Reception ah in report tura hriattir i ni e. EGOVMZ`;
+                const message = `ATI a training turin thlan i ni a, Dt. ${formattedDate} ah ATI Reception ah in report tura hriattir i ni e.EGOVMZ`;
 
                 await axios.get("https://sms.msegs.in/api/send-sms", {
                     headers: {
@@ -211,8 +211,11 @@ exports.updateEnrollmentStatus = async (req, res) => {
             (async () => {
                 try {
                     const programName = enrollment.training_program?.t_name || "Training Program";
+                    const formattedDate = enrollment.training_program?.t_start_date
+                        ? new Date(enrollment.training_program.t_start_date).toLocaleDateString('en-GB')
+                        : '';
                     const notifTitle = `Enrollment ${status}`;
-                    const notifMessage = `Your enrollment for "${programName}" has been marked as ${status.toLowerCase()}.`;
+                    const notifMessage = `Your enrollment for "${programName}" has been marked Approved. Report to the ATI Reception on ${formattedDate} .`;
 
                     const traineeNotif = new Notification({
                         sender_id: req.user?.user?.id || req.user?._id,
