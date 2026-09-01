@@ -9,6 +9,7 @@ const Material = require('../../models/materials_model');
 const Notification = require('../../models/notification_model');
 const Role = require('../../models/role_model');
 const { populate } = require("dotenv");
+const axios = require('axios');
 const { sendPushToUser, sendPushToMultipleUsers } = require('../../services/push_service');
 const Group = require('../../models/group_model');
 //TRAINING PROGRAM-----------------------------------------------------------------------------------
@@ -163,7 +164,24 @@ exports.enrollInTraining = async (req, res) => {
             status: 'Pending'
         });
         await newEnrollment.save();
+        try {
+            const templateId = '1407177545216903701';
+            const message = `ATI a training i dilna kan lo dawng e. Thlan i nih chuan SMS a hriattir leh i ni ang.EGOVMZ`;
+            await axios.get("https://sms.msegs.in/api/send-sms", {
+                headers: {
+                    'Authorization': `Bearer ${process.env.SMS_TOKEN}`
+                },
+                params: {
+                    template_id: templateId,
+                    message: message,
+                    recipient: user.mobile
+                }
+            });
 
+
+        } catch (error) {
+            console.log(error)
+        }
         const notifTitle = "New Enrollment Request";
         const notifMessage = `${user.full_name} applied for ${training.t_name}`;
         const targetUrl = `/admin/training/${trainingId}/enrollments?enrollmentId=${newEnrollment._id}`;
@@ -182,24 +200,7 @@ exports.enrollInTraining = async (req, res) => {
             is_read: false
         });
         await adminNotification.save();
-        try {
-            const templateId = '1407177545216903701';
-            const message = `ATI a training i dilna kan lo dawng e. Thlan i nih chuan SMS a hriattir leh i ni ang. EGOVMZ`;
-            await axios.get("https://sms.msegs.in/api/send-sms", {
-                headers: {
-                    'Authorization': `Bearer ${process.env.SMS_TOKEN}`
-                },
-                params: {
-                    template_id: templateId,
-                    message: message,
-                    recipient: user.mobile
-                }
-            });
 
-
-        } catch (error) {
-            console.log(error)
-        }
         // 1. Send push to the applying trainee
         sendPushToUser(req.user.user.id, {
             title: "Enrollment Submitted",
