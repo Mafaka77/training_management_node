@@ -1,24 +1,24 @@
 <template>
-    <div class="min-h-screen bg-zinc-50 dark:bg-zinc-950 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="min-h-screen bg-[#071a13] text-zinc-50 py-12 px-4 sm:px-6 lg:px-8 selection:bg-emerald-500/30 font-sans">
         <div class="max-w-5xl mx-auto">
 
             <div class="text-center mb-12">
-                <h1 class="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight mb-3">
-                    Legal Information & Policies
+                <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-3">
+                    Legal Information & <span class="text-emerald-400">Policies</span>
                 </h1>
-                <p class="text-zinc-500 dark:text-zinc-400 text-sm sm:text-base max-w-2xl mx-auto">
+                <p class="text-emerald-200/70 text-sm sm:text-base max-w-2xl mx-auto font-light">
                     Please review the official, comprehensive Privacy Policy and Terms & Conditions governing the use of
                     the Administrative Training Institute (ATI) Mizoram application.
                 </p>
             </div>
 
-            <div class="flex justify-center mb-8 border-b border-zinc-200 dark:border-white/10">
+            <div class="flex justify-center mb-8 border-b border-emerald-500/20">
                 <button @click="activeTab = 'privacy'" :class="[
                     activeTab === 'privacy'
-                        ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                        : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 hover:border-zinc-300'
+                        ? 'border-emerald-500 text-emerald-400'
+                        : 'border-transparent text-emerald-200/60 hover:text-white hover:border-emerald-500/30'
                 ]"
-                    class="px-8 py-4 border-b-2 font-bold text-sm sm:text-base transition-colors flex items-center gap-2">
+                    class="px-8 py-4 border-b-2 font-bold text-sm sm:text-base transition-colors flex items-center gap-2 cursor-pointer">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -27,10 +27,10 @@
                 </button>
                 <button @click="activeTab = 'terms'" :class="[
                     activeTab === 'terms'
-                        ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                        : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 hover:border-zinc-300'
+                        ? 'border-emerald-500 text-emerald-400'
+                        : 'border-transparent text-emerald-200/60 hover:text-white hover:border-emerald-500/30'
                 ]"
-                    class="px-8 py-4 border-b-2 font-bold text-sm sm:text-base transition-colors flex items-center gap-2">
+                    class="px-8 py-4 border-b-2 font-bold text-sm sm:text-base transition-colors flex items-center gap-2 cursor-pointer">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -40,7 +40,7 @@
             </div>
 
             <div
-                class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden">
+                class="bg-[#0a2319]/90 border border-emerald-500/20 rounded-2xl shadow-xl overflow-hidden text-emerald-100/90">
 
                 <div v-if="activeTab === 'privacy'" class="p-8 sm:p-12 prose prose-zinc dark:prose-invert max-w-none">
                     <p

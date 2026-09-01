@@ -1,10 +1,10 @@
 <template>
-  <div class="bg-zinc-950 min-h-screen  p-6 lg:px-20 lg:p-12 font-sans selection:bg-blue-500/30">
+  <div class="bg-[#071a13] min-h-screen p-6 lg:px-20 lg:p-12 font-sans selection:bg-emerald-500/30 text-zinc-50">
     <div class="p-4">
-      <header class="flex rounded-full justify-between px-6 py-3 p-4 border-b border-white/[0.08] bg-zinc-900 backdrop-blur-xl sticky top-0 z-50">
-        <div class="flex justify-between  gap-6">
+      <header class="flex rounded-full justify-between px-6 py-3 p-4 border border-emerald-500/20 bg-[#0a2319]/90 backdrop-blur-xl sticky top-0 z-50 shadow-xl">
+        <div class="flex justify-between gap-6 w-full items-center">
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-600/20">
+            <div class="w-9 h-9 bg-emerald-600 rounded-lg flex items-center justify-center shadow-lg shadow-emerald-600/30">
               <CalendarIcon class="w-5 h-5 text-white" />
             </div>
             <h1 class="text-lg font-semibold text-white tracking-tight hidden sm:block">ATI Training Calendar</h1>
@@ -13,21 +13,21 @@
           <div class="flex items-center gap-2">
             <button
                 @click="goToToday"
-                class="px-4 py-1.5 text-xs font-bold text-zinc-300 hover:text-white border border-white/10 rounded-md hover:bg-white/5 transition-all"
+                class="px-4 py-1.5 text-xs font-bold text-emerald-100 hover:text-white border border-emerald-500/30 rounded-md hover:bg-emerald-500/15 transition-all"
             >
               Today
             </button>
             <div class="flex items-center">
-              <button @click="changeMonth(-1)" class="p-2 hover:bg-white/5 rounded-full text-zinc-400 hover:text-white">
+              <button @click="changeMonth(-1)" class="p-2 hover:bg-emerald-500/15 rounded-full text-emerald-300 hover:text-white">
                 <ChevronLeftIcon class="w-5 h-5" />
               </button>
-              <button @click="changeMonth(1)" class="p-2 hover:bg-white/5 rounded-full text-zinc-400 hover:text-white">
+              <button @click="changeMonth(1)" class="p-2 hover:bg-emerald-500/15 rounded-full text-emerald-300 hover:text-white">
                 <ChevronRightIcon class="w-5 h-5" />
               </button>
             </div>
             <span class="text-xl font-medium text-white ml-2 tabular-nums">
-            {{ currentMonthName }} {{ currentYear }}
-          </span>
+              {{ currentMonthName }} {{ currentYear }}
+            </span>
           </div>
         </div>
       </header>
@@ -35,31 +35,31 @@
     </div>
 
     <main class="p-4">
-      <div class="bg-zinc-900/30 border border-white/[0.08] rounded-xl overflow-hidden shadow-2xl relative">
+      <div class="bg-[#0a2319]/70 border border-emerald-500/20 rounded-xl overflow-hidden shadow-2xl relative">
 
-        <div v-if="loading" class="absolute inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center">
-          <div class="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <div v-if="loading" class="absolute inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+          <div class="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
         </div>
 
-        <div class="grid grid-cols-7 border-b border-white/[0.08] bg-white/[0.02]">
-          <div v-for="day in weekDays" :key="day" class="py-2 text-center text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
+        <div class="grid grid-cols-7 border-b border-emerald-500/15 bg-white/[0.02]">
+          <div v-for="day in weekDays" :key="day" class="py-2.5 text-center text-[10px] font-bold text-emerald-400 uppercase tracking-[0.2em]">
             {{ day }}
           </div>
         </div>
 
-        <div class="grid grid-cols-7 divide-x divide-white/[0.05]">
+        <div class="grid grid-cols-7 divide-x divide-emerald-500/10">
           <div
               v-for="(date, index) in calendarDays"
               :key="index"
-              class="min-h-[145px] border-b border-white/[0.05] relative transition-colors"
-              :class="[!date.isCurrentMonth ? 'bg-black/40 opacity-40' : 'bg-transparent']"
+              class="min-h-[145px] border-b border-emerald-500/10 relative transition-colors"
+              :class="[!date.isCurrentMonth ? 'bg-black/30 opacity-40' : 'bg-transparent']"
           >
             <div class="flex justify-center pt-2 pb-1">
               <span
                   class="text-xs font-semibold w-7 h-7 flex items-center justify-center rounded-full transition-all"
                   :class="date.isToday
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/40'
-                  : 'text-zinc-500 hover:bg-white/5 cursor-pointer'"
+                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/40 font-bold'
+                  : 'text-emerald-300/70 hover:bg-emerald-500/10 cursor-pointer'"
               >
                 {{ date.dayNumber }}
               </span>
@@ -125,16 +125,13 @@ const goToToday = () => {
   syncCalendarData();
 };
 
-// Logic to generate ONLY the necessary weeks for the month
 const calendarDays = computed(() => {
   const year = currentYear.value;
   const month = currentDate.value.getMonth();
 
-  // 1. Get the Sunday of the first week
   const firstDayOfMonth = new Date(year, month, 1).getDay();
   const startDate = new Date(year, month, 1 - firstDayOfMonth);
 
-  // 2. Calculate dynamic days: Leading days + Days in month + Trailing days
   const lastDayOfMonth = new Date(year, month + 1, 0);
   const totalDaysInMonth = lastDayOfMonth.getDate();
   const trailingDays = 6 - lastDayOfMonth.getDay();
@@ -175,9 +172,9 @@ const isMonday = (d) => d && d.getDay() === 1;
 
 const getStatusStyle = (status) => {
   const styles = {
-    Upcoming: { bar: "bg-rose-500/20 text-rose-300 border-rose-500/30" },
-    Ongoing: { bar: "bg-blue-600 text-white shadow-[0_2px_10px_rgba(37,99,235,0.3)] z-10" },
-    Completed: { bar: "bg-zinc-800 text-zinc-500 border-white/5" }
+    Upcoming: { bar: "bg-teal-500/20 text-teal-300 border-teal-500/30" },
+    Ongoing: { bar: "bg-emerald-600 text-white shadow-[0_2px_10px_rgba(16,185,129,0.3)] z-10" },
+    Completed: { bar: "bg-[#061811] text-emerald-200/50 border-emerald-500/10" }
   };
   return styles[status] || styles.Upcoming;
 };
