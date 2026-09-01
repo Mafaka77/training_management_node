@@ -34,7 +34,35 @@ const sendTrainingReminderNotifications = require("./sendNotification");
 const trainingsStatusUpdater = require("./training_jobs");
 const { startBlacklistCronJobs } = require("./reset_blacklist_jobs");
 
+async function runJobsImmediately() {
+    console.log("🧪 [CRON TEST] Running all cron jobs immediately for testing...");
+    console.log("--------------------------------------------------");
+    console.log("1️⃣ Executing Training Status Updater...");
+    await trainingsStatusUpdater();
+
+    console.log("\n2️⃣ Executing Blacklist Reset Job...");
+    await startBlacklistCronJobs();
+
+    console.log("\n3️⃣ Executing Training Reminder Notifications...");
+    await sendTrainingReminderNotifications();
+    console.log("--------------------------------------------------");
+    console.log("✅ [CRON TEST] All test executions completed.");
+}
+
 function startAllCronJobs() {
+    // If run with --now or --test flag, execute immediately
+    const args = process.argv.slice(2);
+    if (args.includes("--now") || args.includes("--test")) {
+        runJobsImmediately().then(() => {
+            console.log("👋 Exiting test runner.");
+            process.exit(0);
+        }).catch((err) => {
+            console.error("❌ [CRON TEST] Error during test run:", err);
+            process.exit(1);
+        });
+        return;
+    }
+
     console.log("🕒 [CRON] Initializing Dedicated Cron Worker Process...");
 
     // 1. Midnight jobs (00:00 every day)
@@ -55,4 +83,4 @@ function startAllCronJobs() {
 
 startAllCronJobs();
 
-module.exports = { startAllCronJobs };
+module.exports = { startAllCronJobs, runJobsImmediately };

@@ -5,6 +5,8 @@
   "scripts": {
     "start": "nodemon server.js",
     "dev": "nodemon server.js",
+    "cron": "node jobs/cron_jobs.js",
+    "cron:test": "node jobs/cron_jobs.js --now",
     "seed": "node seeders/seed.js",
     "build": "cd frontend  && npm run build &&  mv dist ../dist"
   },
