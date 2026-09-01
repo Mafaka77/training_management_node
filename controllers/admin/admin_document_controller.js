@@ -92,7 +92,7 @@ exports.submitDocument = async (req, res) => {
 
     } catch (error) {
         console.error("Error uploading documents:", error);
-        res.status(STATUS.INTERNAL_SERVER_ERROR).json({ message: "Server Error", status: STATUS.INTERNAL_SERVER_ERROR });
+        res.status(STATUS.INTERNAL_SERVER_ERROR).json({ message: error.message || "Server Error", status: STATUS.INTERNAL_SERVER_ERROR });
     }
 };
 exports.deleteDocument = async (req, res) => {
