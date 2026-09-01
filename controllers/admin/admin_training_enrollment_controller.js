@@ -189,7 +189,7 @@ exports.updateEnrollmentStatus = async (req, res) => {
                 const formattedDate = enrollment.training_program?.t_start_date
                     ? new Date(enrollment.training_program.t_start_date).toLocaleDateString('en-GB')
                     : '';
-                const message = `ATI a training turin thlan i ni a, Dt. ${'formattedDate'} ah ATI Reception ah in report tura hriattir i ni e.EGOVMZ`;
+                const message = `ATI a training turin thlan i ni a, Dt. ${formattedDate} 09:30 AM ah ATI Reception ah in report tura hriattir i ni e.EGOVMZ`;
 
                 await axios.get("https://sms.msegs.in/api/send-sms", {
                     headers: {
