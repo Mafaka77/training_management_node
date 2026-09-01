@@ -1,1 +1,0 @@
-import{_ as o,o as t,c as r,b as c,i as n}from"./index-MeoiEieL.js";const s={},a={class:"page-wrapper"};function _(i,p){const e=n("router-view");return t(),r("div",a,[c(e)])}const f=o(s,[["render",_]]);export{f as default};

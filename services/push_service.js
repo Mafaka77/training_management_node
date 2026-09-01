@@ -7,6 +7,10 @@ const FCM_MAX_TOKENS = 500;
 
 function buildBaseMessage(title, body, icon, url) {
   const base = {
+    notification: {
+      title,
+      body,
+    },
     android: {
       priority: "high",
       notification: {
@@ -27,31 +31,24 @@ function buildBaseMessage(title, body, icon, url) {
         }
       },
     },
+    webpush: {
+      headers: {
+        Urgency: "high"
+      },
+      notification: {
+        title,
+        body,
+        icon: icon || "/favicon.ico",
+        requireInteraction: true
+      },
+      fcmOptions: {
+        link: url || "/"
+      }
+    }
   };
 
   if (icon) {
     base.android.notification.icon = icon;
-  }
-
-  const webpushNotification = {};
-  if (icon) webpushNotification.icon = icon;
-  if (url) {
-    webpushNotification.actions = [
-      {
-        action: url,
-        title: 'Open Page'
-      }
-    ];
-  }
-
-  if (Object.keys(webpushNotification).length > 0 || url) {
-    base.webpush = {};
-    if (Object.keys(webpushNotification).length > 0) {
-      base.webpush.notification = webpushNotification;
-    }
-    if (url) {
-      base.webpush.fcmOptions = { link: url };
-    }
   }
 
   return base;
@@ -146,9 +143,13 @@ async function sendPushToMultipleUsers(userIds, { title, body, data = {}, icon, 
   if (!validIds.length) return { sent: 0, failed: 0, cleaned: 0, skipped: true };
 
   const docs = await Token.find({ user: { $in: validIds } }).lean();
-  if (!docs.length) return { sent: 0, failed: 0, cleaned: 0, skipped: true };
+  if (!docs.length) {
+    console.warn("⚠️ [push_service] No FCM device tokens registered in database for target users:", validIds.map(id => id.toString()));
+    return { sent: 0, failed: 0, cleaned: 0, skipped: true };
+  }
 
   const tokens = Array.from(new Set(docs.map(d => d.token)));
+  console.log(`🚀 [push_service] Dispatching push notification to ${tokens.length} token(s) across ${validIds.length} user(s)...`);
   const payloadData = { ...data };
   if (url) {
     payloadData.url = url;
@@ -161,7 +162,6 @@ async function sendPushToMultipleUsers(userIds, { title, body, data = {}, icon, 
     const message = {
       ...buildBaseMessage(title, body, icon, url),
       tokens: batch,
-      notification: { title, body },
       data: dataStr,
     };
     const resp = await messaging.sendEachForMulticast(message);
@@ -179,6 +179,7 @@ async function sendPushToMultipleUsers(userIds, { title, body, data = {}, icon, 
     failed += resp.failureCount;
     cleaned += await cleanupInvalidTokens(batch, resp);
   }
+  console.log(`✅ [push_service] Push dispatch result: ${sent} sent, ${failed} failed, ${cleaned} cleaned.`);
   return { sent, failed, cleaned };
 }
 

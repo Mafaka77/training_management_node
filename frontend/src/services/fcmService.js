@@ -2,6 +2,7 @@ import { getToken, onMessage } from "firebase/messaging";
 import { getFirebaseMessaging } from "../config/firebase";
 import api from "../api/axios";
 import { useAlertStore } from "../store/alertStore";
+import { useDashboardStore } from "../store/dashboardStore";
 
 let currentToken = null;
 let unsubscribeOnMessage = null;
@@ -78,13 +79,43 @@ export const setupForegroundNotificationListener = async (customCallback = null)
     }
 
     unsubscribeOnMessage = onMessage(messaging, (payload) => {
-      console.log("🔔 [FCM] Foreground message received:", payload);
+      console.log("🔔 [FCM] Message received:", payload);
       
       const title = payload.notification?.title || payload.data?.title || "New Notification";
       const body = payload.notification?.body || payload.data?.body || "";
-      
+      const targetUrl = payload.data?.url || payload.fcmOptions?.link || "";
+
+      // 1. Show In-App Banner/Toast
       const alertStore = useAlertStore();
       alertStore.info(`${title}: ${body}`);
+
+      // 2. Trigger native OS/Browser notification banner if enabled
+      if ("Notification" in window && Notification.permission === "granted") {
+        try {
+          const browserNotif = new Notification(title, {
+            body: body,
+            icon: "/favicon.ico",
+            badge: "/favicon.ico",
+            data: payload.data || {},
+          });
+          browserNotif.onclick = () => {
+            window.focus();
+            if (targetUrl) {
+              window.location.href = targetUrl;
+            }
+          };
+        } catch (e) {
+          console.warn("⚠️ [FCM] Could not show native browser notification popup:", e.message);
+        }
+      }
+
+      // 3. Refresh Dashboard notifications list in real-time
+      try {
+        const dashboardStore = useDashboardStore();
+        dashboardStore.fetchNotification();
+      } catch (e) {
+        console.warn("⚠️ [FCM] Could not auto-refresh notifications list:", e.message);
+      }
 
       if (typeof customCallback === "function") {
         customCallback(payload);

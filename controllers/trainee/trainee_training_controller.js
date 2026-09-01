@@ -195,6 +195,7 @@ exports.enrollInTraining = async (req, res) => {
                 if (training.t_coordinator) targetUserIds.add(training.t_coordinator.toString());
 
                 const recipientIds = Array.from(targetUserIds);
+                console.log(`📣 [Enrollment] Found ${recipientIds.length} admin/director recipient(s) for training "${training.t_name}"`);
                 if (recipientIds.length > 0) {
                     await sendPushToMultipleUsers(recipientIds, {
                         title: notifTitle,
