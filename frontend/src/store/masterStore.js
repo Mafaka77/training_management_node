@@ -134,14 +134,16 @@ export const useMasterStore = defineStore('master', {
         },
         async submitDocument(data) {
             try {
-                const response = await api.post('/documents', data);
-                const statusCode = response.status === 200 && response.data.status === 201;
-                if (!statusCode) {
-                    return { success: false, message: response.data.message }
+                const response = await api.post('/documents', data, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                const isSuccess = response.status === 200 || response.status === 201 || response.data?.status === 200 || response.data?.status === 201;
+                if (!isSuccess) {
+                    return { success: false, message: response.data?.message || "Upload failed" };
                 }
-                return { success: true, message: response.data.message }
+                return { success: true, message: response.data?.message || "Documents uploaded successfully" };
             } catch (err) {
-                return { success: false, message: err.message }
+                return { success: false, message: err.response?.data?.message || err.message };
             }
         },
         async deleteDocument(id) {

@@ -108,10 +108,10 @@ router.get('/enrollment/:enrollmentId', authenticate, authorizeRoles('Admin', 'D
 router.patch('/enrollment/:enrollmentId', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), TrainingEnrollmentController.updateEnrollmentStatus);
 
 //DOCUMENTS
-router.post('/documents', authenticate, authorizeRoles('Admin', 'Director'), fileUpload.array('documents', 1), require('../controllers/admin/admin_document_controller').submitDocument);
-router.delete('/document/:id', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_document_controller').deleteDocument);
-router.get('/documents', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_document_controller').getAllDocuments);
-router.get('/document/:id', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_document_controller').getDocumentById);
+router.post('/documents', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), fileUpload.array('documents', 10), require('../controllers/admin/admin_document_controller').submitDocument);
+router.delete('/document/:id', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), require('../controllers/admin/admin_document_controller').deleteDocument);
+router.get('/documents', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), require('../controllers/admin/admin_document_controller').getAllDocuments);
+router.get('/document/:id', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), require('../controllers/admin/admin_document_controller').getDocumentById);
 
 //TICKET
 router.get('/tickets', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_ticket_controller').getAllTickets);

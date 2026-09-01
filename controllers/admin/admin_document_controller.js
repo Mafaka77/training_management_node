@@ -27,7 +27,7 @@ exports.submitDocument = async (req, res) => {
                 description: description || "",
                 fileUrl: `/uploads/${file.filename}`, // or S3 / GCP URL if using cloud
                 fileType: file.mimetype,
-                uploadedBy: req.user.user.id, // from authenticate middleware
+                uploadedBy: req.user?.user?.id || req.user?.id || req.user?._id, // from authenticate middleware
                 accessRoles: parsedRoles
             });
 
