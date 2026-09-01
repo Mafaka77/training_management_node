@@ -50,9 +50,9 @@ async function login() {
 
       <!-- Header -->
       <div class="text-center mb-8">
-        <div class="mx-auto w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-800 to-emerald-600 p-0.5 shadow-md flex items-center justify-center mb-3">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/1/17/Ashoka_Chakra.svg" alt="ATI Logo"
-            class="h-full w-full object-contain filter invert brightness-200" />
+        <div class="mx-auto w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 p-1.5 shadow-md flex items-center justify-center mb-3">
+          <img src="../assets/ati_gom.png" alt="ATI Logo"
+            class="h-full w-full object-contain" />
         </div>
         <h1
           class="text-2xl font-bold tracking-tight bg-gradient-to-r from-zinc-50 via-zinc-100 to-zinc-400 bg-clip-text text-transparent">
