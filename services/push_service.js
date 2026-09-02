@@ -29,6 +29,7 @@ function buildBaseMessage(title, body, icon, url, imageUrl) {
           sound: "default",
           contentAvailable: true,
           mutableContent: true,
+          'mutable-content': 1
         }
       },
     },

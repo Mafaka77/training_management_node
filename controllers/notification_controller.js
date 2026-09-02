@@ -439,6 +439,7 @@ exports.sendToAllUsers = async (req, res) => {
               aps: {
                 sound: "default",
                 mutableContent: true,
+                'mutable-content': 1
               }
             },
             ...(full_image_url ? { fcmOptions: { image: full_image_url } } : {})

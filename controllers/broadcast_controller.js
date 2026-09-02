@@ -29,6 +29,7 @@ exports.sendToAllUsers = async (req, res) => {
           aps: {
             sound: "default",
             mutableContent: true,
+            'mutable-content': 1
           }
         },
       },
