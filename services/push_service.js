@@ -29,7 +29,6 @@ function buildBaseMessage(title, body, icon, url, imageUrl) {
           sound: "default",
           contentAvailable: true,
           mutableContent: true,
-          'mutable-content': 1
         }
       },
     },
@@ -53,7 +52,7 @@ function buildBaseMessage(title, body, icon, url, imageUrl) {
   if (imageUrl) {
     base.notification.imageUrl = imageUrl;
     base.android.notification.imageUrl = imageUrl;
-    base.apns.fcmOptions = { image: imageUrl };
+    base.apns.fcmOptions = { imageUrl: imageUrl };
     base.webpush.notification.image = imageUrl;
   }
 
@@ -125,21 +124,15 @@ async function sendPushToUser(userId, { title, body, data = {}, icon, url, image
     const message = {
       ...buildBaseMessage(title, body, icon, url, effectiveImageUrl),
       tokens: batch,
-      notification: {
-        title,
-        body,
-        ...(effectiveImageUrl ? { imageUrl: effectiveImageUrl } : {}),
-      },
       data: dataStr,
     };
     const resp = await messaging.sendEachForMulticast(message);
     resp.responses.forEach((r, i) => {
       if (!r.success) {
         const e = r.error;
-        console.error(`[FCM] idx=${i} failed`, {
+        console.error(`❌ [FCM Error] token[${i}]=${batch[i]?.slice(0, 15)}... failed:`, {
           code: e?.errorInfo?.code || e?.code,
           message: e?.message,
-          details: e?.errorInfo, // often includes service response
         });
       }
     });
@@ -186,21 +179,15 @@ async function sendPushToMultipleUsers(userIds, { title, body, data = {}, icon, 
     const message = {
       ...buildBaseMessage(title, body, icon, url, effectiveImageUrl),
       tokens: batch,
-      notification: {
-        title,
-        body,
-        ...(effectiveImageUrl ? { imageUrl: effectiveImageUrl } : {}),
-      },
       data: dataStr,
     };
     const resp = await messaging.sendEachForMulticast(message);
     resp.responses.forEach((r, i) => {
       if (!r.success) {
         const e = r.error;
-        console.error(`[FCM] idx=${i} failed`, {
+        console.error(`❌ [FCM Error] token[${i}]=${batch[i]?.slice(0, 15)}... failed:`, {
           code: e?.errorInfo?.code || e?.code,
           message: e?.message,
-          details: e?.errorInfo, // often includes service response
         });
       }
     });
