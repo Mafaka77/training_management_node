@@ -435,7 +435,13 @@ exports.sendToAllUsers = async (req, res) => {
           },
           apns: {
             headers: { "apns-priority": "10" },
-            payload: { aps: { sound: "default" } },
+            payload: {
+              aps: {
+                sound: "default",
+                mutableContent: true,
+                "mutable-content": 1
+              }
+            },
             ...(full_image_url ? { fcmOptions: { image: full_image_url } } : {})
           },
           webpush: {

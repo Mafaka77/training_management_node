@@ -1,5 +1,5 @@
 const { getMessaging } = require("../services/fcm_services");
-const STATUS=require('../utils/httpStatus')
+const STATUS = require('../utils/httpStatus')
 function toStringData(data = {}) {
   const out = {};
   for (const [k, v] of Object.entries(data)) out[k] = v == null ? "" : String(v);
@@ -10,7 +10,7 @@ exports.sendToAllUsers = async (req, res) => {
   try {
     const { title, body, data } = req.body || {};
     if (!title || !body) {
-      return res.status(STATUS.OK).json({ error: "title and body are required" ,status:STATUS.BAD_GATEWAY});
+      return res.status(STATUS.OK).json({ error: "title and body are required", status: STATUS.BAD_GATEWAY });
     }
 
     const messaging = getMessaging();
@@ -25,11 +25,17 @@ exports.sendToAllUsers = async (req, res) => {
       },
       apns: {
         headers: { "apns-priority": "10" },
-        payload: { aps: { sound: "default" } },
+        payload: {
+          aps: {
+            sound: "default",
+            mutableContent: true,
+            "mutable-content": 1
+          }
+        },
       },
     });
 
-    return res.status(STATUS.OK).json({ messageId: resp ,status:STATUS.OK});
+    return res.status(STATUS.OK).json({ messageId: resp, status: STATUS.OK });
   } catch (e) {
     return res.status(500).json({ error: e.message });
   }

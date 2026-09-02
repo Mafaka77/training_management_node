@@ -27,7 +27,9 @@ function buildBaseMessage(title, body, icon, url, imageUrl) {
         aps: {
           alert: { title, body },
           sound: "default",
-          contentAvailable: true
+          contentAvailable: true,
+          mutableContent: true,
+          "mutable-content": 1
         }
       },
     },
