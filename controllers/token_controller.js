@@ -20,6 +20,9 @@ exports.registerToken = async (req, res) => {
         const userId=req.user.user.id;
     if (!userId || !token) return res.status(STATUS.BAD_REQUEST).json({ error: "Token is required",status:STATUS.BAD_REQUEST });
 
+    // Remove old/stale tokens for this user on the same platform
+    await DeviceToken.deleteMany({ user: userId, platform, token: { $ne: token } });
+
     // Upsert by token (token is globally unique)
     await DeviceToken.updateOne(
       { token },

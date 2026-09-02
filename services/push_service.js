@@ -5,7 +5,7 @@ const { getMessaging } = require("../services/fcm_services");
 
 const FCM_MAX_TOKENS = 500;
 
-function buildBaseMessage(title, body, icon, url) {
+function buildBaseMessage(title, body, icon, url, imageUrl) {
   const base = {
     notification: {
       title,
@@ -48,6 +48,13 @@ function buildBaseMessage(title, body, icon, url) {
     }
   };
 
+  if (imageUrl) {
+    base.notification.imageUrl = imageUrl;
+    base.android.notification.imageUrl = imageUrl;
+    base.apns.fcmOptions = { image: imageUrl };
+    base.webpush.notification.image = imageUrl;
+  }
+
   if (icon) {
     base.android.notification.icon = icon;
   }
@@ -86,7 +93,7 @@ function chunk(arr, size) {
  * Send push to all devices of a userId (ObjectId or string).
  * Returns { sent, failed, cleaned }
  */
-async function sendPushToUser(userId, { title, body, data = {}, icon, url }) {
+async function sendPushToUser(userId, { title, body, data = {}, icon, url, imageUrl, image }) {
   if (!userId || !title || !body) {
     throw new Error("userId, title, body are required");
   }
@@ -103,15 +110,24 @@ async function sendPushToUser(userId, { title, body, data = {}, icon, url }) {
   if (url) {
     payloadData.url = url;
   }
+  const effectiveImageUrl = imageUrl || image || payloadData.image || payloadData.imageUrl || payloadData.image_url || null;
+  if (effectiveImageUrl) {
+    payloadData.image = effectiveImageUrl;
+    payloadData.imageUrl = effectiveImageUrl;
+  }
   const dataStr = toStringData(payloadData);
   const messaging = getMessaging();
 
   let sent = 0, failed = 0, cleaned = 0;
   for (const batch of chunk(tokens, FCM_MAX_TOKENS)) {
     const message = {
-      ...buildBaseMessage(title, body, icon, url),
+      ...buildBaseMessage(title, body, icon, url, effectiveImageUrl),
       tokens: batch,
-      notification: { title, body },
+      notification: {
+        title,
+        body,
+        ...(effectiveImageUrl ? { imageUrl: effectiveImageUrl } : {}),
+      },
       data: dataStr,
     };
     const resp = await messaging.sendEachForMulticast(message);
@@ -132,7 +148,7 @@ async function sendPushToUser(userId, { title, body, data = {}, icon, url }) {
   return { sent, failed, cleaned };
 }
 
-async function sendPushToMultipleUsers(userIds, { title, body, data = {}, icon, url }) {
+async function sendPushToMultipleUsers(userIds, { title, body, data = {}, icon, url, imageUrl, image }) {
   if (!Array.isArray(userIds) || !title || !body) {
     throw new Error("userIds (array), title, body are required");
   }
@@ -155,14 +171,24 @@ async function sendPushToMultipleUsers(userIds, { title, body, data = {}, icon, 
   if (url) {
     payloadData.url = url;
   }
+  const effectiveImageUrl = imageUrl || image || payloadData.image || payloadData.imageUrl || payloadData.image_url || null;
+  if (effectiveImageUrl) {
+    payloadData.image = effectiveImageUrl;
+    payloadData.imageUrl = effectiveImageUrl;
+  }
   const dataStr = toStringData(payloadData);
   const messaging = getMessaging();
 
   let sent = 0, failed = 0, cleaned = 0;
   for (const batch of chunk(tokens, FCM_MAX_TOKENS)) {
     const message = {
-      ...buildBaseMessage(title, body, icon, url),
+      ...buildBaseMessage(title, body, icon, url, effectiveImageUrl),
       tokens: batch,
+      notification: {
+        title,
+        body,
+        ...(effectiveImageUrl ? { imageUrl: effectiveImageUrl } : {}),
+      },
       data: dataStr,
     };
     const resp = await messaging.sendEachForMulticast(message);

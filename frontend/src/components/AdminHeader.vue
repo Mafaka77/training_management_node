@@ -15,9 +15,9 @@
 
         <div class="flex items-center gap-3 cursor-pointer select-none" @click="router.push('/admin/dashboard')">
           <div
-            class="h-9 w-9 rounded-xl bg-gradient-to-tr from-emerald-800 to-emerald-600 p-0.5 shadow-xs flex items-center justify-center">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/1/17/Ashoka_Chakra.svg" alt="ATI Logo"
-              class="h-full w-full object-contain filter invert brightness-200" />
+            class="h-9 w-9 rounded-xl flex items-center justify-center">
+            <img src="../assets/ati_gom.png" alt="ATI Logo"
+              class="h-full w-full object-contain" />
           </div>
           <div class="hidden sm:block leading-none">
             <div class="text-base font-extrabold tracking-tight">ATI <span
@@ -316,7 +316,7 @@ const handleNotifClick = async (n) => {
   if (response.success) {
     await store.fetchNotification();
     notifOpen.value = false;
-    
+
     let target = n.target_url;
     // Normalize target URL if needed
     if (!target && n.training_program) {
@@ -324,7 +324,7 @@ const handleNotifClick = async (n) => {
       const enrollId = n.extra_data?.enrollment_id;
       target = `/admin/training/${progId}/enrollments` + (enrollId ? `?enrollmentId=${enrollId}` : '');
     }
-    
+
     if (target) {
       router.push(target);
     }

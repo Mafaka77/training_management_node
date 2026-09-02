@@ -215,13 +215,19 @@
             >
               <!-- Details: Title & Message -->
               <td class="py-3.5 px-4 max-w-xs sm:max-w-sm">
-                <div class="space-y-0.5">
-                  <p class="font-bold text-zinc-900 dark:text-zinc-100 truncate">
-                    {{ item.title }}
-                  </p>
-                  <p class="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-1">
-                    {{ item.message }}
-                  </p>
+                <div class="flex items-start gap-3">
+                  <div v-if="item.image_url"
+                    class="w-10 h-10 rounded-lg overflow-hidden shrink-0 border border-zinc-200 dark:border-white/10 bg-zinc-100 dark:bg-zinc-800">
+                    <img :src="resolveImageUrl(item.image_url)" alt="Banner" class="w-full h-full object-cover" />
+                  </div>
+                  <div class="space-y-0.5 min-w-0 flex-1">
+                    <p class="font-bold text-zinc-900 dark:text-zinc-100 truncate">
+                      {{ item.title }}
+                    </p>
+                    <p class="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-1">
+                      {{ item.message }}
+                    </p>
+                  </div>
                 </div>
               </td>
 
@@ -266,7 +272,7 @@
                 </div>
               </td>
 
-              <!-- Action Link -->
+              <!-- Action URL -->
               <td class="py-3.5 px-4 font-mono text-[11px] max-w-[150px] truncate">
                 <span v-if="item.target_url" class="text-emerald-600 dark:text-emerald-400 hover:underline" :title="item.target_url">
                   {{ item.target_url }}
@@ -370,6 +376,12 @@
 
       <template #content>
         <div v-if="selectedNotification" class="space-y-4 text-left text-xs">
+          <!-- Attached Banner Preview -->
+          <div v-if="selectedNotification.image_url"
+            class="rounded-xl overflow-hidden border border-zinc-200 dark:border-white/10 max-h-48 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
+            <img :src="resolveImageUrl(selectedNotification.image_url)" alt="Notification Banner" class="w-full h-auto max-h-48 object-cover" />
+          </div>
+
           <!-- Title & Type -->
           <div class="p-3.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 space-y-1">
             <div class="flex items-center justify-between">
@@ -535,6 +547,13 @@ const formatDateTime = (dateStr) => {
     hour: '2-digit',
     minute: '2-digit',
   });
+};
+
+const IMAGE_URL = import.meta.env.VITE_IMAGE_URL || '';
+const resolveImageUrl = (path) => {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  return `${IMAGE_URL}${path}`.replace(/([^:]\/)\/+/g, "$1");
 };
 
 onMounted(() => {

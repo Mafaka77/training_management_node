@@ -120,7 +120,7 @@ exports.getProgramEnrolleesSummary = async (req, res) => {
     const tokens = await DeviceToken.find({ user: { $in: userIds } }).lean();
     const uniqueUsersWithTokens = new Set(tokens.map((t) => t.user.toString()));
 
-    const program = await TrainingProgram.findById(programId).select("t_name t_code t_start_date t_end_date").lean();
+    const program = await TrainingProgram.findById(programId).select("t_name t_code t_start_date t_end_date t_banner venue").lean();
 
     return res.status(STATUS.OK).json({
       status: STATUS.OK,
@@ -140,6 +140,39 @@ exports.getProgramEnrolleesSummary = async (req, res) => {
     });
   }
 };
+
+function parseExtraData(extraData) {
+  if (!extraData) return {};
+  if (typeof extraData === "string") {
+    try {
+      return JSON.parse(extraData);
+    } catch (e) {
+      return {};
+    }
+  }
+  return typeof extraData === "object" ? extraData : {};
+}
+
+function resolveNotificationImage(req, fallbackPath = "") {
+  let relativePath = "";
+  if (req.file) {
+    relativePath = `/uploads/${req.file.filename}`;
+  } else if (req.body && (req.body.imageUrl || req.body.image_url || req.body.image)) {
+    relativePath = req.body.imageUrl || req.body.image_url || req.body.image;
+  } else if (fallbackPath) {
+    relativePath = fallbackPath;
+  }
+
+  if (!relativePath) return { image_url: "", full_image_url: "" };
+
+  let full_image_url = relativePath;
+  if (!relativePath.startsWith("http://") && !relativePath.startsWith("https://")) {
+    const protocol = req.headers["x-forwarded-proto"] || req.protocol || "http";
+    const host = req.get("host") || "localhost:3000";
+    full_image_url = `${protocol}://${host}${relativePath.startsWith("/") ? "" : "/"}${relativePath}`;
+  }
+  return { image_url: relativePath, full_image_url };
+}
 
 // 4. Send notification to enrolled users for a specific training program
 exports.sendToProgram = async (req, res) => {
@@ -184,12 +217,17 @@ exports.sendToProgram = async (req, res) => {
       });
     }
 
+    // Automatically use the program's saved database banner (program.t_banner) if no custom image was uploaded
+    const { image_url, full_image_url } = resolveNotificationImage(req, program.t_banner || "");
     const resolvedTargetUrl = target_url || `/training-details/${programId}`;
+    const parsedExtra = parseExtraData(extraData);
+
     const payloadData = {
-      ...extraData,
+      ...parsedExtra,
       programId: programId.toString(),
       type: type || "Training",
       url: resolvedTargetUrl,
+      ...(full_image_url ? { image: full_image_url, imageUrl: full_image_url } : {}),
     };
 
     // Send push notification via FCM to all enrolled trainees with device tokens
@@ -197,6 +235,7 @@ exports.sendToProgram = async (req, res) => {
       title,
       body,
       url: resolvedTargetUrl,
+      imageUrl: full_image_url,
       data: payloadData,
     });
 
@@ -211,6 +250,7 @@ exports.sendToProgram = async (req, res) => {
       title,
       message: body,
       target_url: resolvedTargetUrl,
+      image_url: image_url || "",
       recipient_count: userIds.length,
       sent_count: pushResult.sent || 0,
       failed_count: pushResult.failed || 0,
@@ -228,7 +268,8 @@ exports.sendToProgram = async (req, res) => {
       title,
       message: body,
       target_url: resolvedTargetUrl,
-      is_read: false,
+      image_url: image_url || "",
+      is_read: true,
       extra_data: payloadData,
     }));
 
@@ -266,16 +307,21 @@ exports.sendToUser = async (req, res) => {
       });
     }
 
+    const { image_url, full_image_url } = resolveNotificationImage(req);
+    const parsedExtra = parseExtraData(extraData);
+
     const payloadData = {
-      ...extraData,
+      ...parsedExtra,
       type: type || "General",
       url: target_url,
+      ...(full_image_url ? { image: full_image_url, imageUrl: full_image_url } : {}),
     };
 
     const result = await sendPushToUser(userId, {
       title,
       body,
       url: target_url,
+      imageUrl: full_image_url,
       data: payloadData,
     });
 
@@ -289,7 +335,8 @@ exports.sendToUser = async (req, res) => {
       title,
       message: body,
       target_url: target_url || "",
-      is_read: false,
+      image_url: image_url || "",
+      is_read: true,
       sent_count: result.sent || 0,
       failed_count: result.failed || 0,
       recipient_count: 1,
@@ -324,16 +371,20 @@ exports.sendToAllUsers = async (req, res) => {
       });
     }
 
+    const { image_url, full_image_url } = resolveNotificationImage(req);
+    const parsedExtra = parseExtraData(extraData);
+
     const payloadData = {
-      ...extraData,
+      ...parsedExtra,
       type: type || "Broadcast",
       url: target_url,
+      ...(full_image_url ? { image: full_image_url, imageUrl: full_image_url } : {}),
     };
 
     let pushSuccess = 0;
     let pushFailure = 0;
 
-    // Multicast to all active tokens in database
+    // 1. Multicast to all active tokens in database
     const allTokensDocs = await DeviceToken.find().select("token").lean();
     const tokens = Array.from(new Set(allTokensDocs.map((d) => d.token)));
 
@@ -346,9 +397,13 @@ exports.sendToAllUsers = async (req, res) => {
         const batch = tokens.slice(i, i + FCM_MAX_TOKENS);
         try {
           const message = {
-            ...buildBaseMessage(title, body, null, target_url),
+            ...buildBaseMessage(title, body, null, target_url, full_image_url),
             tokens: batch,
-            notification: { title, body },
+            notification: {
+              title,
+              body,
+              ...(full_image_url ? { imageUrl: full_image_url } : {}),
+            },
             data: toStringData(payloadData),
           };
           const resp = await messaging.sendEachForMulticast(message);
@@ -358,26 +413,44 @@ exports.sendToAllUsers = async (req, res) => {
           console.error("[FCM Broadcast Multicast Batch Error]:", fcmErr.message);
         }
       }
-    }
-
-    // Also send to topic "all_users"
-    try {
-      const messaging = getMessaging();
-      await messaging.send({
-        topic: "all_users",
-        notification: { title, body },
-        data: toStringData(payloadData),
-        android: {
-          priority: "high",
-          notification: { channelId: "high_importance_channel", sound: "default" },
-        },
-        apns: {
-          headers: { "apns-priority": "10" },
-          payload: { aps: { sound: "default" } },
-        },
-      });
-    } catch (topicErr) {
-      console.error("[FCM Topic Error]:", topicErr.message);
+    } else {
+      // Fallback: If no direct tokens in database, dispatch to "all_users" topic
+      try {
+        const messaging = getMessaging();
+        const topicNotification = { title, body };
+        if (full_image_url) {
+          topicNotification.imageUrl = full_image_url;
+        }
+        const topicResp = await messaging.send({
+          topic: "all_users",
+          notification: topicNotification,
+          data: toStringData(payloadData),
+          android: {
+            priority: "high",
+            notification: {
+              channelId: "high_importance_channel",
+              sound: "default",
+              ...(full_image_url ? { imageUrl: full_image_url } : {})
+            },
+          },
+          apns: {
+            headers: { "apns-priority": "10" },
+            payload: { aps: { sound: "default" } },
+            ...(full_image_url ? { fcmOptions: { image: full_image_url } } : {})
+          },
+          webpush: {
+            notification: {
+              title,
+              body,
+              icon: "/favicon.ico",
+              ...(full_image_url ? { image: full_image_url } : {})
+            }
+          }
+        });
+        if (topicResp) pushSuccess++;
+      } catch (topicErr) {
+        console.error("[FCM Topic Error]:", topicErr.message);
+      }
     }
 
     const senderId = req.user?.user?.id || req.user?.id || null;
@@ -389,6 +462,7 @@ exports.sendToAllUsers = async (req, res) => {
       title,
       message: body,
       target_url: target_url || "",
+      image_url: image_url || "",
       recipient_count: tokens.length,
       sent_count: pushSuccess,
       failed_count: pushFailure,

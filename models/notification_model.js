@@ -38,9 +38,13 @@ const notificationSchema = new mongoose.Schema({
         type: String,
         default: "",
     },
+    image_url: {
+        type: String,
+        default: "",
+    },
     is_read: {
         type: Boolean,
-        default: false,
+        default: true,
     },
     sent_count: {
         type: Number,

@@ -183,9 +183,9 @@ router.get('/notifications/program/:programId/enrollees-summary', authenticate, 
 const tokenController = require('../controllers/token_controller');
 router.post('/fcm/register-token', authenticate, upload.none(), tokenController.registerToken);
 router.post('/fcm/delete-token', authenticate, upload.none(), tokenController.deleteToken);
-router.post("/fcm/send-notification", authenticate, authorizeRoles('Admin', 'Director'), upload.none(), notificationController.sendToUser);
-router.post("/fcm/send-program-notification", authenticate, authorizeRoles('Admin', 'Director'), upload.none(), notificationController.sendToProgram);
-router.post('/fcm/notify/all-users', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), notificationController.sendToAllUsers);
+router.post("/fcm/send-notification", authenticate, authorizeRoles('Admin', 'Director'), fileUpload.single('image'), notificationController.sendToUser);
+router.post("/fcm/send-program-notification", authenticate, authorizeRoles('Admin', 'Director'), fileUpload.single('image'), notificationController.sendToProgram);
+router.post('/fcm/notify/all-users', authenticate, authorizeRoles('Admin', 'Director'), fileUpload.single('image'), notificationController.sendToAllUsers);
 router.delete('/notification/:id', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), notificationController.deleteNotification);
 
 //DASHBOARD

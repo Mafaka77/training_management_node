@@ -192,6 +192,7 @@ exports.enrollInTraining = async (req, res) => {
             title: notifTitle,
             message: notifMessage,
             target_url: targetUrl,
+            is_read: false,
             training_program: trainingId,
             extra_data: {
                 enrollment_id: newEnrollment._id.toString(),
