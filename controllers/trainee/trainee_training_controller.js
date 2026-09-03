@@ -186,13 +186,20 @@ exports.enrollInTraining = async (req, res) => {
         const notifMessage = `${user.full_name} applied for ${training.t_name}`;
         const targetUrl = `/admin/training/${trainingId}/enrollments?enrollmentId=${newEnrollment._id}`;
 
+        let bannerUrl = training.t_banner || "";
+        if (bannerUrl && !bannerUrl.startsWith("http://") && !bannerUrl.startsWith("https://")) {
+            const protocol = req.headers["x-forwarded-proto"] || req.protocol || "http";
+            const host = req.get("host") || "localhost:3000";
+            bannerUrl = `${protocol}://${host}${bannerUrl.startsWith("/") ? "" : "/"}${bannerUrl}`;
+        }
+
         const adminNotification = new Notification({
             sender_id: req.user.user.id,
             type: "Training",
             title: notifTitle,
             message: notifMessage,
             target_url: targetUrl,
-            is_read: false,
+            image_url: training.t_banner || "",
             training_program: trainingId,
             extra_data: {
                 enrollment_id: newEnrollment._id.toString(),
@@ -203,9 +210,19 @@ exports.enrollInTraining = async (req, res) => {
         await adminNotification.save();
 
         // 1. Send push to the applying trainee
+        const traineeTargetUrl = `/training-details/${trainingId}`;
         sendPushToUser(req.user.user.id, {
             title: "Enrollment Submitted",
             body: `Your application for "${training.t_name}" is under review.`,
+            imageUrl: bannerUrl || undefined,
+            url: traineeTargetUrl,
+            data: {
+                type: "Training",
+                training_id: trainingId.toString(),
+                enrollment_id: newEnrollment._id.toString(),
+                url: traineeTargetUrl,
+                ...(bannerUrl ? { image: bannerUrl, imageUrl: bannerUrl } : {})
+            }
         }).catch(err => console.error("Error sending trainee push:", err));
 
         // 2. Notify Admins and Course Director via FCM Web/App Push
@@ -225,11 +242,13 @@ exports.enrollInTraining = async (req, res) => {
                         title: notifTitle,
                         body: notifMessage,
                         url: targetUrl,
+                        imageUrl: bannerUrl || undefined,
                         data: {
                             type: "Training",
                             enrollment_id: newEnrollment._id.toString(),
                             training_id: trainingId.toString(),
-                            url: targetUrl
+                            url: targetUrl,
+                            ...(bannerUrl ? { image: bannerUrl, imageUrl: bannerUrl } : {})
                         }
                     });
                 }

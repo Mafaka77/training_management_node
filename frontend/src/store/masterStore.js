@@ -237,6 +237,26 @@ export const useMasterStore = defineStore('master', {
                 return { success: false, message: err.message }
             }
         },
+        async fetchLocation(id) {
+            try {
+                const response = await api.get(`/location/${id}`);
+                if (response.status === 200 && (response.data.status === 200 || response.data.location)) {
+                    return { success: true, data: response.data.location };
+                } else {
+                    return { success: false, data: null, message: response.data.message || "Failed to fetch location" };
+                }
+            } catch (ex) {
+                return { success: false, data: null, message: ex.response?.data?.message || ex.message };
+            }
+        },
+        async updateLocation(id, data) {
+            try {
+                const response = await api.put(`/location/${id}`, data);
+                return { success: true, message: response.data.message };
+            } catch (err) {
+                return { success: false, message: err.response?.data?.message || err.message || "Update failed" };
+            }
+        },
         async deleteLocation(id) {
             try {
                 const response = await api.delete(`/location/${id}`);

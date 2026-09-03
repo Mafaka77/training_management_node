@@ -142,7 +142,9 @@ router.delete('/material/:id', authenticate, authorizeRoles('Admin', 'Trainer', 
 
 //GEO LOCATION
 router.get('/locations', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_location_controller').getLocations)
+router.get('/location/:id', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_location_controller').getLocationById)
 router.post('/location', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_location_controller').createLocation)
+router.put('/location/:id', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_location_controller').updateLocation)
 router.delete('/location/:id', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_location_controller').deleteLocation)
 
 //ATTENDANCE

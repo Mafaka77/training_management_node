@@ -14,15 +14,15 @@
                     <h2 class="text-lg font-bold tracking-tight">Location Configuration</h2>
                 </div>
 
-                <div class=" gap-6">
-                    <BaseInput v-model="form.radius" label="Radius" placeholder="e.g. 50" type="number" />
+                <div class="space-y-4">
+                    <BaseInput v-model="form.location_name" label="Location Name" placeholder="e.g. ATI Campus" type="text" />
+                    <BaseInput v-model.number="form.radius" label="Radius (in meters)" placeholder="e.g. 50" type="number" />
                     <BaseInput v-model="form.latitude" label="Latitude" placeholder="e.g. 23.7271" type="text" />
                     <BaseInput v-model="form.longitude" label="Longitude" placeholder="e.g. 92.7176" type="text" />
-
                 </div>
 
                 <div class="flex items-center justify-end gap-4 mt-8 pt-6 border-t border-zinc-100 dark:border-white/5">
-                    <button type="button" @click="$router.back()"
+                    <button type="button" @click="$router.push('/admin/master/location')"
                         class="px-6 py-2.5 rounded-xl text-zinc-500 hover:bg-zinc-100 dark:hover:bg-white/5 font-semibold transition-all">
                         Cancel
                     </button>
@@ -47,17 +47,20 @@
 
 <script setup>
 import { reactive, ref } from "vue";
+import { useRouter } from "vue-router";
 import BaseInput from "../../../components/ui/BaseInput.vue";
 import Breadcrumbs from "../../../components/ui/Breadcrumbs.vue";
 import { useAlertStore } from "../../../store/alertStore.js";
 import { useMasterStore } from "../../../store/masterStore.js";
 
+const router = useRouter();
 const alert = useAlertStore();
 const store = useMasterStore();
 const isLoading = ref(false);
 
 const form = reactive({
-    radius: 0,
+    location_name: 'ATI Campus',
+    radius: 50,
     latitude: '',
     longitude: ''
 });
@@ -75,6 +78,7 @@ const submitForm = async () => {
 
     isLoading.value = true;
     const payload = {
+        location_name: form.location_name,
         radius: form.radius || 50,
         coordinates: [
             parseFloat(form.longitude),
@@ -87,11 +91,7 @@ const submitForm = async () => {
             alert.error(response.message);
         } else {
             alert.success(response.message || "Location created successfully!");
-            Object.assign(form, {
-                radius: 0,
-                latitude: '',
-                longitude: ''
-            });
+            router.push('/admin/master/location');
         }
     } catch (error) {
         alert.error(error.message);

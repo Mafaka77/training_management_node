@@ -89,7 +89,7 @@
 
                 <div
                     class="flex items-center gap-2 pt-4 md:pt-0 border-t md:border-t-0 border-zinc-100 dark:border-white/5">
-                    <router-link :to="{ name: 'master.room.edit', params: { id: location._id } }" title="Edit Room"
+                    <router-link :to="{ name: 'master.location.edit', params: { id: location._id } }" title="Edit Location"
                         class="flex-1 md:flex-none p-2.5 rounded-xl transition-colors
                          bg-zinc-100 dark:bg-zinc-800
                          text-zinc-600 dark:text-zinc-300
@@ -130,7 +130,7 @@
         <template #title>Delete Location</template>
 
         <template #content>
-            Are you sure you want to delete?
+            Are you sure you want to delete this location?
         </template>
 
         <template #confirm-text>Delete Permanently</template>
@@ -146,25 +146,23 @@ import { useMasterStore } from "../../../store/masterStore.js";
 const alert = useAlertStore();
 
 const store = useMasterStore();
-const { locations, loading } = storeToRefs(store);
+const { locations, isLocationLoading: loading } = storeToRefs(store);
 const isDeleteModalOpen = ref(false);
-const roomToDelete = ref(null);
+const locationToDelete = ref(null);
 
-const openDeleteModal = (room) => {
-
-    roomToDelete.value = room;
+const openDeleteModal = (loc) => {
+    locationToDelete.value = loc;
     isDeleteModalOpen.value = true;
 };
 
 const confirmDelete = async () => {
-    if (!roomToDelete.value) return;
+    if (!locationToDelete.value) return;
 
-    const response = await store.deleteLocation(roomToDelete.value._id);
+    const response = await store.deleteLocation(locationToDelete.value._id);
     if (response.success) {
         alert.success('Location deleted successfully');
         await store.fetchLocations();
         isDeleteModalOpen.value = false;
-
     } else {
         alert.error(response.message);
     }

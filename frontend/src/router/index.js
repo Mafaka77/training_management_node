@@ -330,6 +330,11 @@ const routes = [
                         name: "master.location.create",
                         component: () => import("../pages/master/location/Create.vue"),
                     },
+                    {
+                        path: "edit/:id",
+                        name: "master.location.edit",
+                        component: () => import("../pages/master/location/Edit.vue"),
+                    },
                 ]
             }, {
                 path: "/admin/master/evaluation",
