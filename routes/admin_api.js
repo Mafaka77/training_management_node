@@ -34,6 +34,8 @@ router.get('/users', authenticate, authorizeRoles('Admin', 'Director'), upload.n
 router.post('/department', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_department_controller').createDepartment);
 router.get('/departments', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_department_controller').getAllDepartments);
 router.delete('/department/:departmentId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_department_controller').deleteDepartment);
+router.get('/department-parents', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), require('../controllers/admin/admin_department_parent_controller').getAllDepartmentParents);
+
 //TRAINING ROOM
 router.post('/submit-training-room', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingRoomController.submitTrainingRoom);
 router.get('/get-training-room', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), trainingRoomController.getTrainingRoom);
@@ -106,6 +108,8 @@ router.delete('/employee/:id', authenticate, authorizeRoles('Admin', 'Director')
 router.get('/enrollments', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), TrainingEnrollmentController.getAllEnrollment);
 router.get('/enrollment/:enrollmentId', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), TrainingEnrollmentController.getEnrollmentById);
 router.patch('/enrollment/:enrollmentId', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), TrainingEnrollmentController.updateEnrollmentStatus);
+router.delete('/enrollment/:enrollmentId', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), TrainingEnrollmentController.deleteEnrollment);
+
 
 //DOCUMENTS
 router.post('/documents', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), fileUpload.array('documents', 10), require('../controllers/admin/admin_document_controller').submitDocument);

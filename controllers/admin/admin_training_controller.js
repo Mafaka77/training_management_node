@@ -727,7 +727,8 @@ exports.getEnrollmentDetails = async (req, res) => {
                 path: "user",
                 populate: [
                     { path: "district", select: "name" },
-                    { path: "group", select: "group_name name" }
+                    { path: "group", select: "group_name name" },
+                    { path: 'departmentParent', select: 'name' }
                 ]
             })
             .lean();

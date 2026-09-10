@@ -89,7 +89,26 @@ exports.getTrainingById = async (req, res) => {
         if (!training) {
             return res.status(STATUS.OK).json({ message: "Training not found", status: STATUS.NOT_FOUND });
         }
-        return res.status(STATUS.OK).json({ training, status: STATUS.OK });
+
+        let isApplied = false;
+        let enrollmentStatus = '';
+        let enrollment = null;
+        const userId = req.user?.user?.id || req.user?.id;
+        if (userId) {
+            enrollment = await Enrollment.findOne({ training_program: trainingId, user: userId });
+            if (enrollment) {
+                enrollmentStatus = enrollment.status;
+                isApplied = true;
+
+            }
+        }
+
+        return res.status(STATUS.OK).json({
+            training,
+            isApplied,
+            enrollmentStatus,
+            status: STATUS.OK
+        });
     } catch (e) {
         return res
             .status(STATUS.INTERNAL_SERVER_ERROR)
@@ -264,7 +283,37 @@ exports.enrollInTraining = async (req, res) => {
             .status(STATUS.INTERNAL_SERVER_ERROR)
             .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }
-}
+};
+
+exports.cancelEnrollment = async (req, res) => {
+    const { trainingId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(trainingId)) {
+        return res.status(STATUS.OK).json({ message: "Invalid training ID", status: STATUS.BAD_REQUEST });
+    }
+    try {
+        const userId = req.user?.user?.id || req.user?.id;
+        if (!userId) {
+            return res.status(STATUS.OK).json({ message: "Unauthorized", status: STATUS.UNAUTHORIZED });
+        }
+
+        const enrollment = await Enrollment.findOne({ training_program: trainingId, user: userId });
+        if (!enrollment) {
+            return res.status(STATUS.OK).json({ message: "Enrollment not found", status: STATUS.NOT_FOUND });
+        }
+
+        await Enrollment.findByIdAndDelete(enrollment._id);
+
+        return res.status(STATUS.OK).json({
+            message: "Enrollment cancelled successfully",
+            status: STATUS.OK
+        });
+    } catch (e) {
+        return res
+            .status(STATUS.INTERNAL_SERVER_ERROR)
+            .json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
+    }
+};
+
 exports.myEnrollments = async (req, res) => {
     try {
         const offset = parseInt(req.query.offset) || 0;

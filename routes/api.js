@@ -12,7 +12,7 @@ router.post('/register', upload.none(), TraineeAuthController.register);
 router.post('/login', upload.none(), TraineeAuthController.login);
 router.post('/send-otp', upload.none(), TraineeAuthController.sendOtp);
 router.post('/verify-otp', upload.none(), TraineeAuthController.verifyOtp);
-router.get('/departments', upload.none(), TraineeAuthController.getDepartment);
+router.get('/department-parents', upload.none(), TraineeAuthController.getDepartmentParents);
 router.get('/districts', upload.none(), TraineeAuthController.getDistricts);
 router.get('/groups', upload.none(), TraineeAuthController.getGroups);
 router.get('/me', authenticate, authorizeRoles('Trainee'), TraineeAuthController.me);
@@ -23,6 +23,7 @@ router.patch('/profile', authenticate, authorizeRoles('Trainee'), fileUpload.sin
 router.get('/trainings', upload.none(), authenticate, authorizeRoles('Trainee'), TraineeTrainingController.getTraining);
 router.get('/training/:trainingId', upload.none(), authenticate, authorizeRoles('Trainee'), TraineeTrainingController.getTrainingById);
 router.post('/training/:trainingId/enrollments', upload.none(), authenticate, authorizeRoles('Trainee'), TraineeTrainingController.enrollInTraining);
+router.delete('/training/:trainingId/enrollments', upload.none(), authenticate, authorizeRoles('Trainee'), TraineeTrainingController.cancelEnrollment);
 router.get('/enrollments', upload.none(), authenticate, authorizeRoles('Trainee'), TraineeTrainingController.myEnrollments);
 router.get('/enrollment/:enrollmentId', upload.none(), authenticate, authorizeRoles('Trainee'), TraineeTrainingController.myEnrollmentDetails);
 router.get('/enrollment/:enrollmentId/status', upload.none(), authenticate, authorizeRoles('Trainee'), TraineeTrainingController.checkStatus);

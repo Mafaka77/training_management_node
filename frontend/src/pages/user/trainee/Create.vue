@@ -41,7 +41,11 @@
         <div v-if="form.is_govt_employee">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
             <BaseInput v-model="form.designation" type="text" label="Designation" placeholder="e.g. Executive" />
-            <BaseInput v-model="form.department" type="text" label="Department" placeholder="e.g. Operations" />
+
+            <SingleSelect :options="departmentParents" v-model="form.departmentParent" track-by="_id"
+              option-label="name" label=" Department" placeholder="Select  department..." searchable />
+            <BaseInput v-model="form.department" type="text" label="Office / Department"
+              placeholder="e.g. Operations / Directorate" />
             <SingleSelect :options="groups" v-model="form.group" track-by="_id" option-label="group_name"
               label="Assign Groups" placeholder="Select groups..." />
             <DatePicker label="Date of Joining Service" v-model="form.date_of_entry" format="dd/MM/yyyy" />
@@ -124,7 +128,7 @@ import { useAlertStore } from "../../../store/alertStore.js";
 import { useUserManageStore } from "../../../store/userManageStore.js";
 const alert = useAlertStore();
 const store = useUserManageStore();
-const { districts, groups } = storeToRefs(store);
+const { districts, groups, departmentParents } = storeToRefs(store);
 
 const isLoading = ref(false);
 
@@ -165,6 +169,7 @@ const form = reactive({
   district: '',
   designation: '',
   department: '',
+  departmentParent: null,
   group: null, // Array for MultiSelect
   gender: '',
   mandatory_completion: true,
@@ -204,6 +209,7 @@ const submitForm = async () => {
         district: '',
         designation: '',
         department: '',
+        departmentParent: null,
         group: '',
         gender: '',
         mandatory_completion: true,
@@ -216,6 +222,9 @@ const submitForm = async () => {
         service_cadre: '',
         dob: null,
         disclaimer: true,
+        qualification: '',
+        service: '',
+        category: '',
       });
     }
   } catch (error) {
@@ -239,5 +248,6 @@ const deleteTrainee = async (id) => {
 onMounted(() => {
   store.fetchDistricts();
   store.fetchGroups();
+  store.fetchDepartmentParents();
 });
 </script>

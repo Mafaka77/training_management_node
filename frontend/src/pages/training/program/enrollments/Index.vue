@@ -88,7 +88,7 @@
               <th class="px-5 py-3.5 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
                 Designation</th>
               <th class="px-5 py-3.5 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
-                Department</th>
+                Office</th>
               <th
                 class="px-5 py-3.5 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 text-center">
                 Status</th>
@@ -205,6 +205,14 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
                   </button>
+                  <button @click="openDeleteDialog(item)"
+                    class="p-2 text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors bg-white dark:bg-zinc-800 rounded-lg shadow-xs border border-zinc-200 dark:border-zinc-700 cursor-pointer"
+                    title="Delete Enrollment">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
                 </div>
               </td>
             </tr>
@@ -244,8 +252,13 @@
   <CreateEnrollment :show="showSearchModal" :program-id="targetProgramId" @close="showSearchModal = false"
     @enrolled="handleEnrolled" />
 
-  <EnrollmentDetailsModal :show="showDetailsModal" :enrollment="enrollment" :loading="isLoading"
+  <ViewEnrollment :show="showDetailsModal" :enrollment="enrollment" :loading="isLoading"
     :userHistory="userHistory" @close="showDetailsModal = false" @update-status="updateStatus" />
+
+  <DeleteDialog :show="isDeleteDialogOpen" :loading="isDeleting" title="Delete Enrollment Request"
+    :message="selectedEnrollmentToDelete ? `Are you sure you want to delete the enrollment record for ${selectedEnrollmentToDelete.user?.full_name || 'this trainee'}? This action cannot be undone.` : 'Are you sure you want to delete this enrollment record?'"
+    confirmText="Delete Enrollment" @close="closeDeleteDialog" @confirm="confirmDelete" />
+
   <form ref="eMudhraForm" method="post" action="https://demogateway-core.emsigner.com/Secure/index" class="hidden">
     <input type="hidden" name="Parameter1" :value="store.params?.parameter1" />
     <input type="hidden" name="Parameter2" :value="store.params?.parameter2" />
@@ -257,10 +270,11 @@
 import { storeToRefs } from 'pinia';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import EnrollmentDetailsModal from '../../../../components/trainingTabs/enrollmentModal/EnrollmentDetailsModal.vue';
+import DeleteDialog from '../../../../components/ui/DeleteDialog.vue';
 import { useAlertStore } from '../../../../store/alertStore';
 import { useEnrollmentStore } from '../../../../store/enrollmentStore';
 import CreateEnrollment from './Create.vue';
+import ViewEnrollment from './View.vue';
 
 const props = defineProps({
   programId: { type: String, default: '' }
@@ -283,6 +297,9 @@ let searchTimer = null;
 const { isLoading } = storeToRefs(store);
 const showSearchModal = ref(false);
 const showDetailsModal = ref(false);
+const isDeleteDialogOpen = ref(false);
+const selectedEnrollmentToDelete = ref(null);
+const isDeleting = ref(false);
 
 const fetchData = async (page = 1) => {
   if (!targetProgramId.value) return;
@@ -330,7 +347,7 @@ const exportApproved = async () => {
       'Email',
       'Mobile (Last 4 Digits)',
       'District',
-      'Department',
+      'Office',
       'Group',
       'Gender',
       'Designation',
@@ -437,6 +454,35 @@ const updateStatus = async (id, status) => {
     fetchData(pagination.value?.page || 1);
   } else {
     alert.error(res.message);
+  }
+};
+
+const openDeleteDialog = (item) => {
+  selectedEnrollmentToDelete.value = item;
+  isDeleteDialogOpen.value = true;
+};
+
+const closeDeleteDialog = () => {
+  isDeleteDialogOpen.value = false;
+  selectedEnrollmentToDelete.value = null;
+};
+
+const confirmDelete = async () => {
+  if (!selectedEnrollmentToDelete.value?._id) return;
+  isDeleting.value = true;
+  try {
+    const res = await store.deleteEnrollment(selectedEnrollmentToDelete.value._id);
+    if (res.success) {
+      alert.success(res.message || 'Enrollment deleted successfully');
+      closeDeleteDialog();
+      fetchData(pagination.value?.page || 1);
+    } else {
+      alert.error(res.message);
+    }
+  } catch (err) {
+    alert.error(err.message || 'Failed to delete enrollment');
+  } finally {
+    isDeleting.value = false;
   }
 };
 

@@ -81,8 +81,11 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                         <BaseInput v-model="form.designation" type="text" label="Designation"
                             placeholder="e.g. Executive" />
-                        <BaseInput v-model="form.department" type="text" label="Department"
-                            placeholder="e.g. Operations" />
+
+                        <SingleSelect :options="departmentParents" v-model="form.departmentParent" track-by="_id"
+                            option-label="name" label=" Department" placeholder="Select  department..." searchable />
+                        <BaseInput v-model="form.department" type="text" label="Office / Department"
+                            placeholder="e.g. Operations / Directorate" />
                         <SingleSelect :options="groups" v-model="form.group" track-by="_id" option-label="group_name"
                             label="Assign Groups" placeholder="Select groups..." />
                         <DatePicker label="Date of Joining Service" v-model="form.date_of_entry" format="dd/MM/yyyy" />
@@ -214,7 +217,7 @@ const route = useRoute();
 const router = useRouter();
 const alert = useAlertStore();
 const store = useUserManageStore();
-const { districts, groups } = storeToRefs(store);
+const { districts, groups, departmentParents } = storeToRefs(store);
 
 const isLoading = ref(false);
 const isInitialLoading = ref(true);
@@ -259,6 +262,7 @@ const form = reactive({
     district: '',
     designation: '',
     department: '',
+    departmentParent: null,
     group: null,
     gender: '',
     mandatory_completion: true,
@@ -302,6 +306,7 @@ const fetchTraineeData = async () => {
                 district: data.district?._id || data.district || '',
                 designation: data.designation || '',
                 department: data.department || '',
+                departmentParent: data.departmentParent?._id || data.departmentParent || null,
                 group: data.group?._id || data.group || null,
                 gender: data.gender || '',
                 mandatory_completion: data.mandatory_completion ?? true,
@@ -388,6 +393,7 @@ const submitForm = async () => {
             confirmation: form.confirmation?.name || form.confirmation || undefined,
             service: form.service?.name || form.service || undefined,
             district: form.district?._id || form.district || undefined,
+            departmentParent: form.departmentParent?._id || form.departmentParent || undefined,
             group: form.group?._id || form.group || undefined,
             password: form.password ? form.password : undefined
         };
@@ -414,6 +420,7 @@ onMounted(async () => {
     await Promise.all([
         store.fetchDistricts(),
         store.fetchGroups(),
+        store.fetchDepartmentParents(),
         fetchTraineeData()
     ]);
 });

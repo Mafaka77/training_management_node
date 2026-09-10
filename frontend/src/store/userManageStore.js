@@ -19,7 +19,7 @@ export const useUserManageStore = defineStore('userManageStore', {
         employeePage: 1,
         employeeTotalPages: 1,
         employeesTotal: 0,
-
+        departmentParents: [],
     }),
     actions: {
         async fetchTrainers(page = 1, search = '') {
@@ -29,7 +29,7 @@ export const useUserManageStore = defineStore('userManageStore', {
                     params: {
                         page: page,
                         search: search,
-                        limit: 5
+                        limit: 10
                     }
                 });
                 if (response.data.status === 404 || !response.data.trainers) {
@@ -54,6 +54,14 @@ export const useUserManageStore = defineStore('userManageStore', {
                 this.districts = response.data.districts;
             } catch (e) {
 
+            }
+        },
+        async fetchDepartmentParents() {
+            try {
+                const response = await api.get('/department-parents');
+                this.departmentParents = response.data.departmentParents || [];
+            } catch (e) {
+                console.error("Error fetching department parents:", e);
             }
         },
         async submitTrainer(trainerData) {
@@ -282,7 +290,7 @@ export const useUserManageStore = defineStore('userManageStore', {
                     params: {
                         page: page,
                         search: search,
-                        limit: 5
+                        limit: 10
                     }
                 });
                 if (response.data.status === 404 || !response.data.employees) {

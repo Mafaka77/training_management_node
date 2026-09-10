@@ -96,7 +96,7 @@ exports.getEnrollmentById = async (req, res) => {
         const enrollment = await Enrollment.findById(enrollmentId)
             .populate({
                 path: 'user',
-                select: 'full_name email department designation mobile',
+                select: 'full_name email department departmentParent designation mobile',
                 populate: {
                     path: 'group',
                     select: 'group_name'
@@ -570,4 +570,34 @@ exports.deleteEnrolledOrder = async (req, res) => {
     } catch (error) {
         return res.status(STATUS.INTERNAL_SERVER_ERROR).json({ status: STATUS.INTERNAL_SERVER_ERROR, message: error.message });
     }
-}
+};
+
+exports.deleteEnrollment = async (req, res) => {
+    try {
+        const { enrollmentId } = req.params;
+        if (!mongoose.Types.ObjectId.isValid(enrollmentId)) {
+            return res.status(STATUS.OK).json({
+                status: STATUS.BAD_REQUEST,
+                message: "Invalid enrollment ID"
+            });
+        }
+        const enrollment = await Enrollment.findByIdAndDelete(enrollmentId);
+        if (!enrollment) {
+            return res.status(STATUS.OK).json({
+                status: STATUS.NOT_FOUND,
+                message: "Enrollment not found"
+            });
+        }
+        return res.status(STATUS.OK).json({
+            status: STATUS.OK,
+            message: "Enrollment deleted successfully"
+        });
+    } catch (error) {
+        console.error("Delete Enrollment Error:", error);
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            status: STATUS.INTERNAL_SERVER_ERROR,
+            message: "Failed to delete enrollment"
+        });
+    }
+};
+

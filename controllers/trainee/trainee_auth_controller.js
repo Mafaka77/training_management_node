@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const axios = require('axios');
 const User = require('../../models/user_model');
 const Role = require('../../models/role_model');
-const Department = require('../../models/department_model');
+const DepartmentParents = require('../../models/department_parent_model');
 const District = require('../../models/district_model');
 const Group = require('../../models/group_model');
 const STATUS = require("../../utils/httpStatus");
@@ -81,7 +81,7 @@ exports.login = async (req, res) => {
 }
 exports.register = async (req, res) => {
     const roles = await Role.findOne({ name: 'Trainee' });
-    const { full_name, email, password, mobile, district, department, gender,
+    const { full_name, email, password, mobile, district, departmentParent, department, gender,
         designation, group, mandatory_completion, dob, recruitment, confirmation,
         is_govt_employee, date_of_entry, date_of_superannuation, service_cadre, date_of_entry_in_present_grade, service, category,
     } = req.body;
@@ -112,6 +112,7 @@ exports.register = async (req, res) => {
             password: hashedPassword, // save hashed password
             mobile,
             district,
+            departmentParent,
             department,
             gender,
             designation,
@@ -264,9 +265,9 @@ exports.logout = async (req, res) => {
     }
 }
 
-exports.getDepartment = async (req, res) => {
+exports.getDepartmentParents = async (req, res) => {
     try {
-        const departments = await Department.find().select('-__v').lean();
+        const departments = await DepartmentParents.find();
         return res.status(STATUS.OK).json({ departments, status: STATUS.OK });
     } catch (e) {
 
@@ -301,7 +302,7 @@ const generateOTP = (phone) => {
 exports.getMyProfile = async (req, res) => {
     try {
         const userId = req.user.user.id;
-        const user = await User.findById(userId).select('-password').populate('district').populate('group');
+        const user = await User.findById(userId).select('-password').populate('district').populate('group').populate('departmentParent');
         return res.status(STATUS.OK).json({ status: STATUS.OK, user });
     } catch (e) {
         return res.status(STATUS.INTERNAL_SERVER_ERROR).json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR })
@@ -329,6 +330,7 @@ exports.updateProfile = async (req, res) => {
             gender,
             designation,
             district,
+            departmentParent,
             department,
             group,
             dob,
@@ -352,7 +354,7 @@ exports.updateProfile = async (req, res) => {
         if (designation !== undefined) update.designation = designation;
         if (district !== undefined && district !== 'null' && district !== '') update.district = district;
         if (department !== undefined && department !== 'null' && department !== '') update.department = department;
-
+        if (departmentParent !== undefined && departmentParent !== 'null' && departmentParent !== '') update.departmentParent = departmentParent;
         if (dob !== undefined) update.dob = dob ? new Date(dob) : null;
         if (is_govt_employee !== undefined) {
             const isGovt = is_govt_employee === 'true' || is_govt_employee === true;
@@ -364,6 +366,7 @@ exports.updateProfile = async (req, res) => {
                     update.group = ngo._id;
                 }
                 update.designation = '';
+                update.departmentParents = null;
                 update.department = '';
                 update.date_of_entry = null;
                 update.date_of_entry_in_present_grade = null;

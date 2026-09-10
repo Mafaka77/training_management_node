@@ -13,8 +13,10 @@
           <div
             class="px-6 py-4 border-b border-zinc-200/60 dark:border-white/5 bg-zinc-50/50 dark:bg-white/[0.02] flex items-center justify-between shrink-0">
             <div>
-              <h3 class="text-base font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">New Trainee Enrollment</h3>
-              <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Search eligible trainees and register them to this training program.</p>
+              <h3 class="text-base font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">New Trainee Enrollment
+              </h3>
+              <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Search eligible trainees and register them to
+                this training program.</p>
             </div>
             <button @click="emit('close')"
               class="p-1.5 rounded-xl hover:bg-zinc-100 dark:hover:bg-white/5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors cursor-pointer">
@@ -53,19 +55,26 @@
           <div class="flex-1 overflow-y-auto custom-scrollbar bg-zinc-50/30 dark:bg-zinc-900">
             <div v-if="isLoading" class="py-20 flex flex-col items-center justify-center gap-2">
               <div class="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
-              <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Querying Trainees Database...</span>
+              <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Querying Trainees
+                Database...</span>
             </div>
 
             <table v-else-if="foundationUsers && foundationUsers.length > 0"
               class="w-full text-left border-collapse whitespace-nowrap">
-              <thead
-                class="sticky top-0 z-10 bg-white dark:bg-zinc-900 border-b border-zinc-100 dark:border-white/5">
+              <thead class="sticky top-0 z-10 bg-white dark:bg-zinc-900 border-b border-zinc-100 dark:border-white/5">
                 <tr>
-                  <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Trainee</th>
-                  <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Department</th>
-                  <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Mandatory Due</th>
-                  <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 text-center">History</th>
-                  <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 text-right">Action</th>
+                  <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                    Trainee</th>
+                  <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                    Department</th>
+                  <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                    Mandatory Due</th>
+                  <th
+                    class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 text-center">
+                    History</th>
+                  <th
+                    class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 text-right">
+                    Action</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-zinc-100 dark:divide-white/5 text-xs">
@@ -78,7 +87,8 @@
                         {{ user.full_name?.charAt(0) }}
                       </div>
                       <div>
-                        <p class="text-xs font-bold text-zinc-900 dark:text-zinc-100 leading-none">{{ user.full_name }}</p>
+                        <p class="text-xs font-bold text-zinc-900 dark:text-zinc-100 leading-none">{{ user.full_name }}
+                        </p>
                         <p class="text-[11px] text-zinc-500 mt-1">{{ user.mobile || user.email }}</p>
                       </div>
                     </div>
@@ -129,7 +139,8 @@
                   d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
               <h4 class="text-sm font-bold text-zinc-900 dark:text-zinc-100">No eligible trainees found</h4>
-              <p class="text-xs text-zinc-500 mt-1 max-w-xs">Adjust your search parameters or select a different sort criteria.</p>
+              <p class="text-xs text-zinc-500 mt-1 max-w-xs">Adjust your search parameters or select a different sort
+                criteria.</p>
             </div>
           </div>
 
@@ -137,7 +148,8 @@
           <div v-if="foundationPagination && foundationPagination.totalPages > 1"
             class="px-5 py-3 border-t border-zinc-100 dark:border-white/5 bg-white dark:bg-zinc-900 flex items-center justify-between shrink-0">
             <span class="text-xs text-zinc-500">
-              Page <span class="font-bold text-zinc-700 dark:text-zinc-300">{{ foundationPagination.currentPage }}</span> of {{ foundationPagination.totalPages }}
+              Page <span class="font-bold text-zinc-700 dark:text-zinc-300">{{ foundationPagination.currentPage
+                }}</span> of {{ foundationPagination.totalPages }}
             </span>
             <div class="flex items-center gap-2">
               <button @click="changeFoundationPage(foundationPagination.currentPage - 1)"
@@ -166,9 +178,9 @@
 <script setup>
 import { storeToRefs } from 'pinia';
 import { ref, watch } from 'vue';
+import EnrollmentHistoryModal from '../../../../components/trainingTabs/enrollmentModal/EnrollmentHistoryModal.vue';
 import { useAlertStore } from '../../../../store/alertStore';
 import { useEnrollmentStore } from '../../../../store/enrollmentStore';
-import EnrollmentHistoryModal from '../../../../components/trainingTabs/enrollmentModal/EnrollmentHistoryModal.vue';
 
 const props = defineProps({
   show: { type: Boolean, required: true },
@@ -260,17 +272,21 @@ watch(foundationSortBy, () => {
 .custom-scrollbar::-webkit-scrollbar {
   width: 5px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: rgba(156, 163, 175, 0.4);
   border-radius: 10px;
 }
+
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.2s ease;
 }
+
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;

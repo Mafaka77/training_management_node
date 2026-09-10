@@ -26,6 +26,11 @@ const userSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'District'
     },
+    departmentParent: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'DepartmentParent',
+        default: null
+    },
     department: {
         type: String,
         required: false,

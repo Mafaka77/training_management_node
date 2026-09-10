@@ -7,6 +7,10 @@ const enrollmentSchema = new mongoose.Schema({
         enum: ["Pending", "Approved", "Rejected", "Waitlisted"],
         default: "Pending",
     },
+    authorityConsent: {
+        type: Boolean,
+        default: true,
+    },
     enrolledAt: { type: Date, default: Date.now },
 });
 module.exports = mongoose.model("Enrollment", enrollmentSchema);

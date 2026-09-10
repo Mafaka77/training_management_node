@@ -281,5 +281,19 @@ export const useEnrollmentStore = defineStore('enrollment', {
                 this.isLoading = false;
             }
         },
+        async deleteEnrollment(id) {
+            this.isLoading = true;
+            try {
+                const response = await api.delete(`/enrollment/${id}`);
+                if (response.status === 200 && response.data.status === 200) {
+                    return { success: true, message: response.data.message || 'Enrollment deleted successfully' };
+                }
+                return { success: false, message: response.data?.message || 'Failed to delete enrollment' };
+            } catch (ex) {
+                return { success: false, message: ex.response?.data?.message || ex.message };
+            } finally {
+                this.isLoading = false;
+            }
+        },
     }
 });

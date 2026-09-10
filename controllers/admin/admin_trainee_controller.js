@@ -145,6 +145,7 @@ exports.getAllTrainee = async (req, res) => {
             User.find(query)
                 .populate('district', 'name')
                 .populate('group', 'group_name')
+                .populate('departmentParent', 'name code')
                 .select("-password -__v")
                 .sort({ _id: -1 })
                 .skip((page - 1) * limit)
@@ -176,7 +177,7 @@ exports.getAllTrainee = async (req, res) => {
 exports.createTrainee = async (req, res) => {
     try {
         // 1. Destructure groups from req.body
-        const { full_name, email, mobile, password, department, district, group, gender, designation, mandatory_completion, dob, date_of_entry, date_of_entry_in_present_grade, date_of_superannuation, recruitment, confirmation, service_cadre, disclaimer, is_govt_employee, service, category, qualification } = req.body;
+        const { full_name, email, mobile, password, department, departmentParent, district, group, gender, designation, mandatory_completion, dob, date_of_entry, date_of_entry_in_present_grade, date_of_superannuation, recruitment, confirmation, service_cadre, disclaimer, is_govt_employee, service, category, qualification } = req.body;
 
         // Basic validation
         if (!full_name || !email || !mobile || !password) {
@@ -213,6 +214,7 @@ exports.createTrainee = async (req, res) => {
             email,
             mobile,
             department,
+            departmentParent: departmentParent || null,
             designation,
             district,
             mandatory_completion: mandatory_completion || false,
@@ -248,7 +250,7 @@ exports.createTrainee = async (req, res) => {
 
 exports.getTraineeById = async (req, res) => {
     try {
-        const trainee = await User.findById(req.params.traineeId).populate('district').populate('group');
+        const trainee = await User.findById(req.params.traineeId).populate('district').populate('group').populate('departmentParent');
         if (!trainee) {
             return res.status(STATUS.OK).json({
                 message: "Trainee not found",
@@ -320,6 +322,7 @@ exports.updateTrainee = async (req, res) => {
         trainee.email = req.body.email ?? trainee.email;
         trainee.mobile = req.body.mobile ?? trainee.mobile;
         trainee.department = req.body.department;
+        trainee.departmentParent = req.body.departmentParent !== undefined ? (req.body.departmentParent || null) : trainee.departmentParent;
         trainee.designation = req.body.designation;
         trainee.district = req.body.district;
         trainee.gender = req.body.gender;
