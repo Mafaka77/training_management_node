@@ -1,8 +1,8 @@
-const bcrypt=require('bcryptjs');
-const jwt=require('jsonwebtoken');
-const User=require('../../models/user_model');
-const Role=require('../../models/role_model');
-const STATUS=require('../../utils/httpStatus');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const User = require('../../models/user_model');
+const Role = require('../../models/role_model');
+const STATUS = require('../../utils/httpStatus');
 
 exports.login = async (req, res) => {
     const { email, password } = req.body;
@@ -30,7 +30,9 @@ exports.login = async (req, res) => {
         const roleNames = user.roles.map(role => role.name);
 
         const restrictedRoles = ["Trainee", "Guest"];
-        if (roleNames.some(role=>restrictedRoles.includes(role))) {
+        // Allow login if user has at least one role that is not restricted (e.g., Admin, Director, Course Director, Trainer, Employee)
+        const hasPermittedRole = roleNames.some(role => !restrictedRoles.includes(role));
+        if (!hasPermittedRole) {
             return res.status(STATUS.OK).json({
                 message: "Access Denied: Not Permitted.",
                 status: STATUS.UNAUTHORIZED // Or FORBIDDEN
@@ -73,25 +75,27 @@ exports.login = async (req, res) => {
     }
 }
 
-exports.me=async (req,res)=>{
-    try{
-        const userId=req.user.user.id;
-        const user=await User.findById(userId).populate('roles','-__v');
-        if(!user){
-            return res.status(STATUS.OK).json({message:"User not found",status:STATUS.NOT_FOUND});
+exports.me = async (req, res) => {
+    try {
+        const userId = req.user.user.id;
+        const user = await User.findById(userId).populate('roles', '-__v');
+        if (!user) {
+            return res.status(STATUS.OK).json({ message: "User not found", status: STATUS.NOT_FOUND });
         }
-        return res.status(STATUS.OK).json({user:{
-            id: user._id,
-            email: user.email,
-            full_name:user.full_name,
-            mobile:user.mobile,
-        },status:STATUS.OK});
-    }catch (e) {
-        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({message:e.message,status:STATUS.INTERNAL_SERVER_ERROR});
+        return res.status(STATUS.OK).json({
+            user: {
+                id: user._id,
+                email: user.email,
+                full_name: user.full_name,
+                mobile: user.mobile,
+            }, status: STATUS.OK
+        });
+    } catch (e) {
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({ message: e.message, status: STATUS.INTERNAL_SERVER_ERROR });
     }
 }
-exports.logout=async (req,res)=>{
+exports.logout = async (req, res) => {
     // For JWT, logout is handled on the client side by deleting the token.
     // Optionally, you can implement token blacklisting on the server side.
-    return res.status(STATUS.OK).json({message:"Logged out successfully",status:STATUS.OK});
+    return res.status(STATUS.OK).json({ message: "Logged out successfully", status: STATUS.OK });
 }
