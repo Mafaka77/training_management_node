@@ -123,7 +123,7 @@ exports.exportTraineeReport = async (req, res) => {
 
 exports.getAllTrainee = async (req, res) => {
     try {
-        let { page = 1, limit = 10, search = "" } = req.query;
+        let { page = 1, limit = 10, search = "", group, mandatory_completion } = req.query;
 
         page = Math.max(1, parseInt(page));
         limit = parseInt(limit);
@@ -139,6 +139,16 @@ exports.getAllTrainee = async (req, res) => {
                 { mobile: { $regex: search, $options: "i" } },
                 { department: { $regex: search, $options: "i" } }
             ];
+        }
+        if (group && group !== 'all') {
+            query.group = group;
+        }
+        if (mandatory_completion !== undefined && mandatory_completion !== '' && mandatory_completion !== 'all') {
+            if (mandatory_completion === 'true' || mandatory_completion === true || mandatory_completion === 'completed') {
+                query.mandatory_completion = true;
+            } else if (mandatory_completion === 'false' || mandatory_completion === false || mandatory_completion === 'required' || mandatory_completion === 'not_completed') {
+                query.mandatory_completion = false;
+            }
         }
         const [total, trainees] = await Promise.all([
             User.countDocuments(query),

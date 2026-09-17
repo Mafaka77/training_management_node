@@ -174,21 +174,25 @@ export const useUserManageStore = defineStore('userManageStore', {
                 this.isTraineeLoading = false;
             }
         },
-        async fetchTrainee(page = 1, search = '') {
+        async fetchTrainee(page = 1, search = '', group = '', mandatory_completion = '') {
             this.isTraineeLoading = true;
             try {
-                const response = await api.get('/trainees', {
-                    params: {
-                        page: page,
-                        search: search,
-                        limit: 10
-                    }
-                });
-                console.log(response.data);
-                this.trainees = response.data.trainees;
-                this.traineePage = response.data.pagination.page;
-                this.traineeTotalPages = response.data.pagination.totalPages;
-                this.traineesTotal = response.data.pagination.total;
+                const params = {
+                    page: page,
+                    search: search,
+                    limit: 10
+                };
+                if (group && group !== 'all') {
+                    params.group = group;
+                }
+                if (mandatory_completion !== undefined && mandatory_completion !== '' && mandatory_completion !== 'all') {
+                    params.mandatory_completion = mandatory_completion;
+                }
+                const response = await api.get('/trainees', { params });
+                this.trainees = response.data.trainees || [];
+                this.traineePage = response.data.pagination?.page || 1;
+                this.traineeTotalPages = response.data.pagination?.totalPages || 1;
+                this.traineesTotal = response.data.pagination?.total || 0;
                 this.isTraineeLoading = false;
             } catch (e) {
                 this.isTraineeLoading = false;

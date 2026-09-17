@@ -42,25 +42,69 @@
     </div>
 
     <!-- Filter & Search Toolbar -->
-    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div class="relative w-full sm:w-80 group">
-        <svg
-          class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-focus-within:text-emerald-600 transition-colors pointer-events-none"
-          fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
-        <input v-model="searchQuery" type="text" placeholder="Search by name, email, mobile, department..."
-          class="w-full pl-10 pr-9 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-xl text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all shadow-xs" />
-        <button v-if="searchQuery" @click="searchQuery = ''"
-          class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer">
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1 flex-wrap">
+        <!-- Search Input -->
+        <div class="relative w-full sm:w-72 group">
+          <svg
+            class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-focus-within:text-emerald-600 transition-colors pointer-events-none"
+            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input v-model="searchQuery" type="text" placeholder="Search by name, email, mobile, department..."
+            class="w-full pl-10 pr-9 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-xl text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all shadow-xs" />
+          <button v-if="searchQuery" @click="searchQuery = ''"
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Group Filter -->
+        <div class="relative min-w-[140px]">
+          <select v-model="selectedGroup"
+            class="w-full appearance-none pl-3 pr-8 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-xl text-xs font-medium text-zinc-700 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all shadow-xs cursor-pointer">
+            <option value="all">All Groups</option>
+            <option v-for="group in groups" :key="group._id" :value="group._id">
+              {{ group.group_name }}
+            </option>
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-zinc-400">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Mandatory Completion Filter -->
+        <div class="relative min-w-[170px]">
+          <select v-model="selectedMandatory"
+            class="w-full appearance-none pl-3 pr-8 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-xl text-xs font-medium text-zinc-700 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all shadow-xs cursor-pointer">
+            <option value="all">All Compliance Status</option>
+            <option value="completed">Completed</option>
+            <option value="required">Required / Pending</option>
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-zinc-400">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Reset Button if Active Filters -->
+        <button v-if="hasActiveFilters" @click="clearAllFilters"
+          class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 bg-zinc-100 hover:bg-zinc-200/70 dark:bg-zinc-800 dark:hover:bg-zinc-700/70 rounded-xl transition-all cursor-pointer whitespace-nowrap"
+          title="Reset All Filters">
           <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
+          <span>Reset Filters</span>
         </button>
       </div>
 
-      <div class="flex items-center gap-2 text-xs text-zinc-500">
+      <div class="flex items-center gap-2 text-xs text-zinc-500 shrink-0">
         <span>Displaying page <strong class="text-zinc-900 dark:text-zinc-100">{{ traineePage }}</strong> of <strong
             class="text-zinc-900 dark:text-zinc-100">{{ traineeTotalPages }}</strong></span>
       </div>
@@ -152,12 +196,12 @@
                   </div>
                   <h3 class="text-sm font-bold text-zinc-900 dark:text-zinc-100">No Trainees Found</h3>
                   <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-1 leading-relaxed">
-                    {{ searchQuery ? `No trainee records matched your search query "${searchQuery}".` :
+                    {{ hasActiveFilters ? 'No trainee records matched your selected search and filter criteria.' :
                       'There are currently no registered trainees in the system.' }}
                   </p>
-                  <button v-if="searchQuery" @click="searchQuery = ''"
+                  <button v-if="hasActiveFilters" @click="clearAllFilters"
                     class="mt-4 px-3.5 py-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-300 transition-colors cursor-pointer">
-                    Clear Search Filter
+                    Reset All Filters
                   </button>
                 </div>
               </td>
@@ -483,6 +527,8 @@ const {
 
 // Local State
 const searchQuery = ref("");
+const selectedGroup = ref("all");
+const selectedMandatory = ref("all");
 const isDeleteModalOpen = ref(false);
 const traineeToDelete = ref(null);
 const isDeleting = ref(false);
@@ -493,6 +539,14 @@ const reportOptions = ref({
   reportType: 'all',
   completionStatus: 'not_completed',
   groupId: 'all'
+});
+
+const hasActiveFilters = computed(() => {
+  return (
+    searchQuery.value.trim() !== '' ||
+    selectedGroup.value !== 'all' ||
+    selectedMandatory.value !== 'all'
+  );
 });
 
 // Helper for Initials Badge
@@ -531,20 +585,40 @@ const visiblePageNumbers = computed(() => {
   return [...new Set(range.filter(p => typeof p === 'number'))];
 });
 
+const loadTrainees = (page = traineePage.value) => {
+  store.fetchTrainee(
+    page,
+    searchQuery.value,
+    selectedGroup.value,
+    selectedMandatory.value
+  );
+};
+
 const goToPage = (p) => {
   if (p >= 1 && p <= traineeTotalPages.value) {
-    store.fetchTrainee(p, searchQuery.value);
+    loadTrainees(p);
   }
 };
 
 // Debounced search
-const doSearch = debounce((val) => {
-  store.fetchTrainee(1, val);
+const doSearch = debounce(() => {
+  loadTrainees(1);
 }, 400);
 
-watch(searchQuery, (newVal) => {
-  doSearch(newVal);
+watch(searchQuery, () => {
+  doSearch();
 });
+
+watch([selectedGroup, selectedMandatory], () => {
+  loadTrainees(1);
+});
+
+const clearAllFilters = () => {
+  searchQuery.value = '';
+  selectedGroup.value = 'all';
+  selectedMandatory.value = 'all';
+  loadTrainees(1);
+};
 
 // Delete Actions
 const openDeleteModal = (trainee) => {
@@ -560,7 +634,7 @@ const confirmDelete = async () => {
     if (response.success) {
       alert.success(response.message || 'Trainee deleted successfully');
       isDeleteModalOpen.value = false;
-      await store.fetchTrainee(traineePage.value, searchQuery.value);
+      await loadTrainees(traineePage.value);
     } else {
       alert.error(response.message || 'Failed to delete trainee');
     }
@@ -590,7 +664,7 @@ const generateReport = async () => {
 };
 
 onMounted(() => {
-  store.fetchTrainee();
+  loadTrainees(1);
   store.fetchGroups();
 });
 </script>
