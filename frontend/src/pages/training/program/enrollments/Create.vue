@@ -120,13 +120,28 @@
                     </button>
                   </td>
                   <td class="px-5 py-3.5 text-right">
-                    <button @click="selectUser(user)"
-                      class="inline-flex items-center gap-1 px-3.5 py-1.5 bg-emerald-700 text-white hover:bg-emerald-800 rounded-xl text-xs font-semibold transition-all shadow-md shadow-emerald-700/20 active:scale-95 cursor-pointer">
-                      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                      </svg>
-                      Enroll
-                    </button>
+                    <div class="flex items-center justify-end gap-2">
+                      <button @click="viewUserDetails(user)"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700/80 text-zinc-700 dark:text-zinc-200 text-xs font-semibold rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-xs transition-all active:scale-95 cursor-pointer"
+                        title="View Trainee Details">
+                        <svg class="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24"
+                          stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        <span>View</span>
+                      </button>
+
+                      <button @click="selectUser(user)"
+                        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-700 text-white hover:bg-emerald-800 rounded-xl text-xs font-semibold transition-all shadow-md shadow-emerald-700/20 active:scale-95 cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        <span>Enroll</span>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>
@@ -173,14 +188,21 @@
   <!-- Trainee Enrollment Logs Modal -->
   <EnrollmentHistoryModal :show="showHistoryModal" :history="userHistory" :loading="isLoading"
     @close="showHistoryModal = false" />
+
+  <!-- Trainee Profile & Details Modal -->
+  <TraineeDetailsModal :show="showDetailsModal" :trainee="selectedTrainee" :loading="isDetailsLoading"
+    :showEnrollButton="true" @close="showDetailsModal = false"
+    @enroll="(t) => { showDetailsModal = false; selectUser(t); }" />
 </template>
 
 <script setup>
 import { storeToRefs } from 'pinia';
 import { ref, watch } from 'vue';
 import EnrollmentHistoryModal from '../../../../components/trainingTabs/enrollmentModal/EnrollmentHistoryModal.vue';
+import TraineeDetailsModal from '../../../../components/trainingTabs/enrollmentModal/TraineeDetailsModal.vue';
 import { useAlertStore } from '../../../../store/alertStore';
 import { useEnrollmentStore } from '../../../../store/enrollmentStore';
+import { useUserManageStore } from '../../../../store/userManageStore';
 
 const props = defineProps({
   show: { type: Boolean, required: true },
@@ -190,6 +212,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'enrolled']);
 
 const store = useEnrollmentStore();
+const userManageStore = useUserManageStore();
 const alert = useAlertStore();
 
 const { foundationUsers, foundationPagination, userHistory, isLoading } = storeToRefs(store);
@@ -197,6 +220,9 @@ const userSearchQuery = ref('');
 const foundationSortBy = ref('mandatoryCourseDueDate_asc');
 const foundationPage = ref(1);
 const showHistoryModal = ref(false);
+const showDetailsModal = ref(false);
+const selectedTrainee = ref(null);
+const isDetailsLoading = ref(false);
 let debounceTimer = null;
 
 const formatDueDate = (dateString) => {
@@ -245,6 +271,22 @@ const viewHistory = async (user) => {
     showHistoryModal.value = true;
   } else {
     alert.error(response.message);
+  }
+};
+
+const viewUserDetails = async (user) => {
+  selectedTrainee.value = user;
+  showDetailsModal.value = true;
+  isDetailsLoading.value = true;
+  try {
+    const fullData = await userManageStore.fetchTraineeById(user._id);
+    if (fullData) {
+      selectedTrainee.value = fullData;
+    }
+  } catch (error) {
+    console.error("Failed to fetch full trainee details:", error);
+  } finally {
+    isDetailsLoading.value = false;
   }
 };
 

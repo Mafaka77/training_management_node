@@ -90,13 +90,13 @@ router.put('/trainer/:trainerId/toggle-status', authenticate, authorizeRoles('Ad
 router.put('/trainer/:trainerId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainerController.updateTrainer);
 
 //TRAINEE
-router.get('/trainee/report/export', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), traineeController.exportTraineeReport);
-router.get('/trainees', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), traineeController.getAllTrainee);
-router.post('/trainee', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), traineeController.createTrainee);
-router.get('/trainee/:traineeId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), traineeController.getTraineeById);
-router.put('/trainee/:traineeId/blacklist', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), traineeController.blacklistTrainee);
-router.put('/trainee/:traineeId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), traineeController.updateTrainee);
-router.delete('/trainee/:traineeId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), traineeController.deleteTrainee);
+router.get('/trainee/report/export', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), traineeController.exportTraineeReport);
+router.get('/trainees', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), traineeController.getAllTrainee);
+router.post('/trainee', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), traineeController.createTrainee);
+router.get('/trainee/:traineeId', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), traineeController.getTraineeById);
+router.put('/trainee/:traineeId/blacklist', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), traineeController.blacklistTrainee);
+router.put('/trainee/:traineeId', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), traineeController.updateTrainee);
+router.delete('/trainee/:traineeId', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), traineeController.deleteTrainee);
 
 router.post('/employee', authenticate, authorizeRoles('Admin', 'Director'), fileUpload.single('signature'), require('../controllers/admin/admin_employee_controller').submitEmployee);
 router.get('/employees', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_employee_controller').getEmployees);
