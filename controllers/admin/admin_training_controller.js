@@ -481,7 +481,7 @@ exports.getFoundationUsersByGroup = async (req, res) => {
         // 1. Build the Database Query
         const dbQuery = {
             is_blacklisted: false,
-            confirmation: 'Confirmed',
+            // confirmation: 'Confirmed',
             mandatory_completion: false,
             group: { $in: eligibility },
             _id: { $nin: enrolledUserIds }

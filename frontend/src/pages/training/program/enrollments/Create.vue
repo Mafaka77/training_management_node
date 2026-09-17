@@ -217,7 +217,7 @@ const fetchFoundationUsers = async (page = 1) => {
 
   await store.getFoundationUsersByGroup(props.programId, {
     page: foundationPage.value,
-    limit: 12,
+    limit: 10,
     search: userSearchQuery.value,
     sortBy: sortBy,
     sortOrder: sortOrder
