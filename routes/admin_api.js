@@ -34,7 +34,14 @@ router.get('/users', authenticate, authorizeRoles('Admin', 'Director'), upload.n
 router.post('/department', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_department_controller').createDepartment);
 router.get('/departments', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_department_controller').getAllDepartments);
 router.delete('/department/:departmentId', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_department_controller').deleteDepartment);
+
+//DEPARTMENT PARENT
+router.post('/department-parent', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_department_parent_controller').createDepartmentParent);
 router.get('/department-parents', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), require('../controllers/admin/admin_department_parent_controller').getAllDepartmentParents);
+router.get('/department-parent/:id', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), require('../controllers/admin/admin_department_parent_controller').getDepartmentParentById);
+router.put('/department-parent/:id', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_department_parent_controller').updateDepartmentParent);
+router.delete('/department-parent/:id', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), require('../controllers/admin/admin_department_parent_controller').deleteDepartmentParent);
+
 
 //TRAINING ROOM
 router.post('/submit-training-room', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), trainingRoomController.submitTrainingRoom);

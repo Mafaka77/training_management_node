@@ -446,7 +446,31 @@ const routes = [
                         component: () => import("../pages/master/banner/Index.vue"),
                     }
                 ]
-
+            },
+            {
+                path: "/admin/master/department",
+                component: () => import("../pages/master/department/deptParent.vue"),
+                meta: {
+                    middleware: ["auth", "role"],
+                    roles: ["Admin", "Director"],
+                },
+                children: [
+                    {
+                        path: "",
+                        name: "master.department",
+                        component: () => import("../pages/master/department/Index.vue"),
+                    },
+                    {
+                        path: "create",
+                        name: "master.department.create",
+                        component: () => import("../pages/master/department/Create.vue"),
+                    },
+                    {
+                        path: "edit/:id",
+                        name: "master.department.edit",
+                        component: () => import("../pages/master/department/Edit.vue"),
+                    }
+                ]
             },
             {
                 path: "/admin/trainer",

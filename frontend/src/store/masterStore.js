@@ -15,6 +15,9 @@ export const useMasterStore = defineStore('master', {
         banners: [],
         locations: [],
         isLocationLoading: false,
+        departmentParents: [],
+        isDeptParentLoading: false,
+        deptParentPagination: null,
     }),
     actions: {
         async submitRoom(data) {
@@ -260,6 +263,73 @@ export const useMasterStore = defineStore('master', {
         async deleteLocation(id) {
             try {
                 const response = await api.delete(`/location/${id}`);
+                return { success: true, message: response.data.message };
+            } catch (err) {
+                return { success: false, message: err.response?.data?.message || "Deletion failed" };
+            }
+        },
+        async fetchDepartmentParents(params = {}) {
+            this.isDeptParentLoading = true;
+            try {
+                const response = await api.get('/department-parents', { params });
+                this.departmentParents = response.data.departmentParents || [];
+                this.deptParentPagination = response.data.pagination || {
+                    total: this.departmentParents.length,
+                    page: 1,
+                    limit: this.departmentParents.length || 10,
+                    totalPages: 1
+                };
+                return { success: true, data: this.departmentParents, pagination: this.deptParentPagination };
+            } catch (error) {
+                console.error("Error fetching department parents:", error);
+                return { success: false, message: error.response?.data?.message || error.message };
+            } finally {
+                this.isDeptParentLoading = false;
+            }
+        },
+        async fetchDepartmentParent(id) {
+            try {
+                const response = await api.get(`/department-parent/${id}`);
+                if (response.status === 200 && response.data.status === 200) {
+                    return { success: true, data: response.data.departmentParent };
+                } else {
+                    return { success: false, data: null, message: response.data.message || "Failed to fetch department" };
+                }
+            } catch (ex) {
+                return { success: false, data: null, message: ex.response?.data?.message || ex.message };
+            }
+        },
+        async submitDepartmentParent(data) {
+            try {
+                const response = await api.post('/department-parent', data);
+                const statusCode = response.status === 200 && (response.data.status === 201 || response.data.status === 200);
+                if (!statusCode) {
+                    return { success: false, message: response.data.message || "Failed to create department" };
+                }
+                return { success: true, message: response.data.message, data: response.data.departmentParent };
+            } catch (err) {
+                return { success: false, message: err.response?.data?.message || err.message };
+            }
+        },
+        async updateDepartmentParent(id, data) {
+            try {
+                const response = await api.put(`/department-parent/${id}`, data);
+                const statusCode = response.status === 200 && (response.data.status === 200 || response.data.status === 201);
+                if (!statusCode) {
+                    return { success: false, message: response.data.message || "Failed to update department" };
+                }
+                return { success: true, message: response.data.message, data: response.data.departmentParent };
+            } catch (err) {
+                return { success: false, message: err.response?.data?.message || err.message };
+            }
+        },
+        async deleteDepartmentParent(id) {
+            try {
+                const response = await api.delete(`/department-parent/${id}`);
+                const statusCode = response.status === 200 && response.data.status === 200;
+                if (!statusCode) {
+                    return { success: false, message: response.data.message || "Deletion failed" };
+                }
                 return { success: true, message: response.data.message };
             } catch (err) {
                 return { success: false, message: err.response?.data?.message || "Deletion failed" };
