@@ -29,16 +29,19 @@ function parseDateFlexible(val) {
 exports.getTraining = async (req, res) => {
     try {
         let { page = 1, limit = 6, search = "", status = "" } = req.query;
-        page = parseInt(page);
-        limit = parseInt(limit);
+        page = Math.max(1, parseInt(page) || 1);
+        limit = parseInt(limit) || 6;
 
         const filter = {};
         const user = req.user.user;
         const userRoles = user.roles || [];
         const roleList = Array.isArray(userRoles) ? userRoles : [userRoles];
-        // LOGIC: Filter by Director ID ONLY if they have the Director or Course Director role 
-        // AND they don't have the Admin role (who should see everything).
-        if ((roleList.includes('Director') || roleList.includes('Course Director')) && !roleList.includes('Admin')) {
+        const isAdmin = roleList.includes('Admin');
+        const hasBothDirectorRoles = roleList.includes('Director') && roleList.includes('Course Director');
+
+        // LOGIC: Filter by Director ID ONLY if they have only one of Director or Course Director,
+        // and do not have Admin role. Users with Admin or both Director & Course Director see everything.
+        if (!isAdmin && !hasBothDirectorRoles && (roleList.includes('Director') || roleList.includes('Course Director'))) {
             filter.t_director = user.id;
         }
 
