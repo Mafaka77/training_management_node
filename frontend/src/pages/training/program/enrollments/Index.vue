@@ -252,8 +252,8 @@
   <CreateEnrollment :show="showSearchModal" :program-id="targetProgramId" @close="showSearchModal = false"
     @enrolled="handleEnrolled" />
 
-  <ViewEnrollment :show="showDetailsModal" :enrollment="enrollment" :loading="isLoading"
-    :userHistory="userHistory" @close="showDetailsModal = false" @update-status="updateStatus" />
+  <ViewEnrollment :show="showDetailsModal" :enrollment="enrollment" :loading="isLoading" :userHistory="userHistory"
+    @close="showDetailsModal = false" @update-status="updateStatus" />
 
   <DeleteDialog :show="isDeleteDialogOpen" :loading="isDeleting" title="Delete Enrollment Request"
     :message="selectedEnrollmentToDelete ? `Are you sure you want to delete the enrollment record for ${selectedEnrollmentToDelete.user?.full_name || 'this trainee'}? This action cannot be undone.` : 'Are you sure you want to delete this enrollment record?'"

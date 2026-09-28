@@ -18,10 +18,19 @@ const trainerTrainingController = require('../controllers/trainer/trainer_traini
 const TrainingEnrollmentController = require('../controllers/admin/admin_training_enrollment_controller');
 const CertificateController = require('../controllers/admin/admin_certificate_controller');
 const ReleaseOrderController = require('../controllers/admin/admin_training_release_order_controller');
+const roleController = require('../controllers/admin/admin_role_controller');
 //AUTH
 router.post('/login', upload.none(), authController.login);
 router.get('/me', authenticate, upload.none(), authController.me);
 router.post('/logout', authenticate, upload.none(), authController.logout);
+
+//ROLE MANAGEMENT
+router.post('/role', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), roleController.createRole);
+router.get('/roles', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), roleController.getAllRoles);
+router.get('/role/:id', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), roleController.getRoleById);
+router.put('/role/:id', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), roleController.updateRole);
+router.delete('/role/:id', authenticate, authorizeRoles('Admin', 'Director'), upload.none(), roleController.deleteRole);
+router.get('/role/:id/users', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), roleController.getRoleUsers);
 
 //ADMIN ROLE.  ----------------------------------------------
 //USER CONTROLLER

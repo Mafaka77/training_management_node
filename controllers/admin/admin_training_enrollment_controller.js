@@ -24,8 +24,8 @@ exports.getAllEnrollment = async (req, res) => {
             status = ""
         } = req.query;
 
-        page = Math.max(1, parseInt(page));
-        limit = parseInt(limit);
+        page = Math.max(1, parseInt(page) || 1);
+        limit = parseInt(limit) || 10;
         console.log(req.query);
         const pipeline = [
             {
@@ -64,7 +64,7 @@ exports.getAllEnrollment = async (req, res) => {
         ]);
         const total = countResult.length > 0 ? countResult[0].total : 0;
         pipeline.push(
-            { $sort: { createdAt: sortOrder === "desc" ? -1 : 1 } },
+            { $sort: { enrolledAt: sortOrder === "desc" ? -1 : 1, _id: sortOrder === "desc" ? -1 : 1 } },
             { $skip: (page - 1) * limit },
             { $limit: limit },
         );

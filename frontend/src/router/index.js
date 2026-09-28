@@ -548,6 +548,36 @@ const routes = [
                 ]
             },
             {
+                path: "/admin/role",
+                component: () => import("../pages/user/roles/roleParent.vue"),
+                meta: {
+                    middleware: ["auth", "role"],
+                    roles: ["Admin", "Director"],
+                },
+                children: [
+                    {
+                        path: "",
+                        name: "role",
+                        component: () => import("../pages/user/roles/Index.vue"),
+                    },
+                    {
+                        path: "create",
+                        name: "role.create",
+                        component: () => import("../pages/user/roles/Create.vue"),
+                    },
+                    {
+                        path: "edit/:id",
+                        name: "role.edit",
+                        component: () => import("../pages/user/roles/Edit.vue"),
+                    },
+                    {
+                        path: "view/:id",
+                        name: "role.view",
+                        component: () => import("../pages/user/roles/View.vue"),
+                    }
+                ]
+            },
+            {
                 path: "/admin/ticket",
                 component: () => import("../pages/ticket/ticketParent.vue"),
                 meta: {
