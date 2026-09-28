@@ -16,8 +16,7 @@
         <!-- If it's a dropdown group -->
         <template v-if="section.isGroup">
           <button @click="$emit('update:' + section.groupKey, !props[section.groupKey])"
-            :title="isCollapsed ? section.label : undefined"
-            :class="buttonClasses(props[section.groupKey])">
+            :title="isCollapsed ? section.label : undefined" :class="buttonClasses(props[section.groupKey])">
             <div class="flex items-center gap-3 min-w-0">
               <svg xmlns="http://www.w3.org/2000/svg"
                 class="h-4 w-4 flex-shrink-0 transition-transform duration-300 group-hover:scale-110"
@@ -48,7 +47,8 @@
 
         <!-- Standard Items -->
         <template v-else>
-          <SidebarItem v-for="item in section.items" :key="item.to" :to="item.to" :isDark="isDark" :icon="item.icon" :isCollapsed="isCollapsed">
+          <SidebarItem v-for="item in section.items" :key="item.to" :to="item.to" :isDark="isDark" :icon="item.icon"
+            :isCollapsed="isCollapsed">
             {{ item.label }}
           </SidebarItem>
         </template>
@@ -125,7 +125,7 @@ const filteredMenu = computed(() => {
     },
     {
       title: "Users",
-      show: userRole.value.some(role => ['Admin', 'Director'].includes(role)),
+      show: userRole.value.some(role => ['Admin'].includes(role)),
       isGroup: true,
       groupKey: "trainingOpen",
       label: "Manage Users",
@@ -155,7 +155,7 @@ const filteredMenu = computed(() => {
     },
     {
       title: "Infrastructure",
-      show: userRole.value.some(role => ['Admin', 'Director'].includes(role)),
+      show: userRole.value.some(role => ['Admin'].includes(role)),
       isGroup: true,
       groupKey: "masterOpen",
       label: "System Data",
