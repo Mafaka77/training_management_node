@@ -46,7 +46,7 @@ exports.getAllTrainers = async (req, res) => {
     try {
         // pagination
         const page = parseInt(req.query.page) || 1;   // default page = 1
-        const limit = parseInt(req.query.limit) || 10; // default limit = 10
+        const limit = parseInt(req.query.limit) || 100; // default limit = 10
         const skip = (page - 1) * limit;
 
         // search keyword
