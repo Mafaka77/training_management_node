@@ -36,12 +36,12 @@ exports.getTraining = async (req, res) => {
         const user = req.user.user;
         const userRoles = user.roles || [];
         const roleList = Array.isArray(userRoles) ? userRoles : [userRoles];
-        const isAdmin = roleList.includes('Admin');
-        const hasBothDirectorRoles = roleList.includes('Director') && roleList.includes('Course Director');
 
-        // LOGIC: Filter by Director ID ONLY if they have only one of Director or Course Director,
-        // and do not have Admin role. Users with Admin or both Director & Course Director see everything.
-        if (!isAdmin && !hasBothDirectorRoles && (roleList.includes('Director') || roleList.includes('Course Director'))) {
+        // Admin, Director, and Joint Director see all trainings.
+        // Course Director only sees assigned trainings unless they also have Admin, Director, or Joint Director.
+        const canSeeAllTrainings = roleList.some(role => ['Admin', 'Director', 'Joint Director'].includes(role));
+
+        if (!canSeeAllTrainings && roleList.includes('Course Director')) {
             filter.t_director = user.id;
         }
 

@@ -69,7 +69,7 @@ router.delete('/training-category/:categoryId', authenticate, authorizeRoles('Ad
 //TRAINING PROGRAM
 router.post('/submit-training-program', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), fileUpload.single('t_banner'), trainingController.submitTrainingProgram);
 router.put('/program/:programId', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), fileUpload.single('t_banner'), trainingController.updateTrainingProgram);
-router.get('/get-all-training-program', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), trainingController.getTraining);
+router.get('/get-all-training-program', authenticate, authorizeRoles('Admin', 'Director', 'Course Director', 'Joint Director'), upload.none(), trainingController.getTraining);
 router.get('/program/:programId', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), trainingController.getTrainingById);
 router.delete('/program/:programId', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), trainingController.deleteTrainingProgram);
 router.get('/get-all-groups', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), trainingController.getGroups);

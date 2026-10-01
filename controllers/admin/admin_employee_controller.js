@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const User = require('../../models/user_model');
 const Role = require("../../models/role_model");
 const Group = require('../../models/group_model');
@@ -8,7 +9,8 @@ exports.submitEmployee = async function (req, res) {
     try {
         const {
             full_name, email, mobile, password, district, department, designation,
-            trainer, director, signature, course_director, trainee,
+            roles,
+            trainer, director, joint_director, signature, course_director, trainee,
             gender, dob, category, is_govt_employee, departmentParent, group,
             date_of_entry, date_of_entry_in_present_grade, date_of_superannuation,
             recruitment, confirmation, qualification, service, service_cadre,
@@ -19,27 +21,61 @@ exports.submitEmployee = async function (req, res) {
         const baseRole = await Role.findOne({ name: "Employee" });
         if (baseRole) rolesToAssign.push(baseRole._id);
 
+        if (roles) {
+            let rolesInput = roles;
+            if (typeof rolesInput === 'string') {
+                try {
+                    rolesInput = JSON.parse(rolesInput);
+                } catch (e) {
+                    rolesInput = [rolesInput];
+                }
+            }
+            if (!Array.isArray(rolesInput)) {
+                rolesInput = [rolesInput];
+            }
+            for (const r of rolesInput) {
+                if (!r) continue;
+                const roleIdOrName = typeof r === 'object' && r._id ? r._id : r;
+                if (mongoose.Types.ObjectId.isValid(roleIdOrName)) {
+                    if (!rolesToAssign.some(existing => existing.toString() === roleIdOrName.toString())) {
+                        rolesToAssign.push(roleIdOrName);
+                    }
+                } else if (typeof roleIdOrName === 'string') {
+                    const matchedRole = await Role.findOne({ name: roleIdOrName });
+                    if (matchedRole && !rolesToAssign.some(existing => existing.toString() === matchedRole._id.toString())) {
+                        rolesToAssign.push(matchedRole._id);
+                    }
+                }
+            }
+        }
+
         if (trainer === true || trainer === 'true') {
             const trainerRole = await Role.findOne({ name: "Trainer" });
-            if (trainerRole) {
+            if (trainerRole && !rolesToAssign.some(id => id.toString() === trainerRole._id.toString())) {
                 rolesToAssign.push(trainerRole._id);
             }
         }
         if (director === true || director === 'true') {
             const directorRole = await Role.findOne({ name: "Director" });
-            if (directorRole) {
+            if (directorRole && !rolesToAssign.some(id => id.toString() === directorRole._id.toString())) {
                 rolesToAssign.push(directorRole._id);
+            }
+        }
+        if (joint_director === true || joint_director === 'true') {
+            const jointDirectorRole = await Role.findOne({ name: "Joint Director" });
+            if (jointDirectorRole && !rolesToAssign.some(id => id.toString() === jointDirectorRole._id.toString())) {
+                rolesToAssign.push(jointDirectorRole._id);
             }
         }
         if (course_director === true || course_director === 'true') {
             const courseDirectorRole = await Role.findOne({ name: "Course Director" });
-            if (courseDirectorRole) {
+            if (courseDirectorRole && !rolesToAssign.some(id => id.toString() === courseDirectorRole._id.toString())) {
                 rolesToAssign.push(courseDirectorRole._id);
             }
         }
         if (trainee === true || trainee === 'true') {
             const traineeRole = await Role.findOne({ name: "Trainee" });
-            if (traineeRole) {
+            if (traineeRole && !rolesToAssign.some(id => id.toString() === traineeRole._id.toString())) {
                 rolesToAssign.push(traineeRole._id);
             }
         }
@@ -219,7 +255,8 @@ exports.updateEmployee = async (req, res) => {
         const { id } = req.params;
         const {
             full_name, email, mobile, password, district, department, designation,
-            trainer, director, course_director, trainee,
+            roles,
+            trainer, director, joint_director, course_director, trainee,
             gender, dob, category, is_govt_employee, departmentParent, group,
             date_of_entry, date_of_entry_in_present_grade, date_of_superannuation,
             recruitment, confirmation, qualification, service, service_cadre,
@@ -235,21 +272,53 @@ exports.updateEmployee = async (req, res) => {
         const baseRole = await Role.findOne({ name: "Employee" });
         if (baseRole) rolesToAssign.push(baseRole._id);
 
+        if (roles) {
+            let rolesInput = roles;
+            if (typeof rolesInput === 'string') {
+                try {
+                    rolesInput = JSON.parse(rolesInput);
+                } catch (e) {
+                    rolesInput = [rolesInput];
+                }
+            }
+            if (!Array.isArray(rolesInput)) {
+                rolesInput = [rolesInput];
+            }
+            for (const r of rolesInput) {
+                if (!r) continue;
+                const roleIdOrName = typeof r === 'object' && r._id ? r._id : r;
+                if (mongoose.Types.ObjectId.isValid(roleIdOrName)) {
+                    if (!rolesToAssign.some(existing => existing.toString() === roleIdOrName.toString())) {
+                        rolesToAssign.push(roleIdOrName);
+                    }
+                } else if (typeof roleIdOrName === 'string') {
+                    const matchedRole = await Role.findOne({ name: roleIdOrName });
+                    if (matchedRole && !rolesToAssign.some(existing => existing.toString() === matchedRole._id.toString())) {
+                        rolesToAssign.push(matchedRole._id);
+                    }
+                }
+            }
+        }
+
         if (trainer === true || trainer === 'true') {
             const trainerRole = await Role.findOne({ name: "Trainer" });
-            if (trainerRole) rolesToAssign.push(trainerRole._id);
+            if (trainerRole && !rolesToAssign.some(id => id.toString() === trainerRole._id.toString())) rolesToAssign.push(trainerRole._id);
         }
         if (director === true || director === 'true') {
             const directorRole = await Role.findOne({ name: "Director" });
-            if (directorRole) rolesToAssign.push(directorRole._id);
+            if (directorRole && !rolesToAssign.some(id => id.toString() === directorRole._id.toString())) rolesToAssign.push(directorRole._id);
+        }
+        if (joint_director === true || joint_director === 'true') {
+            const jointDirectorRole = await Role.findOne({ name: "Joint Director" });
+            if (jointDirectorRole && !rolesToAssign.some(id => id.toString() === jointDirectorRole._id.toString())) rolesToAssign.push(jointDirectorRole._id);
         }
         if (course_director === true || course_director === 'true') {
             const courseDirectorRole = await Role.findOne({ name: "Course Director" });
-            if (courseDirectorRole) rolesToAssign.push(courseDirectorRole._id);
+            if (courseDirectorRole && !rolesToAssign.some(id => id.toString() === courseDirectorRole._id.toString())) rolesToAssign.push(courseDirectorRole._id);
         }
         if (trainee === true || trainee === 'true') {
             const traineeRole = await Role.findOne({ name: "Trainee" });
-            if (traineeRole) rolesToAssign.push(traineeRole._id);
+            if (traineeRole && !rolesToAssign.some(id => id.toString() === traineeRole._id.toString())) rolesToAssign.push(traineeRole._id);
         }
 
         user.full_name = full_name ?? user.full_name;

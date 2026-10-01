@@ -94,7 +94,7 @@ exports.generateCertificateHtml = (trainee, program, director, qrCodeDataUrl, op
                     </p>
                     
                     <!-- Trainee Name -->
-                    <h2 class="text-[64px] text-[#cca352] mb-1 px-8 leading-none" style="font-family: 'Great Vibes', cursive; text-shadow: 1px 1px 2px rgba(0,0,0,0.05);">
+                    <h2 class="text-[42px] text-[#cca352] mb-1 px-8 leading-none" style="font-family: 'Cinzel', cursive; text-shadow: 1px 1px 2px rgba(0,0,0,0.05);">
                         ${trainee?.full_name || 'Trainee Name'}
                     </h2>
                     
@@ -190,7 +190,7 @@ exports.generateCertificateHtml = (trainee, program, director, qrCodeDataUrl, op
                     </p>
                     
                     <!-- Trainee Name -->
-                    <h2 class="text-[56px] text-[#cca352] mb-1 px-12 leading-none" style="font-family: 'Great Vibes', cursive; text-shadow: 1px 1px 2px rgba(0,0,0,0.05);">
+                    <h2 class="text-[42px] text-[#cca352] mb-1 px-12 leading-none" style="font-family: 'Cinzel', cursive; text-shadow: 1px 1px 2px rgba(0,0,0,0.05);">
                         ${trainee?.full_name || 'Trainee Name'}
                     </h2>
                     
@@ -219,7 +219,7 @@ exports.generateCertificateHtml = (trainee, program, director, qrCodeDataUrl, op
                 <div class="w-full flex justify-between items-end px-12 mt-auto mb-6">
                     
                     <!-- Left Signature -->
-                    <div class="flex flex-col items-center w-48">
+                    <div class="flex flex-col items-center w-100">
                         ${tDirectorSig ? `<img src="${tDirectorSig}" class="w-40 h-20 object-contain relative z-50 mb-1" />` : '<div class="h-20 mb-1"></div>'}
                         <div class="w-full border-t-[1.5px] border-[#cca352] pt-2 text-center">
                             <p class="font-bold text-[11px] text-black tracking-widest uppercase">${program?.t_director?.full_name || 'Course Director Name'}</p>
@@ -234,7 +234,7 @@ exports.generateCertificateHtml = (trainee, program, director, qrCodeDataUrl, op
                     </div>
 
                     <!-- Right Signature -->
-                    <div class="flex flex-col items-center w-48">
+                    <div class="flex flex-col items-center w-100">
                         ${directorSig ? `<img src="${directorSig}" class="w-40 h-20 object-contain relative z-50 mb-1" />` : '<div class="h-20 mb-1"></div>'}
                         <div class="w-full border-t-[1.5px] border-[#cca352] pt-2 text-center">
                             <p class="font-bold text-[11px] text-black tracking-widest uppercase">${director?.full_name || 'Director Name'}</p>

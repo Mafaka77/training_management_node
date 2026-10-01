@@ -108,27 +108,27 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="md:col-span-2">
             <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-3">Assign Roles</label>
-            <div
+            <div v-if="isRolesLoading"
+              class="p-4 rounded-xl bg-zinc-50 dark:bg-white/5 border border-zinc-200 dark:border-white/10 text-xs text-zinc-500 flex items-center gap-2">
+              <svg class="animate-spin h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                </path>
+              </svg>
+              <span>Loading roles from database...</span>
+            </div>
+            <div v-else-if="availableRoles.length === 0"
+              class="p-4 rounded-xl bg-zinc-50 dark:bg-white/5 border border-zinc-200 dark:border-white/10 text-xs text-zinc-500">
+              No roles found in database.
+            </div>
+            <div v-else
               class="flex flex-wrap items-center gap-6 p-4 rounded-xl bg-zinc-50 dark:bg-white/5 border border-zinc-200 dark:border-white/10">
-              <label class="inline-flex items-center cursor-pointer space-x-3">
-                <input type="checkbox" v-model="form.trainer"
-                  class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Trainer</span>
-              </label>
-              <label class="inline-flex items-center cursor-pointer space-x-3">
-                <input type="checkbox" v-model="form.course_director"
-                  class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Course Director</span>
-              </label>
-              <label class="inline-flex items-center cursor-pointer space-x-3">
-                <input type="checkbox" v-model="form.director"
-                  class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Director</span>
-              </label>
-              <label class="inline-flex items-center cursor-pointer space-x-3">
-                <input type="checkbox" v-model="form.trainee"
-                  class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Trainee</span>
+              <label v-for="role in availableRoles" :key="role._id"
+                class="inline-flex items-center cursor-pointer space-x-3">
+                <input type="checkbox" :value="role._id" v-model="form.roles"
+                  class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ role.name }}</span>
               </label>
             </div>
           </div>
@@ -171,13 +171,17 @@ import DatePicker from "../../../components/ui/DatePicker.vue";
 import SignaturePicker from "../../../components/ui/SignaturePicker.vue";
 import SingleSelect from "../../../components/ui/SingleSelect.vue";
 import { useAlertStore } from "../../../store/alertStore.js";
+import { useRoleStore } from "../../../store/roleStore.js";
 import { useUserManageStore } from "../../../store/userManageStore.js";
 
 const alert = useAlertStore();
 const store = useUserManageStore();
+const roleStore = useRoleStore();
 const { districts, groups, departmentParents } = storeToRefs(store);
 
 const isLoading = ref(false);
+const availableRoles = ref([]);
+const isRolesLoading = ref(false);
 
 const genderOptions = [
   { name: "Male" },
@@ -230,10 +234,7 @@ const form = reactive({
   qualification: '',
   service: '',
   category: '',
-  trainer: false,
-  course_director: false,
-  director: false,
-  trainee: false,
+  roles: [],
   signature: null,
 });
 
@@ -241,6 +242,18 @@ const breadcrumbs = [
   { label: "Employee", to: "/admin/employee" },
   { label: "Create Employee", to: "/admin/employee/create" }
 ];
+
+const fetchRolesList = async () => {
+  isRolesLoading.value = true;
+  try {
+    const roles = await roleStore.fetchAllRoles();
+    availableRoles.value = roles || [];
+  } catch (error) {
+    console.error("Error fetching roles:", error);
+  } finally {
+    isRolesLoading.value = false;
+  }
+};
 
 const submitForm = async () => {
   if (!form.full_name || !form.email || !form.mobile || !form.password) {
@@ -252,7 +265,11 @@ const submitForm = async () => {
 
   Object.keys(form).forEach((key) => {
     const value = form[key];
-    if (typeof value === 'boolean') {
+    if (Array.isArray(value)) {
+      value.forEach((item) => {
+        formData.append(key, typeof item === 'object' && item?._id ? item._id : item);
+      });
+    } else if (typeof value === 'boolean') {
       formData.append(key, value.toString());
     } else if (value instanceof Date) {
       formData.append(key, value.toISOString());
@@ -301,10 +318,7 @@ const submitForm = async () => {
         qualification: '',
         service: '',
         category: '',
-        trainer: false,
-        course_director: false,
-        director: false,
-        trainee: false,
+        roles: [],
         signature: null,
       });
     }
@@ -324,5 +338,6 @@ onMounted(() => {
   store.fetchDistricts();
   store.fetchGroups();
   store.fetchDepartmentParents();
+  fetchRolesList();
 });
 </script>

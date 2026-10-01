@@ -98,7 +98,7 @@ const filteredMenu = computed(() => {
       items: [
         {
           label: "Dashboard",
-          to: userRole.value.some(role => ['Trainer', 'Director', 'Course Director'].includes(role))
+          to: userRole.value.some(role => ['Trainer', 'Director', 'Course Director', 'Joint Director'].includes(role))
             ? "/admin/trainer/dashboard"
             : "/admin/dashboard",
           icon: "M3 3h7v7H3z M14 3h7v7h-7z M14 14h7v7h-7z M3 14h7v7H3z",
@@ -119,7 +119,7 @@ const filteredMenu = computed(() => {
           label: "Courses",
           to: "/admin/training/program",
           icon: "M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z M14 2v6h6",
-          show: userRole.value.some(role => ['Admin', 'Director', 'Course Director'].includes(role))
+          show: userRole.value.some(role => ['Admin', 'Director', 'Course Director', 'Joint Director'].includes(role))
         }
       ]
     },
@@ -146,11 +146,11 @@ const filteredMenu = computed(() => {
           to: "/admin/employee",
           icon: "M17 21v-2a4 4 0 0 0-3-3.87 M9 21v-2a4 4 0 0 0-3-3.87 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"
         },
-        // {
-        //   label: "User Roles",
-        //   to: "/admin/role",
-        //   icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-        // }
+        {
+          label: "User Roles",
+          to: "/admin/role",
+          icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+        }
       ]
     },
     {

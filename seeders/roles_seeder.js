@@ -11,6 +11,7 @@ const roles = [
     { name: "Guest" },
     { name: "Employee" },
     { name: "Director" },
+    { name: "Joint Director" },
     { name: "Course Director" }
 
 ];
