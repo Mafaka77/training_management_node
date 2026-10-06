@@ -42,7 +42,7 @@ exports.getTraining = async (req, res) => {
         const canSeeAllTrainings = roleList.some(role => ['Admin', 'Director', 'Joint Director'].includes(role));
 
         if (!canSeeAllTrainings && roleList.includes('Course Director')) {
-            filter.t_director = user.id;
+            filter.t_director = mongoose.Types.ObjectId.isValid(user.id) ? new mongoose.Types.ObjectId(user.id) : user.id;
         }
 
         if (search) {
@@ -53,15 +53,55 @@ exports.getTraining = async (req, res) => {
             filter.t_status = status;
         }
 
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
         const total = await TrainingProgram.countDocuments(filter);
-        const programs = await TrainingProgram.find(filter)
-            .populate("t_category", "name")
-            .populate("t_room", "room_name")
-            .populate("t_eligibility", "group_name")
-            .populate("t_director", "full_name")
-            .skip((page - 1) * limit)
-            .limit(limit)
-            .sort({ createdAt: -1 });
+        const programs = await TrainingProgram.aggregate([
+            { $match: filter },
+            {
+                $addFields: {
+                    isPassed: {
+                        $cond: {
+                            if: { $gte: ["$t_end_date", today] },
+                            then: 0,
+                            else: 1
+                        }
+                    },
+                    upcomingSortDate: {
+                        $cond: {
+                            if: { $gte: ["$t_end_date", today] },
+                            then: "$t_start_date",
+                            else: null
+                        }
+                    },
+                    passedSortDate: {
+                        $cond: {
+                            if: { $lt: ["$t_end_date", today] },
+                            then: "$t_start_date",
+                            else: null
+                        }
+                    }
+                }
+            },
+            {
+                $sort: {
+                    isPassed: 1,
+                    upcomingSortDate: 1,
+                    passedSortDate: -1,
+                    createdAt: -1
+                }
+            },
+            { $skip: (page - 1) * limit },
+            { $limit: limit }
+        ]);
+
+        await TrainingProgram.populate(programs, [
+            { path: "t_category", select: "name" },
+            { path: "t_room", select: "room_name" },
+            { path: "t_eligibility", select: "group_name" },
+            { path: "t_director", select: "full_name" }
+        ]);
 
         return res.status(STATUS.OK).json({
             programs,

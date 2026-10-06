@@ -83,7 +83,7 @@ exports.register = async (req, res) => {
     const roles = await Role.findOne({ name: 'Trainee' });
     const { full_name, email, password, mobile, district, departmentParent, department, gender,
         designation, group, mandatory_completion, dob, recruitment, confirmation,
-        is_govt_employee, date_of_entry, date_of_superannuation, service_cadre, date_of_entry_in_present_grade, service, category,
+        is_govt_employee, date_of_entry, date_of_superannuation, service_cadre, date_of_entry_in_present_grade, service, category, qualification,
     } = req.body;
     try {
         if (!full_name || !email || !mobile) {
@@ -129,6 +129,7 @@ exports.register = async (req, res) => {
             date_of_entry_in_present_grade,
             service,
             category,
+            qualification,
         });
 
         await user.save();
@@ -344,6 +345,7 @@ exports.updateProfile = async (req, res) => {
             mandatory_completion,
             service,
             category,
+            qualification,
         } = req.body;
 
         const update = {};
@@ -390,6 +392,7 @@ exports.updateProfile = async (req, res) => {
         }
         if (service !== undefined) update.service = service;
         if (category !== undefined) update.category = category;
+        if (qualification !== undefined) update.qualification = qualification;
 
         // handle uploaded profile file (multer -> req.file)
         if (req.file) {
