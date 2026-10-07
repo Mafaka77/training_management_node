@@ -39,24 +39,64 @@ exports.getTraining = async (req, res) => {
             t_status: { $ne: "Draft" }
         };
         if (search) {
-            filter.name = { $regex: search, $options: "i" }; // search by program name
+            filter.t_name = { $regex: search, $options: "i" }; // search by program name
         }
 
         if (user && ngoGroup && user.group && user.group.equals(ngoGroup._id)) {
             filter.t_eligibility = ngoGroup._id;
         }
 
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
         // Get total count for pagination
         const total = await TrainingProgram.countDocuments(filter);
 
-        // Fetch paginated data
-        const programs = await TrainingProgram.find(filter)
-            .populate("t_category", "name")
-            .populate("t_room", "room_name")
-            .populate("t_eligibility")
-            .skip(skip)
-            .limit(limit)
-            .sort({ createdAt: -1 });
+        // Fetch paginated and sorted data
+        const programs = await TrainingProgram.aggregate([
+            { $match: filter },
+            {
+                $addFields: {
+                    isPassed: {
+                        $cond: {
+                            if: { $gte: ["$t_end_date", today] },
+                            then: 0,
+                            else: 1
+                        }
+                    },
+                    upcomingSortDate: {
+                        $cond: {
+                            if: { $gte: ["$t_end_date", today] },
+                            then: "$t_start_date",
+                            else: null
+                        }
+                    },
+                    passedSortDate: {
+                        $cond: {
+                            if: { $lt: ["$t_end_date", today] },
+                            then: "$t_start_date",
+                            else: null
+                        }
+                    }
+                }
+            },
+            {
+                $sort: {
+                    isPassed: 1,
+                    upcomingSortDate: 1,
+                    passedSortDate: -1,
+                    createdAt: -1
+                }
+            },
+            { $skip: skip },
+            { $limit: limit }
+        ]);
+
+        await TrainingProgram.populate(programs, [
+            { path: "t_category", select: "name" },
+            { path: "t_room", select: "room_name" },
+            { path: "t_eligibility" }
+        ]);
 
         return res.status(STATUS.OK).json({
             programs,
