@@ -168,10 +168,10 @@
                             </div>
                         </div>
 
-                        <div class="mt-6 self-end w-72 text-center -mr-4">
+                        <div class="mt-6 self-end text-right">
                             <!-- Signature Space for eSign -->
-                            <div class="h-16"></div>
-                            <div class="leading-tight">
+                            <div class="h-16 flex justify-end"></div>
+                            <div class="leading-tight text-center">
                                 <p class="font-bold uppercase text-sm whitespace-nowrap" contenteditable="true"
                                     spellcheck="false">{{
                                         training?.t_director?.full_name || '( DIRECTOR NAME )' }}</p>
