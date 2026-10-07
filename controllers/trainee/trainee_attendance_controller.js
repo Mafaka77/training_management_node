@@ -36,13 +36,19 @@ exports.getAttendance = async (req, res) => {
             return res.status(STATUS.OK).json({ status: STATUS.NOT_FOUND, message: "No approved enrollment found." });
         }
 
-        // 2. Get GLOBAL attendance for the dashboard header
+        // 2. Get GLOBAL attendance for the trainee across all sessions of this program
+        const sessionIds = globalSessions.map(s => s._id);
         const globalAttendance = await Attendance.find({
-            enrollmentId: enrollmentRecord._id,
-            trainingId: trainingId // Ensure your model uses this field
-        }).select('sessionId').lean();
+            user: userId,
+            sessionId: { $in: sessionIds }
+        }).lean();
 
-        const globalAttendedCount = globalAttendance.length;
+        const attendanceMap = new Map(
+            globalAttendance.map(a => [a.sessionId.toString(), a])
+        );
+
+        const presentRecords = globalAttendance.filter(a => a.status === 'Present');
+        const globalAttendedCount = presentRecords.length;
         const globalTotalSessions = globalSessions.length;
         const globalPercentage = globalTotalSessions > 0
             ? Math.round((globalAttendedCount / globalTotalSessions) * 100)
@@ -53,22 +59,18 @@ exports.getAttendance = async (req, res) => {
 
         // Safety: Only filter if date is a valid string and not "null"/"undefined"
         if (date && date !== "null" && !isNaN(Date.parse(date))) {
-            const startOfDay = new Date(date);
-            startOfDay.setHours(0, 0, 0, 0);
-            const endOfDay = new Date(date);
-            endOfDay.setHours(23, 59, 59, 999);
+            const startOfDay = dayjs(date).startOf('day').toDate();
+            const endOfDay = dayjs(date).endOf('day').toDate();
             sessionMatch.tc_date = { $gte: startOfDay, $lte: endOfDay };
         }
 
         // 4. Fetch the specific sessions for the selected day
         const filteredSessions = await Session.find(sessionMatch).sort({ tc_start_time: 1 }).lean();
 
-        // 5. Create a set of attended session IDs for fast lookup
-        const attendedSessionIds = new Set(globalAttendance.map(a => a.sessionId.toString()));
-
-        // 6. Map only the filtered sessions for the UI list
+        // 5. Map the filtered sessions for the UI list
         const sessionsData = filteredSessions.map(s => {
-            const isPresent = attendedSessionIds.has(s._id.toString());
+            const record = attendanceMap.get(s._id.toString());
+            const isPresent = record && record.status === 'Present';
             return {
                 sessionId: s._id,
                 topic: s.tc_topic,
@@ -76,7 +78,8 @@ exports.getAttendance = async (req, res) => {
                 start_time: s.tc_start_time,
                 end_time: s.tc_end_time,
                 status: isPresent ? 'Present' : 'Absent',
-                // If you need details, you'd need to fetch them, but for a daily list, status is usually enough
+                isMarked: !!record,
+                signInTime: record ? record.createdAt : null,
             };
         });
 
@@ -107,7 +110,7 @@ exports.markAttendance = async (req, res) => {
         const program = await Training.findOne({ _id: programId }).lean();
         const session = await Session.findOne({ _id: sessionId }).lean();
         const userId = req.user.user.id;
-        const enrollment = await Enrollment.findOne({ user: userId }).lean();
+        const enrollment = await Enrollment.findOne({ user: userId, training_program: programId }).lean();
         if (!session.tc_start_time || !session.tc_end_time) {
             return res.status(STATUS.OK).json({
                 status: STATUS.BAD_REQUEST,
