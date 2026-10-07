@@ -323,7 +323,7 @@ exports.prepareForESign = async (req, res) => {
             "PageNumber": "1",
             "PreviewRequired": true,
             "PagelevelCoordinates": "",
-            "CustomizeCoordinates": "400,50,550,150",
+            "CustomizeCoordinates": "390,110,540,180",
             "SUrl": `${SERVER_URL}/admin-api/emSignerSuccessResponse/${trainingId}`,
             "FUrl": `${SERVER_URL}/admin-api/emSignerFailureResponse/${trainingId}`,
             "CUrl": `${SERVER_URL}/admin-api/emSignerResponse`,

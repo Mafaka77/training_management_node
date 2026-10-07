@@ -136,10 +136,10 @@
                             <editor-content :editor="editor" />
                         </div>
 
-                        <div class="pt-6 self-end w-56 text-center -mr-4">
+                        <div class="pt-6 self-end w-72 text-center -mr-4">
                             <div class="leading-tight">
-                                <p class="font-bold text-sm">Sd/- <span class="uppercase" contenteditable="true"
-                                        spellcheck="false">Rita Lalnunmawii Pachuau</span></p>
+                                <p class="font-bold text-sm whitespace-nowrap">Sd/- <span class="uppercase"
+                                        contenteditable="true" spellcheck="false">Rita Lalnunmawii Pachuau</span></p>
                                 <p class="font-bold text-sm" contenteditable="true" spellcheck="false">Director</p>
                                 <p class="text-xs mt-1 font-sans text-[#52525b] font-medium" contenteditable="true"
                                     spellcheck="false">Administrative Training Institute</p>
@@ -168,12 +168,15 @@
                             </div>
                         </div>
 
-                        <div class="mt-8 self-end w-56 text-center -mr-4">
+                        <div class="mt-6 self-end w-72 text-center -mr-4">
+                            <!-- Signature Space for eSign -->
+                            <div class="h-16"></div>
                             <div class="leading-tight">
-                                <p class="font-bold uppercase text-sm" contenteditable="true" spellcheck="false">{{
-                                    training?.t_director?.full_name || '( DIRECTOR NAME )' }}</p>
+                                <p class="font-bold uppercase text-sm whitespace-nowrap" contenteditable="true"
+                                    spellcheck="false">{{
+                                        training?.t_director?.full_name || '( DIRECTOR NAME )' }}</p>
                                 <p class="font-bold text-sm" contenteditable="true" spellcheck="false">{{
-                                    training?.t_director?.designation || 'Director' }}</p>
+                                    training?.t_director?.designation || 'Director' }} & Course Director</p>
                                 <p class="text-xs mt-1 font-sans text-[#52525b] font-medium" contenteditable="true"
                                     spellcheck="false">Administrative Training Institute</p>
                                 <p class="text-xs font-sans text-[#52525b]" contenteditable="true" spellcheck="false">
