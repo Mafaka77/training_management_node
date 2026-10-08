@@ -60,23 +60,15 @@ exports.generateCertificateHtml = (trainee, program, director, qrCodeDataUrl, op
             <!-- Content Container -->
             <div class="relative z-10 w-full px-16 pt-20 pb-[180px] flex flex-col h-full items-center justify-between">
                 
-                <!-- Top Row: QR Code, National Emblem, ATI Logo -->
-                <div class="w-full flex justify-between items-start mb-6">
-                    <!-- Left: QR Code -->
-                    <div class="flex flex-col items-center">
-                        <div class="bg-white p-1">
-                            <img src="${qrCodeDataUrl}" alt="QR" class="w-14 h-14" />
-                        </div>
-                        <span class="text-[8px] font-semibold text-[#555] tracking-wider mt-1 uppercase">Scan to Verify</span>
-                    </div>
-                    
+                <!-- Top Row: National Emblem (Center) & ATI Logo (Right) -->
+                <div class="w-full relative flex justify-center items-start mb-6">
                     <!-- Center: National Emblem -->
                     <div class="flex flex-col items-center pt-2">
                         <img src="${nationalEmblemBase64}" class="w-16 h-16 object-contain drop-shadow-sm mix-blend-multiply" />
                     </div>
 
                     <!-- Right: ATI Logo -->
-                    <div class="flex flex-col items-center">
+                    <div class="absolute right-0 top-0 flex flex-col items-center">
                         <img src="${atiLogoBase64}" class="w-16 h-16 object-contain drop-shadow-sm" />
                     </div>
                 </div>
@@ -110,37 +102,50 @@ exports.generateCertificateHtml = (trainee, program, director, qrCodeDataUrl, op
                     </p>
                     <!-- Body Text -->
                     <p class="text-[16px] text-gray-800 leading-relaxed max-w-lg text-center px-4 font-medium">
-                        For successfully completing the mandatory training program on <br/>
+                        for successfully completing the mandatory training program on <br/>
                         <span class="font-bold text-[20px] text-[#2b847f] leading-loose block mt-3">"${program?.t_name || 'Program Name'}"</span>
                     </p>
                     <p class="text-[14px] text-gray-700 mt-5 font-medium">
                         Conducted from ${formatWithOrdinal(program?.t_start_date)} to ${formatWithOrdinal(program?.t_end_date)}
                     </p>
+
+                    
                 </div>
 
                 <!-- Footer (Signatures, Seal) -->
                 <div class="w-full flex justify-between items-end px-4 mt-auto mb-2">
                     
                     <!-- Left Signature -->
-                    <div class="flex flex-col items-center w-[30%]">
+                    <div class="flex flex-col items-center w-[30%] mt-10">
                         ${tDirectorSig ? `<img src="${tDirectorSig}" class="w-36 h-16 object-contain relative z-50 mb-1" />` : '<div class="h-16 mb-1"></div>'}
                         <div class="w-full border-t-[1.5px] border-[#cca352] pt-2 text-center">
                             <p class="font-bold text-[10px] text-black tracking-widest uppercase">${program?.t_director?.full_name || 'Course Director Name'}</p>
-                            ${program?.t_director?.designation ? `<p class="font-bold text-[8px] text-gray-700 uppercase tracking-widest mt-0.5">${program?.t_director?.designation}</p>` : ''}
-                            <p class="text-[8px] font-bold text-[#7a141c] mt-1 uppercase tracking-wider">Course Director</p>
+                            ${program?.t_director?.designation ? `<p class="font-bold text-[8px] text-gray-700 uppercase tracking-widest mt-0.5">${program?.t_director?.designation} & Course Director</p>` : ''}
+                            <p class="text-[8px] font-bold text-[#7a141c] mt-1 uppercase tracking-wider">Administrative Training Institute</p>
                         </div>
                     </div>
-
+                <!-- Center Seal -->
+                    <div class="flex flex-col items-center">
+                        <img src="${sealBase64}" class="w-20 h-20 object-contain drop-shadow-md relative z-80" />
+                    </div>
                     <!-- Right Signature -->
-                    <div class="flex flex-col items-center w-[30%]">
+                    <div class="flex flex-col items-center w-[30%] mt-10">
                         ${directorSig ? `<img src="${directorSig}" class="w-36 h-16 object-contain relative z-50 mb-1" />` : '<div class="h-16 mb-1"></div>'}
                         <div class="w-full border-t-[1.5px] border-[#cca352] pt-2 text-center">
                             <p class="font-bold text-[10px] text-black tracking-widest uppercase">${director?.full_name || 'Director Name'}</p>
-                            <p class="text-[8px] font-bold text-[#7a141c] mt-1 uppercase tracking-wider">Director, ATI</p>
+                            <p class="text-[8px] font-bold text-black mt-1 uppercase tracking-wider">Director</p>
+                            <p class="text-[8px] font-bold text-[#7a141c] mt-1 uppercase tracking-wider">Administrative Training Institute</p>
                         </div>
                     </div>
                     
                 </div>
+                <!-- Center Middle: QR Code -->
+                    <div class="flex flex-col items-center mt-14">
+                        <div class="bg-white p-1">
+                            <img src="${qrCodeDataUrl}" alt="QR" class="w-16 h-16" />
+                        </div>
+                        <span class="text-[8px] font-semibold text-[#555] tracking-wider mt-1 uppercase">Scan to Verify</span>
+                    </div>
             </div>
         </div>
     `;
@@ -206,9 +211,9 @@ exports.generateCertificateHtml = (trainee, program, director, qrCodeDataUrl, op
                     </p>
 
                     <!-- Body Text -->
-                    <p class="text-[15px] text-gray-800 leading-relaxed max-w-3xl text-center px-8 font-medium">
-                        Awarded to recognize achievement for successfully completing the training program on <br/>
-                        <span class="font-bold">"${program?.t_name || 'Program Name'}"</span>
+                    <p class="text-[15px] text-gray-800 leading-relaxed max-w-3xl text-center px-8 font-medium mt-4">
+                         for successfully completing the training program on <br/>
+                        <span class="font-bold text-[18px] mt-8">"${program?.t_name || 'Program Name'}"</span>
                     </p>
                     <p class="text-[13px] text-gray-700 mt-1 font-medium">
                         Conducted from ${formatWithOrdinal(program?.t_start_date)} to ${formatWithOrdinal(program?.t_end_date)}
@@ -223,8 +228,8 @@ exports.generateCertificateHtml = (trainee, program, director, qrCodeDataUrl, op
                         ${tDirectorSig ? `<img src="${tDirectorSig}" class="w-40 h-20 object-contain relative z-50 mb-1" />` : '<div class="h-20 mb-1"></div>'}
                         <div class="w-full border-t-[1.5px] border-[#cca352] pt-2 text-center">
                             <p class="font-bold text-[11px] text-black tracking-widest uppercase">${program?.t_director?.full_name || 'Course Director Name'}</p>
-                            ${program?.t_director?.designation ? `<p class="font-bold text-[9px] text-gray-700 uppercase tracking-widest mt-0.5">${program?.t_director?.designation}</p>` : ''}
-                            <p class="text-[9px] font-bold text-[#7a141c] mt-1 uppercase tracking-wider">Course Director</p>
+                            ${program?.t_director?.designation ? `<p class="font-bold text-[9px] text-gray-700 uppercase tracking-widest mt-0.5">${program?.t_director?.designation} & Course Director</p>` : ''}
+                            <p class="text-[9px] font-bold text-[#7a141c] mt-1 uppercase tracking-wider">Administrative Training Institute</p>
                         </div>
                     </div>
 
@@ -238,7 +243,8 @@ exports.generateCertificateHtml = (trainee, program, director, qrCodeDataUrl, op
                         ${directorSig ? `<img src="${directorSig}" class="w-40 h-20 object-contain relative z-50 mb-1" />` : '<div class="h-20 mb-1"></div>'}
                         <div class="w-full border-t-[1.5px] border-[#cca352] pt-2 text-center">
                             <p class="font-bold text-[11px] text-black tracking-widest uppercase">${director?.full_name || 'Director Name'}</p>
-                            <p class="text-[9px] font-bold text-[#7a141c] mt-1 uppercase tracking-wider">Director, ATI</p>
+                            ${director?.designation ? `<p class="font-bold text-[9px] text-gray-700 uppercase tracking-widest mt-0.5">${director?.designation}</p>` : ''}
+                            <p class="text-[9px] font-bold text-[#7a141c] mt-1 uppercase tracking-wider">Administrative Training Institute</p>
                         </div>
                     </div>
                     
