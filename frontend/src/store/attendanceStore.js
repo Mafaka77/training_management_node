@@ -104,6 +104,16 @@ export const useAttendanceStore = defineStore('attendance', {
                 this.isAttendanceLoading = false;
             }
         },
-
+        async exportAttendance(programId) {
+            try {
+                const response = await api.get(`/training/${programId}/attendance/export`, {
+                    responseType: 'blob'
+                });
+                return { success: true, data: response.data, headers: response.headers };
+            } catch (e) {
+                console.error("Export Attendance Error:", e);
+                return { success: false, message: e.response?.data?.message || 'Failed to export attendance' };
+            }
+        },
     }
 })

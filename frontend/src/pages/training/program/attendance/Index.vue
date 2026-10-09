@@ -31,6 +31,22 @@
                     placeholder="Search by trainee name..."
                     class="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 transition-all dark:text-white" />
             </div>
+
+            <!-- Export Button -->
+            <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <button @click="exportAttendanceData" :disabled="isExporting || !store.totalItems"
+                    class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-xs shadow-emerald-700/20 transition-all active:scale-95 cursor-pointer disabled:cursor-not-allowed"
+                    title="Export session-by-session attendance for all trainees">
+                    <span v-if="isExporting"
+                        class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                    <svg v-else class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>{{ isExporting ? 'Exporting...' : 'Export Attendance' }}</span>
+                </button>
+            </div>
         </div>
 
         <div
@@ -48,7 +64,7 @@
                             class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500 cursor-pointer hover:text-indigo-600 transition-colors">
                             Total Appearance <span v-if="store.sortBy === 'attendedCount'">{{ store.sortOrder === 'asc'
                                 ? '↑' : '↓'
-                                }}</span>
+                            }}</span>
                         </th>
 
                         <th @click="handleSort('percentage')"
@@ -83,7 +99,7 @@
                                     class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-700 shrink-0">
                                     <span class="text-sm font-bold text-slate-500 uppercase">{{
                                         trainee.user?.full_name?.charAt(0) || '?'
-                                        }}</span>
+                                    }}</span>
                                 </div>
                                 <div>
                                     <div class="flex items-center gap-2 flex-wrap">
@@ -127,7 +143,7 @@
                                 </div>
                                 <span class="text-[10px] font-bold text-slate-600 dark:text-slate-400 w-8">{{
                                     trainee.percentage
-                                    }}%</span>
+                                }}%</span>
                             </div>
                         </td>
 
@@ -174,16 +190,20 @@
 </template>
 
 <script setup>
-import { onMounted } from "vue";
+import { defineProps, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
+import { useAlertStore } from "../../../../store/alertStore.js";
 import { useAttendanceStore } from "../../../../store/attendanceStore.js";
 
 const route = useRoute();
 const store = useAttendanceStore();
+const alert = useAlertStore();
 
 const props = defineProps({
     programId: { type: String, required: true }
 });
+
+const isExporting = ref(false);
 
 // Timer stays local to prevent memory leaks!
 let searchTimeout = null;
@@ -191,6 +211,43 @@ let searchTimeout = null;
 // Core fetch function
 const loadData = () => {
     store.fetchAttendances(props.programId);
+};
+
+// Export Attendance Matrix (all sessions for all trainees)
+const exportAttendanceData = async () => {
+    if (!props.programId) return;
+    isExporting.value = true;
+    try {
+        const res = await store.exportAttendance(props.programId);
+        if (res.success) {
+            const blob = new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+
+            let filename = `training-attendance-${props.programId}-${new Date().toISOString().slice(0, 10)}.xlsx`;
+            const disposition = res.headers?.['content-disposition'];
+            if (disposition && disposition.includes('filename=')) {
+                const match = disposition.match(/filename="?([^";]+)"?/);
+                if (match && match[1]) filename = match[1];
+            }
+
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            alert.success("Attendance sheet exported successfully.");
+        } else {
+            alert.error(res.message || "Failed to export attendance.");
+        }
+    } catch (e) {
+        console.error("Export error:", e);
+        alert.error("Error exporting attendance.");
+    } finally {
+        isExporting.value = false;
+    }
 };
 
 // Handlers directly mutate the store state

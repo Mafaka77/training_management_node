@@ -171,6 +171,7 @@ router.delete('/location/:id', authenticate, authorizeRoles('Admin', 'Director')
 router.post('/session/attendance', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), require('../controllers/admin/admin_attendance_controller').markAttendance)
 router.get('/session/:sessionId/attendance', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), require('../controllers/admin/admin_attendance_controller').getSessionAttendance)
 router.get('/training/:programId/attendance', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), require('../controllers/admin/admin_attendance_controller').getFullAttendance)
+router.get('/training/:programId/attendance/export', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), require('../controllers/admin/admin_attendance_controller').exportProgramAttendance)
 router.get('/trainee/:traineeId/attendance', authenticate, authorizeRoles('Admin', 'Director', 'Course Director'), upload.none(), require('../controllers/admin/admin_attendance_controller').getTraineeAttendanceDetails)
 
 //-----------------------------------

@@ -310,7 +310,7 @@
                         </button>
                     </div>
 
-                    <!-- Expand / Collapse All & Bulk Mark -->
+                    <!-- Expand / Collapse All & Bulk Mark Actions -->
                     <div class="flex items-center gap-2">
                         <button @click="toggleAllDates"
                             class="px-3 py-1.5 text-xs font-semibold text-zinc-600 dark:text-zinc-300 bg-zinc-100 dark:bg-white/5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded-xl transition-all cursor-pointer">
@@ -321,7 +321,7 @@
                         <button @click="markAllPresent" :disabled="isBulkProcessing || stats?.absentCount === 0"
                             class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-xs transition-all active:scale-95 cursor-pointer"
                             title="Mark all sessions for this trainee as Present">
-                            <span v-if="isBulkProcessing"
+                            <span v-if="isBulkProcessing && bulkActionType === 'present'"
                                 class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
                             <svg v-else class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                 stroke-width="2">
@@ -329,6 +329,19 @@
                                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             <span>Mark All Present</span>
+                        </button>
+
+                        <!-- Bulk Mark All Absent Button -->
+                        <button @click="markAllAbsent" :disabled="isBulkProcessing || stats?.presentCount === 0"
+                            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-xs transition-all active:scale-95 cursor-pointer"
+                            title="Revert all present sessions for this trainee to Absent">
+                            <span v-if="isBulkProcessing && bulkActionType === 'absent'"
+                                class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                            <svg v-else class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            <span>Mark All Absent</span>
                         </button>
                     </div>
                 </div>
@@ -550,6 +563,7 @@ const searchQuery = ref('');
 const filterStatus = ref('all');
 const activeLoadingSessionId = ref(null);
 const isBulkProcessing = ref(false);
+const bulkActionType = ref(null);
 
 const traineeName = computed(() => {
     return traineeAttendance.value?.traineeName?.full_name || 'Trainee';
@@ -704,6 +718,7 @@ const markAllPresent = async () => {
     }
 
     isBulkProcessing.value = true;
+    bulkActionType.value = 'present';
     let successCount = 0;
 
     try {
@@ -728,6 +743,48 @@ const markAllPresent = async () => {
         alertStore.error(error.message || 'Error during bulk attendance marking');
     } finally {
         isBulkProcessing.value = false;
+        bulkActionType.value = null;
+    }
+};
+
+// Bulk mark all present sessions as Absent (revert attendance)
+const markAllAbsent = async () => {
+    const records = traineeAttendance.value?.records;
+    if (!records || !Array.isArray(records)) return;
+
+    const presentSessions = records.filter(r => r.status === 'Present');
+    if (presentSessions.length === 0) {
+        alertStore.info('No sessions are currently marked Present.');
+        return;
+    }
+
+    isBulkProcessing.value = true;
+    bulkActionType.value = 'absent';
+    let successCount = 0;
+
+    try {
+        for (const session of presentSessions) {
+            const formData = new FormData();
+            formData.append('sessionId', session.sessionId);
+            formData.append('userId', route.params.traineeId);
+            if (traineeAttendance.value?.enrollmentId) {
+                formData.append('enrollmentId', traineeAttendance.value.enrollmentId);
+            }
+            formData.append('status', 'Absent');
+
+            const res = await attendanceStore.markAttendance(formData);
+            if (res && res.success) {
+                successCount++;
+            }
+        }
+
+        await attendanceStore.fetchTraineeAttendance(route.params.traineeId, route.params.id);
+        alertStore.success(`Successfully reverted ${successCount} session(s) to Absent.`);
+    } catch (error) {
+        alertStore.error(error.message || 'Error during bulk attendance reverting');
+    } finally {
+        isBulkProcessing.value = false;
+        bulkActionType.value = null;
     }
 };
 
