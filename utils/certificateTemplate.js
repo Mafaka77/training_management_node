@@ -28,6 +28,20 @@ const getBase64Image = (imagePath) => {
     }
 };
 
+const getBase64Font = (fontPath) => {
+    try {
+        const fullPath = path.join(process.cwd(), fontPath);
+        if (!fs.existsSync(fullPath)) return '';
+        const ext = path.extname(fullPath).substring(1);
+        const mimeType = ext === 'woff2' ? 'font/woff2' : ext === 'woff' ? 'font/woff' : 'font/truetype';
+        const data = fs.readFileSync(fullPath, 'base64');
+        return `data:${mimeType};base64,${data}`;
+    } catch (e) {
+        console.error("Error reading font:", e);
+        return '';
+    }
+};
+
 exports.generateCertificateHtml = (trainee, program, director, qrCodeDataUrl, options) => {
     const {
         baseFont = "'Times New Roman', serif",
@@ -48,6 +62,9 @@ exports.generateCertificateHtml = (trainee, program, director, qrCodeDataUrl, op
     const landscapeBgBase64 = getBase64Image('frontend/src/assets/Green and Gold Corporate Recognition Certificate.png');
     const nationalEmblemBase64 = getBase64Image('frontend/src/assets/National-Emblem.png');
     const portraitBgBase64 = getBase64Image('frontend/src/assets/Green and Yellow Modern School Portrait Certificate.png');
+    const cinzelFontBase64 = getBase64Font('frontend/src/assets/fonts/Cinzel.woff2');
+    const playfairFontBase64 = getBase64Font('frontend/src/assets/fonts/PlayfairDisplay.woff2');
+    const greatVibesFontBase64 = getBase64Font('frontend/src/assets/fonts/GreatVibes.woff2');
 
     const contentPortrait = `
         <div class="relative z-20 w-full h-full flex flex-col items-center justify-start text-center bg-[#fefefe] overflow-hidden" style="font-family: ${baseFont}">
@@ -86,7 +103,7 @@ exports.generateCertificateHtml = (trainee, program, director, qrCodeDataUrl, op
                     </p>
                     
                     <!-- Trainee Name -->
-                    <h2 class="text-[42px] text-[#cca352] mb-1 px-8 leading-none" style="font-family: 'Cinzel', cursive; text-shadow: 1px 1px 2px rgba(0,0,0,0.05);">
+                    <h2 class="text-[54px] font-normal text-[#cca352] mb-1 px-8 leading-none" style="font-family: 'Great Vibes', cursive; font-weight: 400; font-synthesis: none; -webkit-font-smoothing: antialiased;">
                         ${trainee?.full_name || 'Trainee Name'}
                     </h2>
                     
@@ -195,7 +212,7 @@ exports.generateCertificateHtml = (trainee, program, director, qrCodeDataUrl, op
                     </p>
                     
                     <!-- Trainee Name -->
-                    <h2 class="text-[42px] text-[#cca352] mb-1 px-12 leading-none" style="font-family: 'Cinzel', cursive; text-shadow: 1px 1px 2px rgba(0,0,0,0.05);">
+                    <h2 class="text-[48px] font-normal text-[#cca352] mb-1 px-12 leading-none" style="font-family: 'Great Vibes', cursive; font-weight: 400; font-synthesis: none; -webkit-font-smoothing: antialiased;">
                         ${trainee?.full_name || 'Trainee Name'}
                     </h2>
                     
@@ -259,8 +276,35 @@ exports.generateCertificateHtml = (trainee, program, director, qrCodeDataUrl, op
         <head>
             <meta charset="UTF-8">
             <script src="https://cdn.tailwindcss.com"></script>
-            <link href="https://fonts.googleapis.com/css2?family=Pinyon+Script&family=Satisfy&family=Great+Vibes&family=Playfair+Display&family=Montserrat&display=swap" rel="stylesheet">
+            <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Pinyon+Script&family=Satisfy&family=Great+Vibes&family=Playfair+Display&family=Montserrat&display=swap" rel="stylesheet">
             <style>
+                ${cinzelFontBase64 ? `
+                @font-face {
+                    font-family: 'Cinzel';
+                    font-style: normal;
+                    font-weight: 400 900;
+                    font-display: block;
+                    src: url('${cinzelFontBase64}') format('woff2');
+                }
+                ` : ''}
+                ${playfairFontBase64 ? `
+                @font-face {
+                    font-family: 'Playfair Display';
+                    font-style: normal;
+                    font-weight: 400 900;
+                    font-display: block;
+                    src: url('${playfairFontBase64}') format('woff2');
+                }
+                ` : ''}
+                ${greatVibesFontBase64 ? `
+                @font-face {
+                    font-family: 'Great Vibes';
+                    font-style: normal;
+                    font-weight: 100 900;
+                    font-display: block;
+                    src: url('${greatVibesFontBase64}') format('woff2');
+                }
+                ` : ''}
                 @page { size: ${isPortrait ? 'A4 portrait' : 'A4 landscape'}; margin: 0; }
                 body { 
                     margin: 0; 

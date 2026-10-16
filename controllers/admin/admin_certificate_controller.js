@@ -128,7 +128,7 @@ exports.generateAndStoreCertificate = async (req, res) => {
             <head>
                 <meta charset="UTF-8">
                 <script src="https://cdn.tailwindcss.com"></script>
-                <link href="https://fonts.googleapis.com/css2?family=Pinyon+Script&family=Satisfy&family=Great+Vibes&family=Playfair+Display&family=Montserrat&display=swap" rel="stylesheet">
+                <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Pinyon+Script&family=Satisfy&family=Great+Vibes&family=Playfair+Display&family=Montserrat&display=swap" rel="stylesheet">
                 <style>
                     /* Prevent blank pages and force exact dimensions */
                     @page { size: ${isPortrait ? 'A4 portrait' : 'A4 landscape'}; margin: 0; }
@@ -167,6 +167,7 @@ exports.generateAndStoreCertificate = async (req, res) => {
 
         // Load the HTML and wait for images/fonts to finish loading
         await page.setContent(fullHtmlContent, { waitUntil: 'networkidle0' });
+        await page.evaluateHandle('document.fonts.ready');
 
         // Print exactly what was on the user's screen
         await page.pdf({

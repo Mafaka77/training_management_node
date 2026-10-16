@@ -65,6 +65,7 @@
                 <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Decorative Font</label>
                 <select v-model="cursiveFont"
                     class="text-sm font-semibold border border-gray-200 rounded-lg focus:ring-blue-500 py-2 px-3 bg-white outline-none hover:bg-gray-50 transition-colors cursor-pointer">
+                    <option value="'Cinzel', serif">Cinzel</option>
                     <option value="'Satisfy', cursive">Satisfy</option>
                     <option value="'Pinyon Script', cursive">Pinyon Script</option>
                     <option value="'Great Vibes', cursive">Great Vibes</option>
@@ -486,7 +487,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Pinyon+Script&family=Satisfy&family=Great+Vibes&family=Montserrat:wght@400;600;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Pinyon+Script&family=Satisfy&family=Great+Vibes&family=Montserrat:wght@400;600;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
 
 .editable-text {
     border-radius: 4px;

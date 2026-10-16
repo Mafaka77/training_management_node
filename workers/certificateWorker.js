@@ -61,6 +61,7 @@ const processCertificate = async (job) => {
         });
         const page = await browser.newPage();
         await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+        await page.evaluateHandle('document.fonts.ready');
         await page.pdf({
             path: filePath,
             format: 'A4',

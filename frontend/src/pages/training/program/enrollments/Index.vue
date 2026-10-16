@@ -345,7 +345,7 @@ const exportApproved = async () => {
     const headers = [
       'Full Name',
       'Email',
-      'Mobile (Last 4 Digits)',
+      'Mobile',
       'District',
       'Office',
       'Group',
@@ -374,12 +374,6 @@ const exportApproved = async () => {
       return isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-GB');
     };
 
-    const getLast4Mobile = (mobile) => {
-      if (!mobile) return '';
-      const str = String(mobile).trim();
-      return str.length > 4 ? str.slice(-4) : str;
-    };
-
     const getDistrictName = (district) => {
       if (!district) return '';
       if (typeof district === 'object') return district.name || '';
@@ -397,7 +391,7 @@ const exportApproved = async () => {
       ...rows.map(item => [
         escape(item.user?.full_name),
         escape(item.user?.email),
-        escape(getLast4Mobile(item.user?.mobile || item.user?.phone)),
+        escape(item.user?.mobile || item.user?.phone),
         escape(getDistrictName(item.user?.district)),
         escape(item.user?.department),
         escape(getGroupName(item.user?.group)),
