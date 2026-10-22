@@ -165,7 +165,7 @@
                             <div class="flex justify-between font-bold mb-3 text-sm">
                                 <p contenteditable="true" spellcheck="false">Memo No. A.33029/2/2024-ATI :</p>
                                 <p contenteditable="true" spellcheck="false">Dated Aizawl, the {{ currentFormattedDate
-                                }}</p>
+                                    }}</p>
                             </div>
                             <div class="space-y-1 pl-4">
                                 <p class="font-bold italic" contenteditable="true" spellcheck="false">Copy to:-</p>
@@ -173,9 +173,9 @@
                                     <li v-for="(recipient, index) in copyToRecipients" :key="index"
                                         class="flex items-start gap-2">
                                         <span class="min-w-[20px] font-bold" contenteditable="true">{{ index + 1
-                                        }}.</span>
+                                            }}.</span>
                                         <span contenteditable="true" spellcheck="false">{{ recipient.designation
-                                        }}</span>
+                                            }}</span>
                                     </li>
                                 </ol>
                             </div>
@@ -229,29 +229,35 @@
                         <table :class="['w-full border-collapse border-[1.5px] border-[#000000]', tableFontSize]">
                             <thead>
                                 <tr class="bg-[#f3f4f6] font-bold uppercase text-[9px] h-7">
-                                    <th class="border border-[#000000] py-1 px-1.5 w-12 text-center" contenteditable="true">Sl.
+                                    <th class="border border-[#000000] py-1 px-1.5 w-12 text-center"
+                                        contenteditable="true">Sl.
                                         No</th>
-                                    <th class="border border-[#000000] py-1 px-2 text-left font-serif" contenteditable="true">
+                                    <th class="border border-[#000000] py-1 px-2 text-left font-serif"
+                                        contenteditable="true">
                                         Full Name</th>
                                     <th class="border border-[#000000] py-1 px-2 w-48 text-left font-serif"
                                         contenteditable="true">Designation</th>
-                                    <th class="border border-[#000000] py-1 px-2 text-left font-serif" contenteditable="true">
+                                    <th class="border border-[#000000] py-1 px-2 text-left font-serif"
+                                        contenteditable="true">
                                         Department</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr v-for="(trainee, rowIndex) in page.rows" :key="rowIndex" class="h-6">
-                                    <td class="border border-[#000000] py-0.5 px-1.5 text-center font-medium" contenteditable="true">
+                                    <td class="border border-[#000000] py-0.5 px-1.5 text-center font-medium"
+                                        contenteditable="true">
                                         {{ page.startIndex + rowIndex + 1 }}
                                     </td>
-                                    <td class="border border-[#000000] py-0.5 px-2 font-bold leading-tight" contenteditable="true"
-                                        spellcheck="false">
+                                    <td class="border border-[#000000] py-0.5 px-2 font-bold leading-tight"
+                                        contenteditable="true" spellcheck="false">
                                         {{ trainee?.user?.full_name || '' }}
                                     </td>
-                                    <td class="border border-[#000000] py-0.5 px-2 leading-tight" contenteditable="true" spellcheck="false">
+                                    <td class="border border-[#000000] py-0.5 px-2 leading-tight" contenteditable="true"
+                                        spellcheck="false">
                                         {{ trainee?.user?.designation || '' }}
                                     </td>
-                                    <td class="border border-[#000000] py-0.5 px-2 leading-tight" contenteditable="true" spellcheck="false">
+                                    <td class="border border-[#000000] py-0.5 px-2 leading-tight" contenteditable="true"
+                                        spellcheck="false">
                                         {{ trainee?.user?.department || '' }}
                                     </td>
                                 </tr>
@@ -284,7 +290,7 @@ const alert = useAlertStore();
 const store = useCertificateStore();
 const { training, users, isLoading } = storeToRefs(store);
 const isSaving = ref(false);
-const tableFontSize = ref('text-[10px]');
+const tableFontSize = ref('text-[14px]');
 const route = useRoute();
 const router = useRouter();
 
