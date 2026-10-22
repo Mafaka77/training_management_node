@@ -19,7 +19,7 @@ export const useCertificateStore = defineStore('certificate', {
         selectedTemplate: '',
         director: {},
         currentPage: 1,
-        itemsPerPage: 5,
+        itemsPerPage: 10,
         sortKey: 'createdAt',
         sortOrder: 'desc',
         totalItems: 0,
@@ -229,6 +229,7 @@ export const useCertificateStore = defineStore('certificate', {
         // Helper to reset filters when opening a different training program
         resetQueryState() {
             this.currentPage = 1;
+            this.itemsPerPage = 10;
             this.sortKey = 'createdAt';
             this.sortOrder = 'desc';
         },

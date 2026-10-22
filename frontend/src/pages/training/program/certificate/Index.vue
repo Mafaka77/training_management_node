@@ -48,7 +48,7 @@
 
     <!-- Skeleton Loading State -->
     <div v-if="store.isCertificateLoading" class="space-y-3">
-      <div v-for="i in (store.itemsPerPage || 5)" :key="i"
+      <div v-for="i in (store.itemsPerPage || 10)" :key="i"
         class="bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-white/10 rounded-2xl p-4 flex items-center justify-between animate-pulse">
         <div class="flex items-center gap-4">
           <div class="w-10 h-10 rounded-xl bg-zinc-200 dark:bg-zinc-800"></div>
@@ -437,6 +437,7 @@ const handleBatchGenerate = async () => {
 };
 
 onMounted(() => {
+  store.itemsPerPage = 10;
   if (targetTrainingId.value) {
     if (store.currentTrainingId !== targetTrainingId.value) {
       store.resetQueryState();

@@ -221,7 +221,7 @@ exports.fetchCertificates = async (req, res) => {
 
     // 1. Extract query parameters with defaults
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 5;
+    const limit = parseInt(req.query.limit) || 10;
     const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
 
     // 2. Map frontend sort keys to database fields
