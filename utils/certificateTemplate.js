@@ -114,7 +114,7 @@ exports.generateCertificateHtml = (trainee, program, director, qrCodeDataUrl, op
                     <p class="text-[15px] font-bold text-[#7a141c] mb-4 uppercase tracking-wider">
                         ${trainee?.designation || 'Designation'}
                     </p>
-                    <p class="text-[15px] font-bold text-[#7a141c] mb-4 uppercase tracking-wider">
+                    <p class="text-[11px] font-bold text-[#7a141c] mb-4 uppercase tracking-wider">
                         ${trainee?.department || 'Department'}
                     </p>
                     <!-- Body Text -->
@@ -136,7 +136,7 @@ exports.generateCertificateHtml = (trainee, program, director, qrCodeDataUrl, op
                     <div class="flex flex-col items-center w-[30%] mt-10">
                         ${tDirectorSig ? `<img src="${tDirectorSig}" class="w-36 h-16 object-contain relative z-50 mb-1" />` : '<div class="h-16 mb-1"></div>'}
                         <div class="w-full border-t-[1.5px] border-[#cca352] pt-2 text-center">
-                            <p class="font-bold text-[10px] text-black tracking-widest uppercase">${program?.t_director?.full_name || 'Course Director Name'}</p>
+                            <p class="font-bold text-[8px] text-black tracking-widest uppercase">${program?.t_director?.full_name || 'Course Director Name'}</p>
                             ${program?.t_director?.designation ? `<p class="font-bold text-[8px] text-gray-700 uppercase tracking-widest mt-0.5">${program?.t_director?.designation} & Course Director</p>` : ''}
                             <p class="text-[8px] font-bold text-[#7a141c] mt-1 uppercase tracking-wider">Administrative Training Institute</p>
                         </div>
@@ -149,7 +149,7 @@ exports.generateCertificateHtml = (trainee, program, director, qrCodeDataUrl, op
                     <div class="flex flex-col items-center w-[30%] mt-10">
                         ${directorSig ? `<img src="${directorSig}" class="w-36 h-16 object-contain relative z-50 mb-1" />` : '<div class="h-16 mb-1"></div>'}
                         <div class="w-full border-t-[1.5px] border-[#cca352] pt-2 text-center">
-                            <p class="font-bold text-[10px] text-black tracking-widest uppercase">${director?.full_name || 'Director Name'}</p>
+                            <p class="font-bold text-[8px] text-black tracking-widest uppercase">${director?.full_name || 'Director Name'}</p>
                             <p class="text-[8px] font-bold text-black mt-1 uppercase tracking-wider">Director</p>
                             <p class="text-[8px] font-bold text-[#7a141c] mt-1 uppercase tracking-wider">Administrative Training Institute</p>
                         </div>

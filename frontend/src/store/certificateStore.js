@@ -263,6 +263,21 @@ export const useCertificateStore = defineStore('certificate', {
                 this.isCertificateLoading = false;
             }
         },
+        async deleteAllCertificates(trainingId) {
+            this.isCertificateLoading = true;
+            try {
+                const response = await api.delete(`/certificates/${trainingId}`);
+                if (response.status === 200 && response.data.status === 200) {
+                    return { success: true, message: response.data.message };
+                }
+                return { success: false, message: response.data.message };
+            } catch (ex) {
+                return { success: false, message: ex.response?.data?.message || 'Failed to delete certificates' };
+            }
+            finally {
+                this.isCertificateLoading = false;
+            }
+        },
 
 
     },

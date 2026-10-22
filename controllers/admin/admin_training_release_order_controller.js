@@ -101,9 +101,17 @@ exports.generateAndStoreReleaseOrder = async (req, res) => {
                         font-family: 'Times New Roman', Times, serif;
                         background-color: white;
                     }
-                    /* Ensure the Annexure gets pushed to the second page */
-                    section { page-break-after: always; }
-                    section:last-child { page-break-after: auto; }
+                    /* Ensure proper page breaking and no spillover */
+                    section { 
+                        page-break-after: always; 
+                        break-after: page; 
+                        margin-bottom: 0 !important; 
+                        box-shadow: none !important; 
+                    }
+                    section:last-child { 
+                        page-break-after: auto; 
+                        break-after: auto; 
+                    }
                 </style>
             </head>
             <body>

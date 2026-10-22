@@ -92,6 +92,19 @@
                     </svg>
                 </button>
             </div>
+
+            <div class="pt-2 border-t border-zinc-100 flex flex-col gap-1">
+                <label class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest text-center">
+                    Table Font Size
+                </label>
+                <select v-model="tableFontSize"
+                    class="w-full text-xs p-2 border border-zinc-200 rounded-lg outline-none focus:border-indigo-500 bg-zinc-50">
+                    <option value="text-[9px]">9px (Smallest)</option>
+                    <option value="text-[10px]">10px (Recommended)</option>
+                    <option value="text-[11px]">11px (Medium)</option>
+                    <option value="text-xs">12px (Original)</option>
+                </select>
+            </div>
         </div>
 
         <div id="release-order-document" class="w-[210mm] print:w-[210mm]">
@@ -188,17 +201,17 @@
 
                 <template v-for="(page, pageIndex) in tablePages" :key="'page-' + pageIndex">
                     <section
-                        class="relative bg-white shadow-2xl print:shadow-none p-[25mm] w-[210mm] h-[296mm] flex flex-col mb-10 print:mb-0 page-break">
+                        class="relative bg-white shadow-2xl print:shadow-none px-[20mm] py-[16mm] w-[210mm] h-[296mm] flex flex-col mb-10 print:mb-0 page-break">
 
-                        <div v-if="page.isFirst" class="text-center mb-6">
-                            <h2 class="text-lg font-bold underline decoration-2 underline-offset-4 uppercase tracking-widest"
+                        <div v-if="page.isFirst" class="text-center mb-3">
+                            <h2 class="text-base font-bold underline decoration-2 underline-offset-4 uppercase tracking-widest"
                                 contenteditable="true" spellcheck="false">
                                 Annexure
                             </h2>
-                            <div class="mt-4 space-y-1 uppercase text-[#52525b] text-xs font-sans">
+                            <div class="mt-2 space-y-0.5 uppercase text-[#52525b] text-[11px] font-sans">
                                 <p class="font-bold text-black font-serif" contenteditable="true" spellcheck="false">
                                     List of Officials who Attended the Training on:</p>
-                                <p class="text-sm font-bold italic text-[#27272a] font-serif" contenteditable="true"
+                                <p class="text-xs font-bold italic text-[#27272a] font-serif" contenteditable="true"
                                     spellcheck="false">"{{ training?.t_name }}"</p>
                                 <p contenteditable="true" spellcheck="false">Period: {{
                                     formatDate(training?.t_start_date) }} to {{
@@ -206,39 +219,39 @@
                             </div>
                         </div>
 
-                        <div v-else class="text-center mb-4">
-                            <h2 class="text-sm font-bold uppercase tracking-widest text-[#52525b] font-sans"
+                        <div v-else class="text-center mb-2.5">
+                            <h2 class="text-xs font-bold uppercase tracking-widest text-[#52525b] font-sans"
                                 contenteditable="true" spellcheck="false">
                                 Annexure (Continued) - Page {{ pageIndex + 1 }}
                             </h2>
                         </div>
 
-                        <table class="w-full border-collapse border-[1.5px] border-[#000000] text-xs">
+                        <table :class="['w-full border-collapse border-[1.5px] border-[#000000]', tableFontSize]">
                             <thead>
-                                <tr class="bg-[#f3f4f6] font-bold uppercase text-[10px] h-8">
-                                    <th class="border border-[#000000] p-2 w-12 text-center" contenteditable="true">Sl.
+                                <tr class="bg-[#f3f4f6] font-bold uppercase text-[9px] h-7">
+                                    <th class="border border-[#000000] py-1 px-1.5 w-12 text-center" contenteditable="true">Sl.
                                         No</th>
-                                    <th class="border border-[#000000] p-3 text-left font-serif" contenteditable="true">
+                                    <th class="border border-[#000000] py-1 px-2 text-left font-serif" contenteditable="true">
                                         Full Name</th>
-                                    <th class="border border-[#000000] p-3 w-40 text-left font-serif"
+                                    <th class="border border-[#000000] py-1 px-2 w-48 text-left font-serif"
                                         contenteditable="true">Designation</th>
-                                    <th class="border border-[#000000] p-3 text-left font-serif" contenteditable="true">
+                                    <th class="border border-[#000000] py-1 px-2 text-left font-serif" contenteditable="true">
                                         Department</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="(trainee, rowIndex) in page.rows" :key="rowIndex" class="h-8">
-                                    <td class="border border-[#000000] p-2 text-center" contenteditable="true">
+                                <tr v-for="(trainee, rowIndex) in page.rows" :key="rowIndex" class="h-6">
+                                    <td class="border border-[#000000] py-0.5 px-1.5 text-center font-medium" contenteditable="true">
                                         {{ page.startIndex + rowIndex + 1 }}
                                     </td>
-                                    <td class="border border-[#000000] px-3 font-bold" contenteditable="true"
+                                    <td class="border border-[#000000] py-0.5 px-2 font-bold leading-tight" contenteditable="true"
                                         spellcheck="false">
                                         {{ trainee?.user?.full_name || '' }}
                                     </td>
-                                    <td class="border border-[#000000] px-3" contenteditable="true" spellcheck="false">
+                                    <td class="border border-[#000000] py-0.5 px-2 leading-tight" contenteditable="true" spellcheck="false">
                                         {{ trainee?.user?.designation || '' }}
                                     </td>
-                                    <td class="border border-[#000000] px-3" contenteditable="true" spellcheck="false">
+                                    <td class="border border-[#000000] py-0.5 px-2 leading-tight" contenteditable="true" spellcheck="false">
                                         {{ trainee?.user?.department || '' }}
                                     </td>
                                 </tr>
@@ -271,6 +284,7 @@ const alert = useAlertStore();
 const store = useCertificateStore();
 const { training, users, isLoading } = storeToRefs(store);
 const isSaving = ref(false);
+const tableFontSize = ref('text-[10px]');
 const route = useRoute();
 const router = useRouter();
 
@@ -420,6 +434,14 @@ const saveReleaseOrder = async () => {
         editableNodes.forEach(node => {
             node.removeAttribute('contenteditable');
             node.removeAttribute('spellcheck');
+        });
+
+        // Remove preview-only margins and shadows so pages fit cleanly in A4 PDF
+        const sections = clonedElement.querySelectorAll('section');
+        sections.forEach(sec => {
+            sec.classList.remove('mb-10', 'shadow-2xl', 'shadow-1xl');
+            sec.style.marginBottom = '0px';
+            sec.style.boxShadow = 'none';
         });
 
         const finalHtmlString = clonedElement.outerHTML;

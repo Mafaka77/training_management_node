@@ -444,6 +444,52 @@ exports.deleteCertificate = async (req, res) => {
     }
 }
 
+exports.deleteAllCertificates = async (req, res) => {
+    const { trainingId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(trainingId)) {
+        return res.status(STATUS.OK).json({
+            status: STATUS.BAD_REQUEST,
+            message: "Invalid Training ID format"
+        });
+    }
+
+    try {
+        const certificates = await Certificate.find({ training_program: trainingId });
+        if (!certificates || certificates.length === 0) {
+            return res.status(STATUS.OK).json({
+                status: STATUS.NOT_FOUND,
+                message: "No certificates found to delete"
+            });
+        }
+
+        for (const cert of certificates) {
+            if (cert.certificate_url) {
+                const filePath = path.join(__dirname, "../../", cert.certificate_url);
+                try {
+                    await fs.promises.unlink(filePath);
+                } catch (err) {
+                    console.error("File deletion error (disk):", err.message);
+                }
+            }
+        }
+
+        const result = await Certificate.deleteMany({ training_program: trainingId });
+
+        return res.status(STATUS.OK).json({
+            status: STATUS.OK,
+            message: `Successfully deleted ${result.deletedCount} certificate(s).`
+        });
+    } catch (ex) {
+        console.error("Delete All Certificates Error:", ex);
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            status: STATUS.INTERNAL_SERVER_ERROR,
+            message: ex.message
+        });
+    }
+}
+
+
 exports.batchGenerateCertificates = async (req, res) => {
     const { trainingId } = req.params;
     const { options } = req.body;
